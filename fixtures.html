@@ -54,28 +54,28 @@
 
     .nav-buttons a:hover { background: #163aa3; }
 
-    /* ===== WIN / DRAW / LOSS BOXES ===== */
-    .result-boxes{
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:12px;
-    }
+ /* ===== WIN / DRAW / LOSS BOXES ===== */
+.result-boxes {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
 
-     .result-total {
-     background: #000;
-     color: #fff;
-     padding: 8px 12px;
-     border-radius: 6px;
-     font-weight: bold;
-     font-size: 20px;
-     display: inline-block;
-    }
+/* Base box style */
+.result-box {
+  background: #000;      /* ✅ black */
+  color: #fff;           /* ✅ white text */
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 20px;
+  display: inline-block;
+}
 
-    .result-box.win{ border:2px solid #1e8449; }   /* green outline */
-    .result-box.draw{ border:2px solid #f1c40f; }  /* amber outline */
-    .result-box.loss{ border:2px solid #c0392b; }  /* red outline */
+/* Coloured outlines */
+.result-box.win  { border: 2px solid #1e8449; }  /* green */
+.result-box.draw { border: 2px solid #f1c40f; }  /* amber */
+.result-box.loss { border: 2px solid #c0392b; }  /* red */
 
     /* ===== MAIN ===== */
     main {
