@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Match Results</title>
 
   <style>
@@ -124,7 +123,7 @@
       font-weight: bold;
     }
 
-    /* Position #1 – standout highlight (added via JS class) */
+    /* Position #1 – standout highlight */
     .table-wrap td.pos-1 {
       background: #1eaa52;
       color: #fff;
@@ -167,10 +166,11 @@
   <div class="header-top">
     <h1>Match Results</h1>
     <div class="logo">
-      <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
+      <img src="Semington A Logo 5.jpg" alt="Semington A Logo" />
     </div>
   </div>
 
+  <!-- TEST SITE links (relative). For MAIN site, you can change these later. -->
   <div class="nav-buttons">
     <a href="index.html">Home</a>
     <a href="fixtures.html">Fixtures &amp; Results</a>
@@ -215,7 +215,7 @@
 <footer>
   © Semington A Skittles Team
   <div class="footer-logo">
-    <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
+    <img src="Semington A Logo 5.jpg" alt="Semington A Logo" />
   </div>
 </footer>
 
@@ -236,17 +236,78 @@
   }
   function pound(v) {
     const t = hz(v);
-    return t ? ("£" + t) : "";
+    return t ? ("£" + t.replace(/\.0+$/, "")) : "";
   }
   function isLeague(details) { return /league/i.test(details || ""); }
+
+  // dd/mm/yyyy at start of Match ID
   function dateFromMatchId(id) {
     const m = String(id || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (!m) return null;
     return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
   }
+
   function parseCSV(text) {
-    // Simple CSV parsing (matches your existing file style)
+    // Your CSV is simple (comma-separated, no quoted commas used)
     return text.replace(/^\uFEFF/, "").trim().split(/\r?\n/).map(line => line.split(","));
+  }
+
+  // Stable sort by avg ONLY (desc), A N Other always last
+  function sortByAvgOnlyStable(list) {
+    const copy = list.map((item, idx) => ({ item, idx }));
+    copy.sort((A, B) => {
+      const a = A.item, b = B.item;
+
+      if (a.player === "A N Other") return 1;
+      if (b.player === "A N Other") return -1;
+
+      const aA = toNum(a.avg);
+      const bA = toNum(b.avg);
+      const aHas = Number.isFinite(aA);
+      const bHas = Number.isFinite(bA);
+
+      if (aHas && bHas && bA !== aA) return bA - aA;
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+
+      return A.idx - B.idx; // stable
+    });
+    return copy.map(x => x.item);
+  }
+
+  // Running league avg snapshots up to each match (for Away/absent players)
+  function buildLeagueSnapshots(matchIds, matchRows) {
+    const snapshots = {};
+    const leagueStats = {}; // player -> {games,total}
+
+    // walk oldest -> newest (matchIds is newest-first, so go backwards)
+    for (let mi = matchIds.length - 1; mi >= 0; mi--) {
+      const mid = matchIds[mi];
+      const raw = matchRows[mid] || [];
+
+      for (let r = 0; r < raw.length; r++) {
+        const row = raw[r];
+        if (!isLeague(row.details)) continue;
+
+        const sc = toNum(row.score);
+        if (!Number.isFinite(sc)) continue;
+
+        if (!leagueStats[row.player]) leagueStats[row.player] = { games: 0, total: 0 };
+        leagueStats[row.player].games += 1;
+        leagueStats[row.player].total += sc;
+      }
+
+      const snap = {};
+      for (const p in leagueStats) {
+        const st = leagueStats[p];
+        snap[p] = st.games ? (st.total / st.games).toFixed(3).replace(/\.?0+$/, "") : "";
+      }
+
+      if (snap["A N Other"] === undefined) snap["A N Other"] = "";
+      snapshots[mid] = snap;
+    }
+
+    return snapshots;
   }
 
   function rowHtml(r) {
@@ -254,7 +315,7 @@
     if (r.absent) scoreCell = (r.player === "A N Other") ? "" : "Away";
 
     const scoreTdClass = (scoreCell === "Away") ? ' class="away-total"' : "";
-    const posClass = (String(r.position || "") === "1") ? ' class="pos-1"' : "";
+    const posTdClass   = (String(r.position || "") === "1") ? ' class="pos-1"' : "";
 
     return "<tr>" +
       "<td>" + (r.matchId || "") + "</td>" +
@@ -262,7 +323,7 @@
       "<td>" + (r.homeAway || "") + "</td>" +
       "<td>" + (r.player || "") + "</td>" +
       "<td" + scoreTdClass + ">" + scoreCell + "</td>" +
-      "<td" + posClass + ">" + (r.position || "") + "</td>" +
+      "<td" + posTdClass + ">" + (r.position || "") + "</td>" +
       "<td>" + hz(r.ducks) + "</td>" +
       "<td>" + hz(r.spares) + "</td>" +
       "<td>" + pound(r.legsWon) + "</td>" +
@@ -270,6 +331,8 @@
       "<td>" + (r.avg || "") + "</td>" +
     "</tr>";
   }
+
+  status.textContent = "Loading match results…";
 
   fetch("match_results.csv", { cache: "no-store" })
     .then(r => {
@@ -292,28 +355,32 @@
       const headers = grid[headerIndex].map(clean);
       const rows = grid.slice(headerIndex + 1);
 
-      // normalized data rows
+      // column helpers
+      function get(o, name) { return (o[name] || "").trim(); }
+
+      // normalize rows
       const data = [];
       for (let i = 0; i < rows.length; i++) {
         const o = {};
         for (let j = 0; j < headers.length; j++) o[headers[j]] = (rows[i][j] || "").trim();
-        if (!o["Match ID"] || !o["Team Player"]) continue;
+
+        if (!get(o, "Match ID") || !get(o, "Team Player")) continue;
 
         data.push({
-          matchId:  o["Match ID"],
-          details:  o["Match Details"],
-          homeAway: o["Home or Away"],
-          player:   o["Team Player"],
-          score:    o["Total Score"],
-          ducks:    o["Ducks"],
-          spares:   o["Spares"],
-          legsWon:  o["Legs Won"],
-          top:      o["Top Score"],
-          avg:      (o["League Averages"] || o["League Avg"] || "")
+          matchId:  get(o, "Match ID"),
+          details:  get(o, "Match Details"),
+          homeAway: get(o, "Home or Away"),
+          player:   get(o, "Team Player"),
+          score:    get(o, "Total Score"),
+          ducks:    get(o, "Ducks"),
+          spares:   get(o, "Spares"),
+          legsWon:  get(o, "Legs Won"),
+          top:      get(o, "Top Score"),
+          avg:      get(o, "League Averages") || get(o, "League Avg")
         });
       }
 
-      // roster (for per-match absent listing)
+      // roster (for absent expansion)
       const rosterMap = {};
       data.forEach(r => { if (r.player && r.player !== "Away") rosterMap[r.player] = true; });
       rosterMap["A N Other"] = true;
@@ -321,7 +388,7 @@
 
       // group by match
       const matchRows = {};
-      const byPlayer = {};
+      const byPlayer  = {};
       data.forEach(rr => {
         if (!matchRows[rr.matchId]) matchRows[rr.matchId] = [];
         matchRows[rr.matchId].push(rr);
@@ -340,7 +407,7 @@
         return db - da;
       });
 
-      // populate dropdown
+      // dropdown
       while (select.options.length > 1) select.remove(1);
       matchIds.forEach(id => {
         const opt = document.createElement("option");
@@ -349,52 +416,86 @@
         select.appendChild(opt);
       });
 
+      // snapshots for Away/absent avg
+      const snapshots = buildLeagueSnapshots(matchIds, matchRows);
+
       function render(matchId) {
         tbody.innerHTML = "";
 
-        // All matches view: just show recorded rows, no absent expansion, no position calc
+        // ===== ALL MATCHES view: sort each match by Avg desc, A N Other last
         if (!matchId) {
           let html = "";
           matchIds.forEach(id => {
-            const block = matchRows[id] || [];
-            block.forEach(x => html += rowHtml({ ...x, absent: false, position: "" }));
+            const raw = matchRows[id] || [];
+            const snap = snapshots[id] || {};
+
+            const block = raw.map(x => ({
+              matchId: x.matchId,
+              details: x.details,
+              homeAway: x.homeAway,
+              player: x.player,
+              score: x.score,
+              ducks: x.ducks,
+              spares: x.spares,
+              legsWon: x.legsWon,
+              top: x.top,
+              avg: (snap[x.player] || x.avg || ""),
+              absent: false,
+              position: ""
+            }));
+
+            const sortedBlock = sortByAvgOnlyStable(block);
+            sortedBlock.forEach(r => { html += rowHtml(r); });
           });
+
           tbody.innerHTML = html;
           status.textContent = "Loaded " + data.length + " rows. Matches: " + matchIds.length + ".";
           return;
         }
 
-        // Single match view: expand roster so absents show as Away
+        // ===== SINGLE MATCH view: expand roster, show avg for Away players, sort by avg
         const map = byPlayer[matchId];
         if (!map) return;
 
-        const raw = matchRows[matchId] || [];
-        const firstRow = raw[0] || { details: "", homeAway: "" };
+        const rawMatch = matchRows[matchId] || [];
+        const firstRow = rawMatch[0] || { details: "", homeAway: "" };
+        const snapForMatch = snapshots[matchId] || {};
 
-        const expanded = [];
-        roster.forEach(name => {
+        const expanded = roster.map(name => {
           const ex = map[name];
           if (ex) {
-            expanded.push({ ...ex, absent: false, position: "" });
-          } else {
-            expanded.push({
-              matchId: matchId,
-              details: firstRow.details,
-              homeAway: firstRow.homeAway,
-              player: name,
-              score: "",
-              ducks: "",
-              spares: "",
-              legsWon: "",
-              top: "",
-              avg: "",
-              absent: true,
+            return {
+              matchId: ex.matchId,
+              details: ex.details,
+              homeAway: ex.homeAway,
+              player: ex.player,
+              score: ex.score,
+              ducks: ex.ducks,
+              spares: ex.spares,
+              legsWon: ex.legsWon,
+              top: ex.top,
+              avg: (snapForMatch[name] || ex.avg || ""),
+              absent: false,
               position: ""
-            });
+            };
           }
+          return {
+            matchId: matchId,
+            details: firstRow.details,
+            homeAway: firstRow.homeAway,
+            player: name,
+            score: "",
+            ducks: "",
+            spares: "",
+            legsWon: "",
+            top: "",
+            avg: (snapForMatch[name] || ""),   // ✅ avg for Away/absent players
+            absent: true,
+            position: ""
+          };
         });
 
-        // positions ONLY for league matches
+        // positions ONLY for league matches (played rows only)
         if (isLeague(firstRow.details)) {
           const played = expanded
             .filter(r => r.player !== "A N Other" && !r.absent && Number.isFinite(toNum(r.score)) && toNum(r.score) > 0)
@@ -402,19 +503,18 @@
 
           played.forEach((r, idx) => { r.position = String(idx + 1); });
 
-          // ensure non-played/absent/A N Other have blank position
           expanded.forEach(r => {
             const sc = toNum(r.score);
             if (!(r.player !== "A N Other" && Number.isFinite(sc) && sc > 0)) r.position = "";
           });
         }
 
-        // render in roster order (stable)
+        const sortedExpanded = sortByAvgOnlyStable(expanded);
         let out = "";
-        expanded.forEach(r => out += rowHtml(r));
+        sortedExpanded.forEach(r => { out += rowHtml(r); });
         tbody.innerHTML = out;
 
-        status.textContent = "Loaded " + raw.length + " rows for " + matchId + ".";
+        status.textContent = "Loaded " + rawMatch.length + " rows for " + matchId + ".";
       }
 
       render("");
@@ -430,5 +530,4 @@
 
 </body>
 </html>
-
  
