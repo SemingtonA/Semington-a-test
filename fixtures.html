@@ -82,6 +82,23 @@
       flex: 1;
       padding: 20px;
     }
+    .result-box-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.result-total {
+  background: #000;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  white-space: nowrap;
+}
 
     .content-box {
       background: #fff;
@@ -146,7 +163,13 @@
     <div class="result-box win">Wins: <span id="winCount">0</span></div>
     <div class="result-box draw">Draws: <span id="drawCount">0</span></div>
     <div class="result-box loss">Losses: <span id="lossCount">0</span></div>
+      </div>
+  
+ <div class="result-total">
+    Total League Points: <span id="pointsTotal">0</span>
   </div>
+</div>
+
 
 </header>
 
