@@ -236,7 +236,8 @@ fetch(new URL("match_results.csv", window.location.href).toString(), { cache: "n
         "<td>" + (r.details || "") + "</td>" +
         "<td>" + (r.homeAway || "") + "</td>" +
         "<td>" + (r.player || "") + "</td>" +
-        "<td>" + scoreCell + "</td>" +
+        "<td" + (String(r.homeAway || "").trim().toLowerCase() === "away"
+        ? ' class="away-total"' : "") + ">" + scoreCell + "</td>" +
         "<td>" + (r.position || "") + "</td>" +
         "<td>" + hz(r.ducks) + "</td>" +
         "<td>" + hz(r.spares) + "</td>" +
