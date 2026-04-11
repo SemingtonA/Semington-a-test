@@ -269,10 +269,14 @@
     v = (v === undefined || v === null) ? "" : String(v).trim();
     return (v === "" || v === "0" || v === "0.00") ? "" : v;
   }
-  function toNum(v) {
-    const n = Number(String(v === undefined ? "" : v).trim());
-    return Number.isFinite(n) ? n : NaN;
-  }
+function toNum(v) {
+  const n = Number(
+    String(v === undefined ? "" : v)
+      .replace(/,/g, "")
+      .trim()
+  );
+  return Number.isFinite(n) ? n : NaN;
+}
   function pound(v) {
     const t = hz(v);
     return t ? ("£" + t.replace(/\.0+$/, "")) : "";
