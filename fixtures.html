@@ -65,7 +65,7 @@
   flex-wrap: wrap;
 }
 
-/* text label */
+/* label text */
 .league-label {
   font-weight: bold;
   font-size: 15px;
@@ -78,22 +78,22 @@
   gap: 10px;
 }
 
-/* boxes */
+/* force black boxes */
 .result-box {
-  background: #000;
-  color: #fff;
-  padding: 6px 10px;
+  background: #000 !important;
+  color: #fff !important;
+  padding: 8px 14px;
   border-radius: 6px;
   font-weight: bold;
-  font-size: 20px;
-  display: inline-flex;
-  align-items: center;
+  font-size: 14px;
+  display: inline-block;
 }
 
 /* coloured outlines */
 .result-box.win  { border: 2px solid #1e8449; }  /* green */
 .result-box.draw { border: 2px solid #f1c40f; }  /* amber */
 .result-box.loss { border: 2px solid #c0392b; }  /* red */
+
 
     /* ===== MAIN ===== */
     main {
@@ -181,9 +181,9 @@
   <div class="league-label">League Results</div>
 
   <div class="result-boxes">
-    <div class="result-box win">W <span id="winCount">0</span></div>
-    <div class="result-box draw">D <span id="drawCount">0</span></div>
-    <div class="result-box loss">L <span id="lossCount">0</span></div>
+    <div class="result-box win">Wins: <span id="winCount">0</span></div>
+    <div class="result-box draw">Draws: <span id="drawCount">0</span></div>
+    <div class="result-box loss">Losses: <span id="lossCount">0</span></div>
   </div>
 </div>
 
