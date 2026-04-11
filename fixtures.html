@@ -65,9 +65,8 @@
   flex-wrap: wrap;
 }
 
-/* label + total text */
-.league-label,
-.league-total {
+/* label */
+.league-label {
   font-weight: bold;
   font-size: 20px;
   color: #000;
@@ -79,7 +78,7 @@
   gap: 10px;
 }
 
-/* force black boxes */
+/* base black box */
 .result-box {
   background: #000 !important;
   color: #fff !important;
@@ -87,13 +86,21 @@
   border-radius: 6px;
   font-weight: bold;
   font-size: 20px;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
 }
 
 /* coloured outlines */
-.result-box.win  { border: 2px solid #1e8449; }
+.result-box.win   { border: 2px solid #1e8449; }
 .result-box.draw { border: 2px solid #f1c40f; }
 .result-box.loss { border: 2px solid #c0392b; }
+
+/* total box — same black, no colour outline, compact */
+.result-box.total {
+  border: 2px solid #000;
+  padding: 8px 12px;
+}
 
 
     /* ===== MAIN ===== */
@@ -187,8 +194,8 @@
     <div class="result-box loss">Losses: <span id="lossCount">0</span></div>
   </div>
 
-  <div class="league-total">
-    Total League Results: <strong><span id="pointsTotal">0</span></strong>
+  <div class="result-box total">
+    Total League Results: <span id="pointsTotal">0</span>
   </div>
 </div>
 
