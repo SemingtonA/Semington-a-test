@@ -242,6 +242,33 @@ td.away-total {
 </footer>
 <script src="/semington-a/match-results.js"></script>
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const table = document.querySelector("table");
+  if (!table) return;
 
+  // Find column indexes by header text (safe & future-proof)
+  const headers = Array.from(table.querySelectorAll("thead th"))
+    .map(th => th.textContent.trim().toLowerCase());
+
+  const homeAwayIdx = headers.indexOf("home or away");
+  const totalScoreIdx = headers.indexOf("total score");
+
+  // If columns not found, stop safely
+  if (homeAwayIdx === -1 || totalScoreIdx === -1) return;
+
+  // Loop table rows
+  const rows = table.querySelectorAll("tbody tr");
+  rows.forEach(tr => {
+    const cells = tr.querySelectorAll("td");
+    if (!cells.length) return;
+
+    const haText = cells[homeAwayIdx].textContent.trim().toLowerCase();
+    if (haText === "away") {
+      cells[totalScoreIdx].classList.add("away-total");
+    }
+  });
+});
+</script>
 </body>
 </html>
