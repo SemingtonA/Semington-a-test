@@ -118,6 +118,20 @@
     text-align: center;
     background: #fafafa;
   }
+    /* ✅ Position column – dark green text */
+.table-wrap td:nth-child(6) {
+  color: #0b5e20;       /* dark green */
+  font-weight: bold;
+}
+
+/* ✅ Top Score – luminous green box */
+.table-wrap td:nth-child(10) {
+  background: #39ff14;  /* luminous green */
+  color: #000;
+  font-weight: bold;
+  border-radius: 4px;
+  text-align: center;
+}
 
   td {
     border-bottom: 1px solid #eee;
@@ -245,8 +259,7 @@
    <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
   </div>
   
-</footer>
-<script src="match-results.js"></script>
+
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -272,6 +285,35 @@ document.addEventListener("DOMContentLoaded", function () {
     const haText = cells[homeAwayIdx].textContent.trim().toLowerCase();
     if (haText === "away") {
       cells[totalScoreIdx].classList.add("away-total");
+    }
+  ]);
+});
+  </footer>
+  </footer>
+
+<!-- Main script that builds the table -->
+<script src="match-results.js"></script>
+
+<!-- Extra helpers (like Pos #1 tagging) -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".table-wrap td:nth-child(6)").forEach(td => {
+    if (td.textContent.trim() === "1") {
+      td.classList.add("pos-1");
+    }
+  });
+});
+</script>
+
+</body>
+</html>  
+<script src="match-results.js"></script>
+</script>
+  <script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".table-wrap td:nth-child(6)").forEach(td => {
+    if (td.textContent.trim() === "1") {
+      td.classList.add("pos-1");
     }
   });
 });
