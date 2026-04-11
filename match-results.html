@@ -296,21 +296,10 @@ document.addEventListener("DOMContentLoaded", function () {
   </div>
 </footer>
 
-<!-- ✅ MAIN SCRIPT: REQUIRED (this builds the table from match_results.csv) -->
+<!-- REQUIRED: this builds the table -->
 <script src="match-results.js"></script>
-
-<!-- ✅ Position #1 tagging helper (safe, runs AFTER the page loads) -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  // wait a moment for match-results.js to fetch + render
-  setTimeout(function () {
-    document.querySelectorAll(".table-wrap td:nth-child(6)").forEach(function (td) {
-      if (td.textContent.trim() === "1") td.classList.add("pos-1");
-    });
-  }, 300);
-});
-</script>
 
 </body>
 </html>
+
  
