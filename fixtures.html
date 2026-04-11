@@ -55,24 +55,42 @@
     .nav-buttons a:hover { background: #163aa3; }
 
  /* ===== WIN / DRAW / LOSS BOXES ===== */
+/* ===== LEAGUE RESULTS STRIP ===== */
+.league-results-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+/* text label */
+.league-label {
+  font-weight: bold;
+  font-size: 15px;
+  color: #000;
+}
+
+/* box container */
 .result-boxes {
   display: flex;
   gap: 10px;
-  margin-top: 12px;
 }
 
-/* Base box style */
+/* boxes */
 .result-box {
-  background: #000;      /* ✅ black */
-  color: #fff;           /* ✅ white text */
-  padding: 8px 14px;
+  background: #000;
+  color: #fff;
+  padding: 6px 10px;
   border-radius: 6px;
   font-weight: bold;
   font-size: 20px;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
 }
 
-/* Coloured outlines */
+/* coloured outlines */
 .result-box.win  { border: 2px solid #1e8449; }  /* green */
 .result-box.draw { border: 2px solid #f1c40f; }  /* amber */
 .result-box.loss { border: 2px solid #c0392b; }  /* red */
