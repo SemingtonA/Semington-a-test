@@ -65,8 +65,9 @@
   flex-wrap: wrap;
 }
 
-/* label text */
-.league-label {
+/* label + total text */
+.league-label,
+.league-total {
   font-weight: bold;
   font-size: 15px;
   color: #000;
@@ -90,9 +91,9 @@
 }
 
 /* coloured outlines */
-.result-box.win  { border: 2px solid #1e8449; }  /* green */
-.result-box.draw { border: 2px solid #f1c40f; }  /* amber */
-.result-box.loss { border: 2px solid #c0392b; }  /* red */
+.result-box.win  { border: 2px solid #1e8449; }
+.result-box.draw { border: 2px solid #f1c40f; }
+.result-box.loss { border: 2px solid #c0392b; }
 
 
     /* ===== MAIN ===== */
@@ -184,6 +185,10 @@
     <div class="result-box win">Wins: <span id="winCount">0</span></div>
     <div class="result-box draw">Draws: <span id="drawCount">0</span></div>
     <div class="result-box loss">Losses: <span id="lossCount">0</span></div>
+  </div>
+
+  <div class="league-total">
+    Total League Results: <strong><span id="pointsTotal">0</span></strong>
   </div>
 </div>
 
