@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gallery</title>
+
+  <style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    background-color: #f5f0e6;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    padding: 20px;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 72px;
+    text-align: center;
+    flex: 1;
+  }
+
+  .logo img {
+    width: 300px;
+    height: auto;
+  }
+
+  .nav-buttons {
+    margin-top: 15px;
+    text-align: center;
+  }
+
+  .nav-buttons a {
+    display: inline-block;
+    margin: 6px;
+    padding: 10px 18px;
+    background: #000;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+
+  .nav-buttons a:hover {
+    background: #163aa3;
+  }
+
+  /* ===== MAIN ===== */
+  main {
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .upload-box {
+    max-width: 800px;
+    margin: 0 auto 20px;
+    background: #ffffffcc;
+    border-radius: 8px;
+    padding: 18px;
+    text-align: left;
+  }
+
+  .upload-box h2 {
+    margin: 0 0 10px;
+    text-align: center;
+  }
+
+  .upload-box a {
+    color: #1f4fd8;
+    font-weight: bold;
+    text-decoration: none;
+  }
+
+  .upload-box a:hover {
+    text-decoration: underline;
+  }
+
+  .gallery-frame {
+    max-width: 1000px;
+    width: 100%;
+    height: 650px;
+    border: none;
+    background: #fff;
+    border-radius: 8px;
+    margin: 0 auto;
+    display: block;
+  }
+
+  .gallery-copyright {
+    max-width: 900px;
+    margin: 30px auto 0;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #555;
+    background: #ffffffcc;
+    border-radius: 6px;
+    text-align: center;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 16px 20px 22px;
+    font-size: 12px;
+    color: #555;
+  }
+
+  .footer-logo img {
+    width: 60px;
+    opacity: 0.9;
+  }
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 900px) {
+
+    .header-top {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 32px;
+      margin-top: 10px;
+    }
+
+    .logo img {
+      width: 150px;
+      margin-bottom: 10px;
+    }
+
+    .gallery-frame {
+      height: 520px;
+    }
+
+    .footer-logo img {
+      width: 48px;
+    }
+  }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-top">
+    <h1>Gallery</h1>
+
+    <div class="logo">
+      <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
+    </div>
+  </div>
+
+  <div class="nav-buttons">
+    <a href="/semington-a/index.html">Home</a>
+    <a href="/semington-a/fixtures.html">Fixtures &amp; Results</a>
+    <a href="/semington-a/match-results.html">Match Results</a>
+    <a href="/semington-a/tocatch.html">To Catch</a>
+    <a href="/semington-a/gallery.html">Gallery</a>
+    <a href="/semington-a/rules.html">Rules</a>
+  </div>
+</header>
+
+<main>
+
+  <div class="upload-box">
+    <h2>Add Photos &amp; Videos</h2>
+    <p>
+      Players and supporters can upload photos and videos to the
+      Semington A Skittles Team Google Drive gallery.
+    </p>
+    <p>
+      <a href=https://drive.google.com/drive/folders/17OBnLRGs-1xyobACJme9uGhrv63f0D9L
+         target="_blank" rel="noopener">
+        Upload to the Team Gallery Folder
+      </a>
+    </p>
+    <p style="font-size:12px;color:#555;margin-bottom:0;">
+      Photos appear automatically below once uploaded.
+    </p>
+  </div>
+
+  <h2>Gallery</h2>
+
+  <iframe
+    class="gallery-frame"
+    src="https://drive.google.com/embeddedfolderview?id=17OBnLRGs-1xyobACJme9uGhrv63f0D9L#grid"
+    loading="lazy"
+    allowfullscreen>
+  </iframe>
+
+  <h2 style="margin-top:30px;">Videos</h2>
+  <p>
+    Videos can be viewed directly from the gallery folder.
+  </p>
+  <p>
+    <a href="httpshttps://drive.google.com/drive/folders/17OBnLRGs-1xyobACJme9uGhrv63f0D9L
+       target="_blank" rel="noopener">
+      View Videos in Google Drive
+    </a>
+  </p>
+
+  <div class="gallery-copyright">
+    <strong>Copyright Notice</strong><br>
+    All images and videos displayed on this page are the property of
+    <strong>Semington A Skittles Team</strong> and may not be copied,
+    reused, or distributed without permission.
+  </div>
+
+</main>
+
+<footer>
+  © Semington A Skittles Team
+  <div class="footer-logo">
+    <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
+  </div>
+</footer>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+

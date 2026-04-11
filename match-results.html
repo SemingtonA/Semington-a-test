@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Match Results</title>
+
+  <style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    background-color: #f5f0e6;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    padding: 20px;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 72px; /* matches your new header size */
+    text-align: center;
+    flex: 1;
+  }
+
+  .logo img {
+    width: 300px;
+    height: auto;
+  }
+
+  .nav-buttons {
+    margin-top: 15px;
+    text-align: center;
+  }
+
+  .nav-buttons a {
+    display: inline-block;
+    margin: 6px;
+    padding: 10px 18px;
+    background: #000;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+
+  .nav-buttons a:hover {
+    background: #163aa3;
+  }
+
+  /* ===== MAIN ===== */
+  main {
+    flex: 1;
+    padding: 20px;
+  }
+
+  .panel {
+    max-width: 1400px;
+    margin: 10px auto 14px;
+    background: #ffffffcc;
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 6px;
+  }
+
+  select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+
+  #status {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #555;
+  }
+
+  .table-wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  th {
+    border-bottom: 1px solid #eee;
+    padding: 8px;
+    white-space: normal;
+    text-align: center;
+    background: #fafafa;
+  }
+
+  td {
+    border-bottom: 1px solid #eee;
+    padding: 8px;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* Left align Match ID + Team Player */
+  td:nth-child(1), th:nth-child(1),
+  td:nth-child(4), th:nth-child(4) {
+    text-align: left;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 16px 20px 22px;
+    font-size: 12px;
+    color: #555;
+  }
+
+  .footer-logo img {
+    width: 60px;
+    opacity: 0.9;
+  }
+
+  /* ===== MOBILE (portrait + landscape) ===== */
+  @media (max-width: 900px) {
+
+    .header-top {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 32px;
+      margin-top: 10px;
+    }
+
+    .logo img {
+      width: 150px;
+      margin-bottom: 10px;
+    }
+
+    table {
+      font-size: 12px;
+    }
+
+    .footer-logo img {
+      width: 48px;
+    }
+  }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="header-top">
+    <h1>Match Results</h1>
+
+    <div class="logo">
+      <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
+    </div>
+  </div>
+
+  <div class="nav-buttons">
+    <a href="/semington-a/index.html">Home</a>
+    <a href="/semington-a/fixtures.html">Fixtures & Results</a>
+    <a href="/semington-a/match-results.html">Match Results</a>
+    <a href="/semington-a/tocatch.html">To Catch</a>
+    <a href="/semington-a/gallery.html">Gallery</a>
+    <a href="/semington-a/rules.html">Rules</a>
+  </div>
+</header>
+
+
+<main>
+
+  <div class="panel">
+    <div class="label">Filter by Match ID</div>
+    <select id="matchSelect">
+      <option value="">All Matches</option>
+    </select>
+    <div id="status"></div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Match ID</th>
+          <th>Match Details</th>
+          <th>Home or Away</th>
+          <th>Team Player</th>
+          <th>Total Score</th>
+          <th>Position<br>to be Dropped 10–1</th>
+          <th>Ducks</th>
+          <th>Spares</th>
+          <th>Legs Won</th>
+          <th>Top Score</th>
+          <th>League Avg</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer>
+  © Semington A Skittles Team
+  <div class="footer-logo">
+   <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
+  </div>
+  
+</footer>
+<script src="/semington-a/match-results.js"></script>
+
+
+</body>
+</html>
