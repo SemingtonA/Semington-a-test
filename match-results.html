@@ -118,20 +118,21 @@
     text-align: center;
     background: #fafafa;
   }
-    /* ✅ Position column – dark green text */
+    /* Position column – dark green text */
 .table-wrap td:nth-child(6) {
-  color: #0b5e20;       /* dark green */
+  color: #0b5e20;
   font-weight: bold;
 }
 
-/* ✅ Top Score – luminous green box */
-.table-wrap td:nth-child(10) {
-  background: #39ff14;  /* luminous green */
-  color: #000;
+/* Position #1 – standout highlight (requires JS class) */
+.table-wrap td.pos-1 {
+  background: #1eaa52;
+  color: #fff;
   font-weight: bold;
   border-radius: 4px;
   text-align: center;
 }
+ 
 
   td {
     border-bottom: 1px solid #eee;
@@ -303,20 +304,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
-</script>
-
-</body>
-</html>  
+<!-- Main results script -->
 <script src="match-results.js"></script>
-</script>
-  <script>
+
+<!-- Position #1 tagging helper -->
+<script>
 document.addEventListener("DOMContentLoaded", function () {
-  document.querySelectorAll(".table-wrap td:nth-child(6)").forEach(td => {
-    if (td.textContent.trim() === "1") {
-      td.classList.add("pos-1");
-    }
-  });
+  document
+    .querySelectorAll(".table-wrap td:nth-child(6)")
+    .forEach(td => {
+      if (td.textContent.trim() === "1") {
+        td.classList.add("pos-1");
+      }
+    });
 });
 </script>
+
 </body>
 </html>
