@@ -109,6 +109,7 @@
       white-space: nowrap;
       text-align: center;
       font-weight: bold;
+      color: #000;
     }
 
     /* Left align Match ID + Team Player */
@@ -116,14 +117,14 @@
     td:nth-child(4), th:nth-child(4) {
       text-align: left;
     }
-    
-    /* Position column – default (black text) */
-.table-wrap td:nth-child(6) {
-  color: #000;
-  font-weight: bold;
-}
-  
-    /* Position #1 – standout highlight */
+
+    /* Position column default: black text */
+    .table-wrap td:nth-child(6) {
+      color: #000;
+      font-weight: bold;
+    }
+
+    /* Position #1 – green box + white text */
     .table-wrap td.pos-1 {
       background: #1eaa52;
       color: #fff;
@@ -131,9 +132,17 @@
       text-align: center;
     }
 
-    /* Away placeholder in Total Score cell */
+    /* Away placeholder in Total Score cell – black box */
     .table-wrap td.away-total {
       background: #000;
+      color: #fff;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    /* Highest Total Score – green box + white text */
+    .table-wrap td.top-total {
+      background: #1eaa52;
       color: #fff;
       border-radius: 4px;
       text-align: center;
@@ -166,11 +175,11 @@
   <div class="header-top">
     <h1>Match Results</h1>
     <div class="logo">
-      <img src="Semington A Logo 5.jpg" alt="Semington A Logo" />
+      <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
     </div>
   </div>
 
-  <!-- TEST SITE links (relative). For MAIN site, you can change these later. -->
+  <!-- TEST links (relative). When you move to MAIN you can change to /semington-a/... -->
   <div class="nav-buttons">
     <a href="index.html">Home</a>
     <a href="fixtures.html">Fixtures &amp; Results</a>
@@ -215,7 +224,7 @@
 <footer>
   © Semington A Skittles Team
   <div class="footer-logo">
-    <img src="Semington A Logo 5.jpg" alt="Semington A Logo" />
+    <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
   </div>
 </footer>
 
@@ -240,7 +249,6 @@
   }
   function isLeague(details) { return /league/i.test(details || ""); }
 
-  // dd/mm/yyyy at start of Match ID
   function dateFromMatchId(id) {
     const m = String(id || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (!m) return null;
@@ -248,11 +256,10 @@
   }
 
   function parseCSV(text) {
-    // Your CSV is simple (comma-separated, no quoted commas used)
     return text.replace(/^\uFEFF/, "").trim().split(/\r?\n/).map(line => line.split(","));
   }
 
-  // Stable sort by avg ONLY (desc), A N Other always last
+  // Stable sort: avg DESC only; A N Other always last; ties keep original order
   function sortByAvgOnlyStable(list) {
     const copy = list.map((item, idx) => ({ item, idx }));
     copy.sort((A, B) => {
@@ -270,7 +277,7 @@
       if (aHas && !bHas) return -1;
       if (!aHas && bHas) return 1;
 
-      return A.idx - B.idx; // stable
+      return A.idx - B.idx;
     });
     return copy.map(x => x.item);
   }
@@ -280,7 +287,6 @@
     const snapshots = {};
     const leagueStats = {}; // player -> {games,total}
 
-    // walk oldest -> newest (matchIds is newest-first, so go backwards)
     for (let mi = matchIds.length - 1; mi >= 0; mi--) {
       const mid = matchIds[mi];
       const raw = matchRows[mid] || [];
@@ -302,11 +308,9 @@
         const st = leagueStats[p];
         snap[p] = st.games ? (st.total / st.games).toFixed(3).replace(/\.?0+$/, "") : "";
       }
-
       if (snap["A N Other"] === undefined) snap["A N Other"] = "";
       snapshots[mid] = snap;
     }
-
     return snapshots;
   }
 
@@ -314,8 +318,13 @@
     let scoreCell = hz(r.score);
     if (r.absent) scoreCell = (r.player === "A N Other") ? "" : "Away";
 
-    const scoreTdClass = (scoreCell === "Away") ? ' class="away-total"' : "";
-    const posTdClass   = (String(r.position || "") === "1") ? ' class="pos-1"' : "";
+    // Total Score class priority: Away black > Top Total green
+    let scoreClass = "";
+    if (scoreCell === "Away") scoreClass = "away-total";
+    else if (r.isTopTotal) scoreClass = "top-total";
+    const scoreTdClass = scoreClass ? (' class="' + scoreClass + '"') : "";
+
+    const posTdClass = (String(r.position || "") === "1") ? ' class="pos-1"' : "";
 
     return "<tr>" +
       "<td>" + (r.matchId || "") + "</td>" +
@@ -355,15 +364,12 @@
       const headers = grid[headerIndex].map(clean);
       const rows = grid.slice(headerIndex + 1);
 
-      // column helpers
       function get(o, name) { return (o[name] || "").trim(); }
 
-      // normalize rows
       const data = [];
       for (let i = 0; i < rows.length; i++) {
         const o = {};
         for (let j = 0; j < headers.length; j++) o[headers[j]] = (rows[i][j] || "").trim();
-
         if (!get(o, "Match ID") || !get(o, "Team Player")) continue;
 
         data.push({
@@ -380,7 +386,7 @@
         });
       }
 
-      // roster (for absent expansion)
+      // roster for absent expansion
       const rosterMap = {};
       data.forEach(r => { if (r.player && r.player !== "Away") rosterMap[r.player] = true; });
       rosterMap["A N Other"] = true;
@@ -416,13 +422,26 @@
         select.appendChild(opt);
       });
 
-      // snapshots for Away/absent avg
+      // snapshots for avg (incl Away players)
       const snapshots = buildLeagueSnapshots(matchIds, matchRows);
+
+      function markTopTotal(list) {
+        // mark highest numeric Total Score in this list (ties allowed)
+        let max = -Infinity;
+        for (let i = 0; i < list.length; i++) {
+          const sc = toNum(list[i].score);
+          if (Number.isFinite(sc) && sc > max) max = sc;
+        }
+        for (let i = 0; i < list.length; i++) {
+          const sc = toNum(list[i].score);
+          list[i].isTopTotal = (Number.isFinite(sc) && sc === max);
+        }
+      }
 
       function render(matchId) {
         tbody.innerHTML = "";
 
-        // ===== ALL MATCHES view: sort each match by Avg desc, A N Other last
+        // ===== ALL MATCHES: each match sorted by Avg desc; A N Other last; top total marked per match
         if (!matchId) {
           let html = "";
           matchIds.forEach(id => {
@@ -441,9 +460,11 @@
               top: x.top,
               avg: (snap[x.player] || x.avg || ""),
               absent: false,
-              position: ""
+              position: "",
+              isTopTotal: false
             }));
 
+            markTopTotal(block);
             const sortedBlock = sortByAvgOnlyStable(block);
             sortedBlock.forEach(r => { html += rowHtml(r); });
           });
@@ -453,7 +474,7 @@
           return;
         }
 
-        // ===== SINGLE MATCH view: expand roster, show avg for Away players, sort by avg
+        // ===== SINGLE MATCH: expand roster + show avg for Away players + sort by avg + A N Other last
         const map = byPlayer[matchId];
         if (!map) return;
 
@@ -476,7 +497,8 @@
               top: ex.top,
               avg: (snapForMatch[name] || ex.avg || ""),
               absent: false,
-              position: ""
+              position: "",
+              isTopTotal: false
             };
           }
           return {
@@ -489,13 +511,14 @@
             spares: "",
             legsWon: "",
             top: "",
-            avg: (snapForMatch[name] || ""),   // ✅ avg for Away/absent players
+            avg: (snapForMatch[name] || ""),
             absent: true,
-            position: ""
+            position: "",
+            isTopTotal: false
           };
         });
 
-        // positions ONLY for league matches (played rows only)
+        // positions ONLY for league matches
         if (isLeague(firstRow.details)) {
           const played = expanded
             .filter(r => r.player !== "A N Other" && !r.absent && Number.isFinite(toNum(r.score)) && toNum(r.score) > 0)
@@ -509,7 +532,9 @@
           });
         }
 
+        markTopTotal(expanded);
         const sortedExpanded = sortByAvgOnlyStable(expanded);
+
         let out = "";
         sortedExpanded.forEach(r => { out += rowHtml(r); });
         tbody.innerHTML = out;
@@ -530,4 +555,3 @@
 
 </body>
 </html>
- 
