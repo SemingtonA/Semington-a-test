@@ -457,28 +457,18 @@
 <!-- ✅ NEW: Auto-count wins/draws/losses for Semington A from the Points column -->
 <script>
 (function () {
+
   function toHalfNum(s) {
     if (!s) return NaN;
-    s = String(s).trim();
-    if (!s) return NaN;
-
-    // Normalize: "6½" => "6.5", "½" => "0.5"
-    s = s.replace(/\s+/g, "");
-    if (s === "½" || s === "1/2") return 0.5;
-    s = s.replace(/½/g, ".5");
-    s = s.replace(/(\d+)1\/2/g, "$1.5");
-
+    s = s.trim().replace("½", ".5");
     var n = Number(s);
     return Number.isFinite(n) ? n : NaN;
   }
 
-  function parsePair(text) {
+  function parsePoints(text) {
     if (!text) return null;
-    var t = String(text).trim();
-    if (!t) return null;
-
-    var parts = t.split(/[-–—]/).map(function (p) { return p.trim(); }).filter(Boolean);
-    if (parts.length < 2) return null;
+    var parts = text.split(/[-–—]/).map(p => p.trim());
+    if (parts.length !== 2) return null;
 
     var a = toHalfNum(parts[0]);
     var b = toHalfNum(parts[1]);
@@ -490,50 +480,48 @@
   var table = document.querySelector("table");
   if (!table) return;
 
-  var headers = Array.from(table.querySelectorAll("thead th")).map(function (th) {
-    return th.textContent.trim().toLowerCase();
-  });
+  var headers = Array.from(table.querySelectorAll("thead th"))
+    .map(th => th.textContent.toLowerCase().trim());
 
   var fixtureIdx = headers.indexOf("fixture");
-  var pointsIdx  = headers.indexOf("points");
+  var pointsIdx = headers.indexOf("points");
+  var compIdx = headers.indexOf("competition");
 
-  if (fixtureIdx === -1 || pointsIdx === -1) return;
+  if (fixtureIdx === -1 || pointsIdx === -1 || compIdx === -1) return;
 
   var wins = 0, draws = 0, losses = 0;
-  var eps = 0.001;
 
-  var rows = Array.from(table.querySelectorAll("tbody tr"));
-  rows.forEach(function (tr) {
-    var tds = Array.from(tr.querySelectorAll("td"));
-    if (tds.length === 0) return;
+  var rows = table.querySelectorAll("tbody tr");
+  rows.forEach(tr => {
+    var tds = tr.querySelectorAll("td");
+    if (!tds.length) return;
 
-    var fixtureText = (tds[fixtureIdx] ? tds[fixtureIdx].textContent : "").trim();
-    var pointsText  = (tds[pointsIdx] ? tds[pointsIdx].textContent : "").trim();
+    var competition = tds[compIdx].textContent.toLowerCase();
+    if (competition.includes("cup")) return;      // ❌ ignore cup matches
 
-    if (!fixtureText || !pointsText) return;
+    var pointsText = tds[pointsIdx].textContent.trim();
+    if (!pointsText) return;                       // ❌ only count rows with points
 
-    var pair = parsePair(pointsText);
+    var pair = parsePoints(pointsText);
     if (!pair) return;
 
-    var parts = fixtureText.split(/\s+vs\s+/i);
-    if (parts.length < 2) return;
+    var fixtureText = tds[fixtureIdx].textContent;
+    var isHome = fixtureText.match(/^semington a\s+vs/i);
+    var isAway = fixtureText.match(/\svs\s+semington a$/i);
 
-    var homeTeam = parts[0].trim();
-    var awayTeam = parts[1].trim();
+    if (!isHome && !isAway) return;
 
-    var myPoints = NaN;
-    if (/semington a/i.test(homeTeam)) myPoints = pair.left;
-    else if (/semington a/i.test(awayTeam)) myPoints = pair.right;
-    else return;
+    var myPoints = isHome ? pair.left : pair.right;
 
-    if (myPoints > 3.5 + eps) wins++;
-    else if (myPoints < 3.5 - eps) losses++;
+    if (myPoints > 3.5) wins++;
+    else if (myPoints < 3.5) losses++;
     else draws++;
   });
 
   document.getElementById("winCount").textContent = wins;
   document.getElementById("drawCount").textContent = draws;
   document.getElementById("lossCount").textContent = losses;
+
 })();
 </script>
 
