@@ -527,6 +527,7 @@
   if (fixtureIdx === -1 || pointsIdx === -1 || compIdx === -1) return;
 
   var wins = 0, draws = 0, losses = 0;
+  var totalPoints = 0;
   var eps = 0.001;
 
   Array.from(table.querySelectorAll("tbody tr")).forEach(function (tr) {
@@ -557,6 +558,8 @@
     if (/semington a/i.test(homeTeam)) myPoints = pair.left;
     else if (/semington a/i.test(awayTeam)) myPoints = pair.right;
     else return;
+    
+    totalPoints += myPoints;
 
     tr.classList.remove("_win","_loss","_draw");
 
@@ -578,6 +581,7 @@ else {
   document.getElementById("winCount").textContent = wins;
   document.getElementById("drawCount").textContent = draws;
   document.getElementById("lossCount").textContent = losses;
+  document.getElementById("pointsTotal").textContent = totalPoints.toFixed(1);
 })();
 </script>
 
