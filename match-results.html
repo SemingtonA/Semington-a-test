@@ -306,21 +306,8 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </footer>
 
-<!-- ✅ REQUIRED: builds the table from CSV -->
+<!-- ✅ REQUIRED: this builds the table -->
 <script src="match-results.js"></script>
-
-<!-- ✅ OPTIONAL: Position #1 highlighter (runs AFTER table exists) -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  document
-    .querySelectorAll(".table-wrap td:nth-child(6)")
-    .forEach(td => {
-      if (td.textContent.trim() === "1") {
-        td.classList.add("pos-1");
-      }
-    });
-});
-</script>
 
 </body>
 </html>
