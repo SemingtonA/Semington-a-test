@@ -546,10 +546,20 @@
       }
 
       // roster for absent expansion
-      const rosterMap = {};
-      data.forEach(r => { if (r.player && r.player !== "Away") rosterMap[r.player] = true; });
-      rosterMap["A N Other"] = true;
-      const roster = Object.keys(rosterMap).sort((a, b) => a.localeCompare(b));
+      // roster for absent expansion (real players only)
+const rosterMap = {};
+data.forEach(r => {
+  if (
+    r.player &&
+    r.player !== "Away" &&
+    r.player !== "A N Other" &&
+    r.player !== "0"
+  ) {
+    rosterMap[r.player] = true;
+  }
+});
+
+const roster = Object.keys(rosterMap).sort((a, b) => a.localeCompare(b));
 
       // group by match
       const matchRows = {};
