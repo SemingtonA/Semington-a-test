@@ -428,6 +428,9 @@
     let scoreCell = hz(r.score);
     if (r.absent) scoreCell = (r.player === "A N Other") ? "" : "Away";
 
+    const legsValue = toNum(r.legsWon);
+    const legsPounds = legsValue > 0 ? "£" + legsValue : "";
+
     // Priority: Away black > top total green
     let scoreClass = "";
     if (scoreCell === "Away") scoreClass = "away-total";
