@@ -453,19 +453,19 @@
     const topTdClass    = r.isTopTop    ? ' class="top-green"'  : "";
     const avgTdClass    = r.isTopAvg    ? ' class="top-avg"'    : "";
 
-    return "<tr>" +
-      "<td>" + (r.matchId || "") + "</td>" +
-      "<td>" + (r.details || "") + "</td>" +
-      "<td>" + (r.homeAway || "") + "</td>" +
-      "<td>" + (r.player || "") + "</td>" +
-      "<td" + scoreTdClass + ">" + scoreCell + "</td>" +
-      "<td" + posTdClass + ">" + (r.position || "") + "</td>" +
-      "<td" + ducksTdClass + ">" + hz(r.ducks) + "</td>" +
-      "<td" + sparesTdClass + ">" + hz(r.spares) + "</td>" +
-       "<td" + legsTdClass + ">" + legsPounds + "</td>" +
-      "<td" + topTdClass + ">" + pound(r.top) + "</td>" +
-      "<td" + avgTdClass + ">" + (r.avg || "") + "</td>" +
-    "</tr>";
+return "<tr>" +
+  "<td>" + (r.matchId || "") + "</td>" +
+  "<td>" + (r.details || "") + "</td>" +
+  "<td>" + (r.homeAway || "") + "</td>" +
+  "<td>" + (r.player || "") + "</td>" +
+  "<td" + scoreTdClass + ">" + scoreCell + "</td>" +
+  "<td" + posTdClass + ">" + (r.position || "") + "</td>" +
+  "<td" + ducksTdClass + ">" + hz(r.ducks) + "</td>" +
+  "<td" + sparesTdClass + ">" + hz(r.spares) + "</td>" +
+  "<td" + legsTdClass + ">" + legsPounds + "</td>" +
+  "<td" + topTdClass + ">" + topPounds + "</td>" +
+  "<td" + avgTdClass + ">" + (r.avg || "") + "</td>" +
+  "</tr>";
   }
 
   status.textContent = "Loading match results…";
