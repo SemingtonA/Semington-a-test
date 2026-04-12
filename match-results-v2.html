@@ -456,9 +456,7 @@
       "<td" + posTdClass + ">" + (r.position || "") + "</td>" +
       "<td" + ducksTdClass + ">" + hz(r.ducks) + "</td>" +
       "<td" + sparesTdClass + ">" + hz(r.spares) + "</td>" +
-      const legsValue = toNum(r.legsWon);
-      const legsPounds = legsValue > 0 ? "£" + (legsValue * 1) : ""; +
-      "<td" + legsTdClass + ">" + legsPounds + "</td>"
+       "<td" + legsTdClass + ">" + legsPounds + "</td>" +
       "<td" + topTdClass + ">" + pound(r.top) + "</td>" +
       "<td" + avgTdClass + ">" + (r.avg || "") + "</td>" +
     "</tr>";
