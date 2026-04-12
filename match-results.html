@@ -181,7 +181,7 @@
     /* Highest Avg per match: gold box + white text */
     .table-wrap td.top-avg {
       background: #d4af37; /* gold */
-      color: #fff;
+      color: #000;
       border-radius: 4px;
       text-align: center;
     }
@@ -549,8 +549,11 @@
         markMaxIfPositive(list, "spares", "isTopSpares", false);
 
         // Highest Legs Won / Top Score per match (green)
-        markMax(list, "legsWon", "isTopLegs", false);
-        markMax(list, "top", "isTopTop", false);
+        markMaxIfPositive(list, "legsWon", "isTopLegs", false);
+        // Top Score: highlight ONLY if value is exactly £3
+        list.forEach(r => {
+        r.isTopTop = (toNum(r.top) === 3);
+      });
 
         // Highest Avg per match (gold) — ignore blanks automatically
         markMax(list, "avg", "isTopAvg", false);
