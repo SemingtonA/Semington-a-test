@@ -529,7 +529,17 @@
           get(o, "Semington A Player Name") ||
           get(o, "Player Name");
 
-        if (!get(o, "Match ID") || !playerName) continue;
+        const scoreNum = Number(get(o, "Total Score"));
+
+if (
+  !get(o, "Match ID") ||
+  !playerName ||
+  !Number.isFinite(scoreNum) ||
+  scoreNum <= 0
+) {
+  continue;
+}
+       
 
         data.push({
           matchId:  get(o, "Match ID"),
