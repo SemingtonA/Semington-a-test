@@ -531,11 +531,11 @@
 
         const scoreNum = Number(get(o, "Total Score"));
 
-if (
-  !get(o, "Match ID") ||
-  !playerName ||
-  !Number.isFinite(scoreNum) ||
-  scoreNum <= 0
+        if (
+        !get(o, "Match ID") ||
+        !playerName ||
+        !Number.isFinite(scoreNum) ||
+         scoreNum <= 0
 ) {
   continue;
 }
@@ -566,8 +566,8 @@ data.forEach(r => {
     r.player !== "0"
   ) {
     rosterMap[r.player] = true;
-  }
-});
+    }
+  });
 
 const roster = Object.keys(rosterMap).sort((a, b) => a.localeCompare(b));
 
