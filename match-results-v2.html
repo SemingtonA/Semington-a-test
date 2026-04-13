@@ -431,7 +431,8 @@
     const legsValue = toNum(r.legsWon);
     const legsPounds = legsValue > 0 ? "£" + (legsValue * 2) : "";
     const topValue   = toNum(r.top);
-    const topPounds  = (topValue === 3) ? "£3" : "";
+    const topPounds = r.isTopTop ? "£3" : "";
+``
 
 
     // Priority: Away black > top total green
