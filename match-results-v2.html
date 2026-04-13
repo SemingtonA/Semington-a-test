@@ -429,7 +429,7 @@
     if (r.absent) scoreCell = (r.player === "A N Other") ? "" : "Away";
 
     const legsValue = toNum(r.legsWon);
-    const legsPounds = legsValue > 0 ? "£" + legsValue : "";
+    const legsPounds = legsValue > 0 ? "£" + (legsValue * 2) : "";
     const topValue   = toNum(r.top);
     const topPounds  = (topValue === 3) ? "£3" : "";
 
