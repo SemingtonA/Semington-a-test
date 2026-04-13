@@ -624,9 +624,27 @@ const roster = Object.keys(rosterMap).sort((a, b) => a.localeCompare(b));
         markMaxIfPositive(list, "legsWon", "isTopLegs", false);
 
         // Top Score: highlight ONLY if value is exactly £3
-        list.forEach(r => {
-          r.isTopTop = (toNum(r.top) === 3);
-        });
+         // ✅ Award exactly ONE Top Score (£3) per match
+(function awardTopScore() {
+
+  const played = list.filter(r =>
+    !r.absent &&
+    Number.isFinite(toNum(r.score)) &&
+    toNum(r.score) > 0
+  );
+
+  list.forEach(r => { r.isTopTop = false; });
+  if (!played.length) return;
+
+  let winner = played[0];
+  for (let i = 1; i < played.length; i++) {
+    if (toNum(played[i].score) > toNum(winner.score)) {
+      winner = played[i];
+    }
+  }
+
+  winner.isTopTop = true;
+})();
 
         // Highest Avg per match (gold)
         markMax(list, "avg", "isTopAvg", false);
