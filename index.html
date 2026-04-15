@@ -67,7 +67,7 @@
     }
 
   
-    /* ===== FOOTER ===== */
+/* ===== FOOTER ===== */
 .site-footer {
   position: relative;
   background-color: #f5f0e6;
@@ -75,7 +75,7 @@
   font-size: 12px;
 }
 
-/* TRUE PAGE CENTRE */
+/* True page centre */
 .footer-center {
   position: absolute;
   left: 50%;
@@ -84,37 +84,51 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  text-align: center;
 }
 
-/* COPYRIGHT TEXT */
+/* Centre content */
 .footer-copyright {
   font-size: 12px;
 }
 
-/* MAIN CLUB LOGO */
 .footer-logo {
   height: 32px;
   width: auto;
-  display: block;
 }
 
-/* RIGHT‑HAND PUBLISHED LOGO */
+/* Bottom-right logo ONLY */
 .footer-published {
   display: flex;
   justify-content: flex-end;
-  align-items: center;
 }
 
-
-/* PUBLISHED LOGO IMAGE */
 .published-logo {
   height: 24px;
   width: auto;
-  display: block;     /* forces rendering */
+  display: block;
   opacity: 0.85;
 }
 
+/* Mobile */
+@media (max-width: 600px) {
+  .footer-center {
+    position: static;
+    transform: none;
+    margin-bottom: 6px;
+  }
+
+  .footer-published {
+    justify-content: center;
+  }
+
+  .footer-logo {
+    height: 28px;
+  }
+
+  .published-logo {
+    height: 22px;
+  }
+}
 
 /* MOBILE */
 @media (max-width: 600px) {
@@ -267,7 +281,7 @@
   <div class="footer-published">
     <img src="published-by-logo.jpg"
          class="published-logo"
-        
+        alt="">
   </div>
 
 </footer>
