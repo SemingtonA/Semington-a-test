@@ -67,45 +67,71 @@
     }
 
     /* ===== FOOTER ===== */
-    footer.site-footer {
-      background-color: #f5f0e6;
-      padding: 10px 15px;
-      font-size: 12px;
-    }
+    /* ===== FOOTER ===== */
+.site-footer {
+  background-color: #f5f0e6;
+  padding: 10px 15px;
+  font-size: 12px;
+}
 
-    .footer-inner {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-    }
+.footer-inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
 
-    /* Bottom centre: copyright + main logo */
-    .footer-center {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-    }
+/* Centre block: STACKED vertically */
+.footer-center {
+  display: flex;
+  flex-direction: column;     /* ✅ this is the key change */
+  align-items: center;
+  gap: 4px;
+}
 
-    .footer-logo {
-      height: 32px;
-      width: auto;
-    }
+.footer-logo {
+  height: 32px;
+  width: auto;
+}
 
-    /* Bottom right: published by */
-    .footer-published {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 6px;
-    }
+/* Right block: inline */
+.footer-published {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
 
-    .published-logo {
-      height: 24px;
-      width: auto;
-      opacity: 0.85;
-    }
+.published-text {
+  font-size: 12px;
+  color: #444;
+}
 
+.published-logo {
+  height: 24px;
+  width: auto;
+  opacity: 0.85;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .footer-published {
+    justify-content: center;
+  }
+
+  .footer-logo {
+    height: 28px;
+  }
+
+  .published-logo {
+    height: 22px;
+  }
+}
+   
     /* ===== MOBILE ===== */
     @media (max-width: 900px) {
       header h1 {
@@ -175,22 +201,27 @@
   </main>
 
   <!-- FOOTER -->
-  <footer class="site-footer">
-    <div class="footer-inner">
+ <footer class="site-footer">
+  <div class="footer-inner">
 
-      <div class="footer-center">
-        <span>© Semington A Skittles Team</span>
-        <img src="Semington A Logo 5.jpg"
-             class="footer-logo"
-             alt="Semington A Skittles Team">
-      </div>
+    <!-- Bottom centre -->
+    <div class="footer-center">
+      <span class="copyright">© Semington A Skittles Team</span>
+      <img src="Semington A Logo 5.jpg"
+           class="footer-logo"
+           alt="Semington A Skittles Team">
+    </div>
 
-      <div class="footer-published">
-        <span>Published by</span>
-        <img src="Published By Logo.jpg"
-             class="published-logo"
-             alt="Published by">
-      </div>
+    <!-- Bottom right -->
+    <div class="footer-published">
+      <span class="published-text">Published by</span>
+      <img src="Published By Logo.jpg"
+           class="published-logo"
+           alt="Published by">
+    </div>
+
+  </div>
+</footer>
 
     </div>
   </footer>
