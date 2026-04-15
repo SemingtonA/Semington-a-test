@@ -138,6 +138,51 @@ footer {
 header {
   padding: 20px;
 }
+ /* Footer container (controls the right alignment) */
+.site-footer {
+  width: 100%;
+  padding: 10px 15px;
+  background-color: #f5f0e6;
+  box-sizing: border-box;
+}
+
+/* Right-aligned footer content */
+.footer-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Semington A logo */
+.footer-logo {
+  height: 40px;
+  width: auto;
+}
+
+/* Published By logo */
+.published-logo {
+  height: 28px;
+  width: auto;
+  vertical-align: middle;
+  opacity: 0.85;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .footer-right {
+    flex-wrap: wrap;
+    justify-content: center; /* centres nicely on small screens */
+  }
+
+  .footer-logo {
+    height: 36px;
+  }
+
+  .published-logo {
+    height: 24px;
+  }
+}
 
 .header-top {
   display: flex;
@@ -245,6 +290,10 @@ header h1 {
   © Semington A Skittles Team
   <div class="footer-logo">
     <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
+   span class="published-text">Published by</span>
+    <img src="Published By Logo.jpg" alt="Published by" class="published-logo">
+  </div>
+
   </div>
 </footer>
 
