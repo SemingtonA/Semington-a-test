@@ -66,42 +66,51 @@
       margin: 40px 0;
     }
 
-    /* ===== FOOTER ===== */
+  
     /* ===== FOOTER ===== */
 .site-footer {
+  position: relative;                 /* anchor for absolute centring */
   background-color: #f5f0e6;
   padding: 10px 15px;
   font-size: 12px;
 }
 
-.footer-inner {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-}
-
-/* Centre block: STACKED vertically */
+/* ========================= */
+/* CENTRE BLOCK (PAGE CENTRE) */
+/* ========================= */
 .footer-center {
+  position: absolute;
+  left: 50%;                          /* middle of page */
+  transform: translateX(-50%);        /* pull back half its width */
   display: flex;
-  flex-direction: column;     /* ✅ this is the key change */
+  flex-direction: column;             /* copyright ABOVE logo */
   align-items: center;
   gap: 4px;
+  text-align: center;
 }
 
+/* COPYRIGHT TEXT */
+.footer-copyright {
+  font-size: 12px;
+}
+
+/* MAIN LOGO */
 .footer-logo {
   height: 32px;
   width: auto;
 }
 
-/* Right block: inline */
+/* ========================= */
+/* RIGHT BLOCK               */
+/* ========================= */
 .footer-published {
   display: flex;
-  align-items: center;
   justify-content: flex-end;
+  align-items: center;
   gap: 6px;
 }
 
-.published-text {
+.footer-published-text {
   font-size: 12px;
   color: #444;
 }
@@ -112,6 +121,30 @@
   opacity: 0.85;
 }
 
+/* ========================= */
+/* MOBILE                    */
+/* ========================= */
+@media (max-width: 600px) {
+  .footer-center {
+    position: static;
+    transform: none;
+    margin-bottom: 6px;
+  }
+
+  .footer-published {
+    justify-content: center;
+  }
+
+  .footer-logo {
+    height: 28px;
+  }
+
+  .published-logo {
+    height: 22px;
+  }
+}
+``
+   
 /* Mobile */
 @media (max-width: 600px) {
   .footer-inner {
