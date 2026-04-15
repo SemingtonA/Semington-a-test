@@ -96,17 +96,24 @@
   opacity: 0.85;
 }
 
-/* Mobile */
+/* ===== MOBILE FOOTER FIX ===== */
 @media (max-width: 600px) {
-  .site-footer {
-    grid-template-columns: 1fr;
+
+  footer {
+    grid-template-columns: 1fr;   /* single column */
     row-gap: 10px;
     text-align: center;
   }
 
+  .footer-center {
+    grid-column: 1;
+  }
+
   .footer-published {
+    grid-column: 1;
     justify-content: center;
   }
+
 }
     
     /* ===== MOBILE ===== */
