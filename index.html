@@ -48,6 +48,44 @@ header h1 {
   width: 280px;
   height: auto;
 }
+ .site-footer {
+  padding: 10px 15px;
+  background-color: #f5f0e6;
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.footer-logo {
+  height: 40px;
+  width: auto;
+}
+
+.published-logo {
+  height: 28px;
+  width: auto;
+  opacity: 0.85;
+}
+
+@media (max-width: 600px) {
+  .footer-right {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .footer-logo {
+    height: 34px;
+  }
+
+  .published-logo {
+    height: 24px;
+  }
+}
 
 /*.nav-buttons {
   grid-column: 1 / -1;
