@@ -103,15 +103,18 @@
 .footer-published {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
 }
+
 
 /* PUBLISHED LOGO IMAGE */
 .published-logo {
   height: 24px;
   width: auto;
-  display: block;
+  display: block;     /* forces rendering */
   opacity: 0.85;
 }
+
 
 /* MOBILE */
 @media (max-width: 600px) {
@@ -261,11 +264,11 @@
   </div>
 
   <!-- BOTTOM RIGHT: IMAGE ONLY -->
-  <div class="footer-published">
-    <img src="Published By Logo.jpg"
-         class="published-logo"
-         alt="Published by">
-  </div>
+ <div class="footer-published">
+  <img src="Published By Logo.jpg"
+       class="published-logo"
+       alt="Published by">
+</div>
 
 </footer>
 ``
