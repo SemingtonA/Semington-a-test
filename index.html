@@ -176,15 +176,12 @@ footer {
 header {
   padding: 20px;
 }
- /* Footer container (controls the right alignment) */
 .site-footer {
-  width: 100%;
   padding: 10px 15px;
   background-color: #f5f0e6;
-  box-sizing: border-box;
+  font-size: 12px;
 }
 
-/* Right-aligned footer content */
 .footer-right {
   display: flex;
   align-items: center;
@@ -194,19 +191,39 @@ header {
 
 /* Semington A logo */
 .footer-logo {
-  height: 40px;
+  height: 36px;
   width: auto;
 }
-<footer class="site-footer">
-  <div class="footer-right">
-    &copy; Semington A Skittles Team
 
-    <img src="Semington A Logo 5.jpg" alt="Semington A Skittles Team Logo" class="footer-logo">
+/* Published by text */
+.published-text {
+  font-size: 12px;
+  color: #444;
+}
 
-    <span class="published-text">Published by</span>
+/* Published by logo */
+.published-logo {
+  height: 26px;
+  width: auto;
+  opacity: 0.85;
+}
 
-    <img src="Published By Logo.jpg" alt="Published By" class="published-logo">
-  </div>
+/* Mobile */
+@media (max-width: 600px) {
+  .footer-right {
+    justify-content: center;
+    flex-wrap: wrap;
+    text-align: center;
+  }
+
+  .footer-logo {
+    height: 32px;
+  }
+
+  .published-logo {
+    height: 22px;
+  }
+}
 </footer>
 
 
@@ -323,20 +340,24 @@ header h1 {
 </main>
 
 <!-- ✅ COPYRIGHT + SMALL LOGO -->
-<footer>
-<footer class="site-footer">
+<footer><footer class="site-footer">
   <div class="footer-right">
-    <img src="Semington A Logo 5.jpg" alt="Semington A Skittles Team"
+    <span class="copyright">
+      © Semington A Skittles Team
+    </span>
+
+    <img src="Semington A Logo 5.jpg"
+         alt="Semington A Skittles Team"
          class="footer-logo">
 
     <span class="published-text">Published by</span>
 
-    <img src="Published By Logo.jpg" alt="Published by"
+    <img src="Published By Logo.jpg"
+         alt="Published by"
          class="published-logo">
   </div>
 </footer>
 
-  </div>
 </footer>
 
 
