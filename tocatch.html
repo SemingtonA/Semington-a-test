@@ -24,9 +24,7 @@
     /* ====================== */
     /* HEADER */
     /* ====================== */
-    header {
-      padding: 20px;
-    }
+    header { padding: 20px; }
 
     .header-top {
       display: flex;
@@ -41,10 +39,7 @@
       flex: 1;
     }
 
-    .logo img {
-      width: 300px;
-      height: auto;
-    }
+    .logo img { width: 300px; height: auto; }
 
     /* ====================== */
     /* NAV BUTTONS */
@@ -53,7 +48,6 @@
       margin-top: 15px;
       text-align: center;
     }
-
     .nav-buttons a {
       display: inline-block;
       margin: 6px;
@@ -64,18 +58,12 @@
       border-radius: 4px;
       font-weight: bold;
     }
-
-    .nav-buttons a:hover {
-      background: #163aa3;
-    }
+    .nav-buttons a:hover { background: #163aa3; }
 
     /* ====================== */
     /* MAIN */
     /* ====================== */
-    main {
-      flex: 1;
-      padding: 20px;
-    }
+    main { flex: 1; padding: 20px; }
 
     .panel {
       max-width: 1400px;
@@ -135,9 +123,7 @@
       text-align: center;
     }
 
-    td:nth-child(1), th:nth-child(1) {
-      text-align: left;
-    }
+    td:nth-child(1), th:nth-child(1) { text-align: left; }
 
     /* ====================== */
     /* FOOTER */
@@ -149,38 +135,17 @@
       font-size: 12px;
       color: #555;
     }
-
-    .footer-logo img {
-      width: 60px;
-      opacity: 0.9;
-    }
+    .footer-logo img { width: 60px; opacity: 0.9; }
 
     /* ====================== */
     /* MOBILE */
     /* ====================== */
     @media (max-width: 900px) {
-      .header-top {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      header h1 {
-        font-size: 32px;
-        margin-top: 10px;
-      }
-
-      .logo img {
-        width: 150px;
-        margin-bottom: 10px;
-      }
-
-      table {
-        font-size: 12px;
-      }
-
-      .footer-logo img {
-        width: 48px;
-      }
+      .header-top { flex-direction: column; text-align: center; }
+      header h1 { font-size: 32px; margin-top: 10px; }
+      .logo img { width: 150px; margin-bottom: 10px; }
+      table { font-size: 12px; }
+      .footer-logo img { width: 48px; }
     }
   </style>
 </head>
@@ -193,15 +158,13 @@
   <header>
     <div class="header-top">
       <h1>To Catch Next Player Above</h1>
-
-      <!-- TOP LOGO -->
       <div class="logo">
         <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
       </div>
     </div>
 
     <!-- ====================== -->
-    <!-- NAVIGATION (PATHS AS IN LIVE SITE) -->
+    <!-- NAVIGATION (LIVE PATHS) -->
     <!-- ====================== -->
     <div class="nav-buttons">
       <a href="/semington-a/index.html">Home</a>
@@ -219,7 +182,7 @@
   <main>
 
     <!-- ====================== -->
-    <!-- LAST UPDATED DISPLAY (NEW) -->
+    <!-- LAST UPDATED DISPLAY -->
     <!-- Source: match_results.csv -->
     <!-- ====================== -->
     <div id="lastUpdated"
@@ -269,758 +232,250 @@
   </footer>
 
   <!-- ====================== -->
-  <!-- INLINE TOCATCH.JS (EMBEDDED) -->
-  <!-- This is the full logic from [tocatch.js](https://onedrive.live.com/?id=5b735f11-dde0-4d94-b58e-0d5ec3b7bf1d&cid=c205089414b2510e&web=1&EntityRepresentationId=6546365b-5f04-441e-ab67-0a2ab402b414) -->
+  <!-- INLINE SCRIPT (To Catch + Last Updated) -->
+  <!-- Based on your existing tocatch.js -->
   <!-- ====================== -->
   <script>
-  // tocatch.js — League match dropdown (Cup excluded), match-by-match, cumulative-to-date
-  // Sorted by Avg desc. To Catch = pins needed to catch next player above (by Total Pins).
-  // ES5 only.
-  function trim(v){ return (v === undefined || v === null) ? "" : String(v).trim(); }
-  function toNum(v){ var n = Number(trim(v)); return isFinite(n) ? n : NaN; }
-  function parseCSV(text){
-    var lines = text.trim().split(/\r?\n/);
-    var out = [];
-    for (var i = 0; i < lines.length; i++) out.push(lines[i].split(","));
-    return out;
-  }
-  function cleanHeader(h){ return trim(h).replace(/:$/,"").replace(/\s+$/,""); }
-  function isLeague(details){ return /league/i.test(details || ""); }
-  // dd/mm/yyyy or d/m/yyyy at the start of Match ID
-  function dateFromMatchId(id){
-    var m = trim(id).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if(!m) return null;
-    return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
-  }
-
-  var tbody = document.getElementById("tableBody");
-  var status = document.getElementById("status");
-  var select = document.getElementById("matchSelect");
-
-  // visible marker to confirm the script is running
-  status.textContent = "Loading league matches…";
-
-  fetch("match_results.csv", { cache:"no-store" })
-    .then(function(r){
-      if(!r.ok) throw new Error("CSV not found");
-      return r.text();
-    })
-    .then(function(text){
-      var grid = parseCSV(text);
-
-      // find header row containing "Match ID"
-      var headerRow = -1;
-      for(var i=0;i<grid.length;i++){
-        for(var j=0;j<grid[i].length;j++){
-          if(cleanHeader(grid[i][j]) === "Match ID"){ headerRow=i; break; }
-        }
-        if(headerRow!==-1) break;
-      }
-      if(headerRow<0) throw new Error("Header row not found");
-
-      var headers = [];
-      for(i=0;i<grid[headerRow].length;i++) headers.push(cleanHeader(grid[headerRow][i]));
-      var rows = grid.slice(headerRow+1);
-
-      // normalize league rows only (Cup excluded)
-      var data = [];
-      for(i=0;i<rows.length;i++){
-        var o = {};
-        for(j=0;j<headers.length;j++) o[headers[j]] = trim(rows[i][j]);
-        if(!o["Match ID"] || !o["Team Player"]) continue;
-        if(!isLeague(o["Match Details"])) continue; // Cup excluded
-        if(o["Team Player"]==="Away" || o["Team Player"]==="A N Other") continue;
-
-        data.push({
-          matchId:o["Match ID"],
-          player:o["Team Player"],
-          score:o["Total Score"],
-          avg:o["League Averages"] || o["League Avg"] || o["League Average"] || ""
-        });
-      }
-
-      // roster + match map
-      var rosterMap={}, matchMap={};
-      for(i=0;i<data.length;i++){
-        rosterMap[data[i].player]=true;
-        if(!matchMap[data[i].matchId]) matchMap[data[i].matchId]=[];
-        matchMap[data[i].matchId].push(data[i]);
-      }
-      var roster=[];
-      for(var nm in rosterMap) roster.push(nm);
-      roster.sort(function(a,b){ return a.localeCompare(b); });
-
-      // match IDs sorted newest first
-      var matchIds=[];
-      for(var mid in matchMap) matchIds.push(mid);
-      matchIds.sort(function(a,b){
-        var da=dateFromMatchId(a), db=dateFromMatchId(b);
-        if(!da && !db) return 0;
-        if(!da) return 1;
-        if(!db) return -1;
-        return db-da;
-      });
-
-      // populate dropdown
-      while(select.options.length>1) select.remove(1);
-      for(i=0;i<matchIds.length;i++){
-        var opt=document.createElement("option");
-        opt.value=matchIds[i];
-        opt.textContent=matchIds[i];
-        select.appendChild(opt);
-      }
-
-      // build cumulative snapshots oldest->newest
-      var matchIdsAsc = matchIds.slice().reverse();
-      var pins={}, games={}, avgRef={}, snapshots={};
-      for(i=0;i<matchIdsAsc.length;i++){
-        var id = matchIdsAsc[i];
-        var rowsForMatch = matchMap[id];
-        var matchPins = {};
-        for(j=0;j<rowsForMatch.length;j++){
-          var rr=rowsForMatch[j];
-          var av=toNum(rr.avg);
-          if(isFinite(av)) avgRef[rr.player]=av;
-          var sc=toNum(rr.score);
-          if(isFinite(sc) && sc>0){
-            if(!pins[rr.player]) pins[rr.player]=0;
-            if(!games[rr.player]) games[rr.player]=0;
-            pins[rr.player]+=sc;
-            games[rr.player]+=1;
-            matchPins[rr.player]=sc;
-          }
-        }
-        // clone snapshot
-        var snapPins={}, snapGames={}, snapAvg={}, snapMatchPins={}, p;
-        for(p in pins) snapPins[p]=pins[p];
-        for(p in games) snapGames[p]=games[p];
-        for(p in avgRef) snapAvg[p]=avgRef[p];
-        for(p in matchPins) snapMatchPins[p]=matchPins[p];
-        snapshots[id]={ pins:snapPins, games:snapGames, avg:snapAvg, matchPins:snapMatchPins };
-      }
-
-      function renderForMatch(matchId){
-        tbody.innerHTML = ""; // prevents "one long list"
-        if(!matchId) matchId = matchIds[0];
-        var snap = snapshots[matchId];
-        if(!snap) return;
-
-        var out=[];
-        for(i=0;i<roster.length;i++){
-          var pl=roster[i];
-          var g=snap.games[pl] || 0;
-          var tp=snap.pins[pl] || 0;
-          var av2=snap.avg[pl];
-          var matchPin = snap.matchPins.hasOwnProperty(pl) ? String(snap.matchPins[pl]) : "Away";
-          var avgNum = (av2===undefined) ? NaN : Number(av2);
-          var totalPinsNum = Math.round(tp);
-
-          out.push({
-            player:pl,
-            matchPins:matchPin,
-            games:g,
-            avgNum:avgNum,
-            avg:(av2===undefined)?"":Number(av2).toFixed(1),
-            totalPinsNum: totalPinsNum,
-            toCatch:""
-          });
-        }
-
-        // sort by avg desc
-        out.sort(function(a,b){
-          var aa=isFinite(a.avgNum)?a.avgNum:-Infinity;
-          var bb=isFinite(b.avgNum)?b.avgNum:-Infinity;
-          if(bb!==aa) return bb-aa;
-          return a.player.localeCompare(b.player);
-        });
-
-        // To Catch = (AvgAbove − AvgMe) × GamesMe
-        for (i = 0; i < out.length; i++) {
-          if (i === 0) {
-            out[i].toCatch = "0";
-          } else {
-            var above = out[i - 1];
-            var me = out[i];
-            if (!isFinite(above.avgNum) || !isFinite(me.avgNum) || !isFinite(me.games)) {
-              out[i].toCatch = "";
-            } else {
-              var diff = (above.avgNum - me.avgNum) * me.games;
-              diff = Math.round(diff);
-              if (diff < 0) diff = 0;
-              out[i].toCatch = String(diff);
-            }
-          }
-        }
-
-        // render (5 columns)
-        for(i=0;i<out.length;i++){
-          var row=out[i];
-          tbody.innerHTML +=
-            "<tr>" +
-              "<td>" + row.player + "</td>" +
-              "<td>" + row.matchPins + "</td>" +
-              "<td>" + row.games + "</td>" +
-              "<td>" + row.avg + "</td>" +
-              "<td>" + row.toCatch + "</td>" +
-            "</tr>";
-        }
-        status.textContent="League match: "+matchId+" (Cup excluded; sorted by Avg).";
-      }
-
-      renderForMatch(select.value);
-      select.addEventListener("change", function(){ renderForMatch(select.value); });
-
-    })
-    .catch(function(e){
-      status.style.color="red";
-      status.textContent=e.message;
-      console.error(e);
-    });
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <!-- ====================== -->
-  <!-- PAGE METADATA -->
-  <!-- ====================== -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>To Catch Next Player Above</title>
-
-  <style>
-    /* ====================== */
-    /* GLOBAL PAGE STYLES */
-    /* ====================== */
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      font-family: Arial, sans-serif;
-      background-color: #f5f0e6;
-    }
-
-    /* ====================== */
-    /* HEADER */
-    /* ====================== */
-    header {
-      padding: 20px;
-    }
-
-    .header-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 72px;
-      text-align: center;
-      flex: 1;
-    }
-
-    .logo img {
-      width: 300px;
-      height: auto;
-    }
-
-    /* ====================== */
-    /* NAV BUTTONS */
-    /* ====================== */
-    .nav-buttons {
-      margin-top: 15px;
-      text-align: center;
-    }
-
-    .nav-buttons a {
-      display: inline-block;
-      margin: 6px;
-      padding: 10px 18px;
-      background: #000;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 4px;
-      font-weight: bold;
-    }
-
-    .nav-buttons a:hover {
-      background: #163aa3;
-    }
-
-    /* ====================== */
-    /* MAIN */
-    /* ====================== */
-    main {
-      flex: 1;
-      padding: 20px;
-    }
-
-    .panel {
-      max-width: 1400px;
-      margin: 10px auto 14px;
-      background: #ffffffcc;
-      border-radius: 8px;
-      padding: 12px;
-    }
-
-    .label {
-      font-size: 12px;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 6px;
-    }
-
-    select {
-      width: 100%;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    #status {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #555;
-    }
-
-    .table-wrap {
-      max-width: 1400px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 8px;
-      padding: 12px;
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    th {
-      border-bottom: 1px solid #eee;
-      padding: 8px;
-      white-space: normal;
-      text-align: center;
-      background: #fafafa;
-    }
-
-    td {
-      border-bottom: 1px solid #eee;
-      padding: 8px;
-      white-space: nowrap;
-      text-align: center;
-    }
-
-    td:nth-child(1), th:nth-child(1) {
-      text-align: left;
-    }
-
-    /* ====================== */
-    /* FOOTER */
-    /* ====================== */
-    footer {
-      margin-top: auto;
-      text-align: center;
-      padding: 16px 20px 22px;
-      font-size: 12px;
-      color: #555;
-    }
-
-    .footer-logo img {
-      width: 60px;
-      opacity: 0.9;
-    }
-
-    /* ====================== */
-    /* MOBILE */
-    /* ====================== */
-    @media (max-width: 900px) {
-      .header-top {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      header h1 {
-        font-size: 32px;
-        margin-top: 10px;
-      }
-
-      .logo img {
-        width: 150px;
-        margin-bottom: 10px;
-      }
-
-      table {
-        font-size: 12px;
-      }
-
-      .footer-logo img {
-        width: 48px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-
-  <!-- ====================== -->
-  <!-- PAGE HEADER -->
-  <!-- ====================== -->
-  <header>
-    <div class="header-top">
-      <h1>To Catch Next Player Above</h1>
-
-      <!-- TOP LOGO -->
-      <div class="logo">
-        <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
-      </div>
-    </div>
-
-    <!-- ====================== -->
-    <!-- NAVIGATION (PATHS AS IN LIVE SITE) -->
-    <!-- ====================== -->
-    <div class="nav-buttons">
-      <a href="/semington-a/index.html">Home</a>
-      <a href="/semington-a/fixtures.html">Fixtures &amp; Results</a>
-      <a href="/semington-a/match-results.html">Match Results</a>
-      <a href="/semington-a/tocatch.html">To Catch</a>
-      <a href="/semington-a/gallery.html">Gallery</a>
-      <a href="/semington-a/rules.html">Rules</a>
-    </div>
-  </header>
-
-  <!-- ====================== -->
-  <!-- MAIN CONTENT -->
-  <!-- ====================== -->
-  <main>
-
-    <!-- ====================== -->
-    <!-- LAST UPDATED DISPLAY (NEW) -->
-    <!-- Source: match_results.csv -->
-    <!-- ====================== -->
-    <div id="lastUpdated"
-         style="text-align:center; font-size:12px; margin:0 0 12px; color:#555;">
-      Last updated: —
-    </div>
-
-    <!-- ====================== -->
-    <!-- FILTER PANEL -->
-    <!-- ====================== -->
-    <div class="panel">
-      <div class="label">Filter by League Match (Cup matches excluded)</div>
-      <select id="matchSelect">
-        <option value="">Latest League Match</option>
-      </select>
-      <div id="status"></div>
-    </div>
-
-    <!-- ====================== -->
-    <!-- TO CATCH TABLE -->
-    <!-- ====================== -->
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Player</th>
-            <th>Total Match Pins</th>
-            <th>Games (to date)</th>
-            <th>Avg</th>
-            <th>Pins Behind Player Above</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
-
-  </main>
-
-  <!-- ====================== -->
-  <!-- FOOTER -->
-  <!-- ====================== -->
-  <footer>
-    © Semington A Skittles Team
-    <div class="footer-logo">
-      <img src="Semington A Logo 5.jpg" alt="Logo">
-    </div>
-  </footer>
-
-  <!-- ====================== -->
-  <!-- INLINE TOCATCH.JS (EMBEDDED) -->
-  <!-- This is the full logic from [tocatch.js](https://onedrive.live.com/?id=5b735f11-dde0-4d94-b58e-0d5ec3b7bf1d&cid=c205089414b2510e&web=1&EntityRepresentationId=6546365b-5f04-441e-ab67-0a2ab402b414) -->
-  <!-- ====================== -->
-  <script>
-  // tocatch.js — League match dropdown (Cup excluded), match-by-match, cumulative-to-date
-  // Sorted by Avg desc. To Catch = pins needed to catch next player above (by Total Pins).
-  // ES5 only.
-  function trim(v){ return (v === undefined || v === null) ? "" : String(v).trim(); }
-  function toNum(v){ var n = Number(trim(v)); return isFinite(n) ? n : NaN; }
-  function parseCSV(text){
-    var lines = text.trim().split(/\r?\n/);
-    var out = [];
-    for (var i = 0; i < lines.length; i++) out.push(lines[i].split(","));
-    return out;
-  }
-  function cleanHeader(h){ return trim(h).replace(/:$/,"").replace(/\s+$/,""); }
-  function isLeague(details){ return /league/i.test(details || ""); }
-  // dd/mm/yyyy or d/m/yyyy at the start of Match ID
-  function dateFromMatchId(id){
-    var m = trim(id).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if(!m) return null;
-    return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
-  }
-
-  var tbody = document.getElementById("tableBody");
-  var status = document.getElementById("status");
-  var select = document.getElementById("matchSelect");
-
-  // visible marker to confirm the script is running
-  status.textContent = "Loading league matches…";
-
-  fetch("match_results.csv", { cache:"no-store" })
-    .then(function(r){
-      if(!r.ok) throw new Error("CSV not found");
-      return r.text();
-    })
-    .then(function(text){
-      var grid = parseCSV(text);
-
-      // find header row containing "Match ID"
-      var headerRow = -1;
-      for(var i=0;i<grid.length;i++){
-        for(var j=0;j<grid[i].length;j++){
-          if(cleanHeader(grid[i][j]) === "Match ID"){ headerRow=i; break; }
-        }
-        if(headerRow!==-1) break;
-      }
-      if(headerRow<0) throw new Error("Header row not found");
-
-      var headers = [];
-      for(i=0;i<grid[headerRow].length;i++) headers.push(cleanHeader(grid[headerRow][i]));
-      var rows = grid.slice(headerRow+1);
-
-      // normalize league rows only (Cup excluded)
-      var data = [];
-      for(i=0;i<rows.length;i++){
-        var o = {};
-        for(j=0;j<headers.length;j++) o[headers[j]] = trim(rows[i][j]);
-        if(!o["Match ID"] || !o["Team Player"]) continue;
-        if(!isLeague(o["Match Details"])) continue; // Cup excluded
-        if(o["Team Player"]==="Away" || o["Team Player"]==="A N Other") continue;
-
-        data.push({
-          matchId:o["Match ID"],
-          player:o["Team Player"],
-          score:o["Total Score"],
-          avg:o["League Averages"] || o["League Avg"] || o["League Average"] || ""
-        });
-      }
-
-      // roster + match map
-      var rosterMap={}, matchMap={};
-      for(i=0;i<data.length;i++){
-        rosterMap[data[i].player]=true;
-        if(!matchMap[data[i].matchId]) matchMap[data[i].matchId]=[];
-        matchMap[data[i].matchId].push(data[i]);
-      }
-      var roster=[];
-      for(var nm in rosterMap) roster.push(nm);
-      roster.sort(function(a,b){ return a.localeCompare(b); });
-
-      // match IDs sorted newest first
-      var matchIds=[];
-      for(var mid in matchMap) matchIds.push(mid);
-      matchIds.sort(function(a,b){
-        var da=dateFromMatchId(a), db=dateFromMatchId(b);
-        if(!da && !db) return 0;
-        if(!da) return 1;
-        if(!db) return -1;
-        return db-da;
-      });
-
-      // populate dropdown
-      while(select.options.length>1) select.remove(1);
-      for(i=0;i<matchIds.length;i++){
-        var opt=document.createElement("option");
-        opt.value=matchIds[i];
-        opt.textContent=matchIds[i];
-        select.appendChild(opt);
-      }
-
-      // build cumulative snapshots oldest->newest
-      var matchIdsAsc = matchIds.slice().reverse();
-      var pins={}, games={}, avgRef={}, snapshots={};
-      for(i=0;i<matchIdsAsc.length;i++){
-        var id = matchIdsAsc[i];
-        var rowsForMatch = matchMap[id];
-        var matchPins = {};
-        for(j=0;j<rowsForMatch.length;j++){
-          var rr=rowsForMatch[j];
-          var av=toNum(rr.avg);
-          if(isFinite(av)) avgRef[rr.player]=av;
-          var sc=toNum(rr.score);
-          if(isFinite(sc) && sc>0){
-            if(!pins[rr.player]) pins[rr.player]=0;
-            if(!games[rr.player]) games[rr.player]=0;
-            pins[rr.player]+=sc;
-            games[rr.player]+=1;
-            matchPins[rr.player]=sc;
-          }
-        }
-        // clone snapshot
-        var snapPins={}, snapGames={}, snapAvg={}, snapMatchPins={}, p;
-        for(p in pins) snapPins[p]=pins[p];
-        for(p in games) snapGames[p]=games[p];
-        for(p in avgRef) snapAvg[p]=avgRef[p];
-        for(p in matchPins) snapMatchPins[p]=matchPins[p];
-        snapshots[id]={ pins:snapPins, games:snapGames, avg:snapAvg, matchPins:snapMatchPins };
-      }
-
-      function renderForMatch(matchId){
-        tbody.innerHTML = ""; // prevents "one long list"
-        if(!matchId) matchId = matchIds[0];
-        var snap = snapshots[matchId];
-        if(!snap) return;
-
-        var out=[];
-        for(i=0;i<roster.length;i++){
-          var pl=roster[i];
-          var g=snap.games[pl] || 0;
-          var tp=snap.pins[pl] || 0;
-          var av2=snap.avg[pl];
-          var matchPin = snap.matchPins.hasOwnProperty(pl) ? String(snap.matchPins[pl]) : "Away";
-          var avgNum = (av2===undefined) ? NaN : Number(av2);
-          var totalPinsNum = Math.round(tp);
-
-          out.push({
-            player:pl,
-            matchPins:matchPin,
-            games:g,
-            avgNum:avgNum,
-            avg:(av2===undefined)?"":Number(av2).toFixed(1),
-            totalPinsNum: totalPinsNum,
-            toCatch:""
-          });
-        }
-
-        // sort by avg desc
-        out.sort(function(a,b){
-          var aa=isFinite(a.avgNum)?a.avgNum:-Infinity;
-          var bb=isFinite(b.avgNum)?b.avgNum:-Infinity;
-          if(bb!==aa) return bb-aa;
-          return a.player.localeCompare(b.player);
-        });
-
-        // To Catch = (AvgAbove − AvgMe) × GamesMe
-        for (i = 0; i < out.length; i++) {
-          if (i === 0) {
-            out[i].toCatch = "0";
-          } else {
-            var above = out[i - 1];
-            var me = out[i];
-            if (!isFinite(above.avgNum) || !isFinite(me.avgNum) || !isFinite(me.games)) {
-              out[i].toCatch = "";
-            } else {
-              var diff = (above.avgNum - me.avgNum) * me.games;
-              diff = Math.round(diff);
-              if (diff < 0) diff = 0;
-              out[i].toCatch = String(diff);
-            }
-          }
-        }
-
-        // render (5 columns)
-        for(i=0;i<out.length;i++){
-          var row=out[i];
-          tbody.innerHTML +=
-            "<tr>" +
-              "<td>" + row.player + "</td>" +
-              "<td>" + row.matchPins + "</td>" +
-              "<td>" + row.games + "</td>" +
-              "<td>" + row.avg + "</td>" +
-              "<td>" + row.toCatch + "</td>" +
-            "</tr>";
-        }
-        status.textContent="League match: "+matchId+" (Cup excluded; sorted by Avg).";
-      }
-
-      renderForMatch(select.value);
-      select.addEventListener("change", function(){ renderForMatch(select.value); });
-
-    })
-    .catch(function(e){
-      status.style.color="red";
-      status.textContent=e.message;
-      console.error(e);
-    });
-  </script>
-
-  <!-- ====================== -->
-  <!-- LAST UPDATED SCRIPT (INLINE) -->
-  <!-- Uses match_results.csv:
-       - if UpdatedAt/Updated At exists, shows latest value
-       - otherwise falls back to HTTP Last-Modified (if host provides it) -->
-  <!-- ====================== -->
-  <script>
-  (function () {
-    var el = document.getElementById("lastUpdated");
-    if (!el) return;
-
-    fetch("match_results.csv", { cache: "no-store" })
-      .then(function (r) {
-        if (!r.ok) throw new Error("match_results.csv not found");
-        var lastMod = r.headers.get("Last-Modified");
-        return r.text().then(function (t) { return { text: t, lastMod: lastMod }; });
-      })
-      .then(function (payload) {
-        var text = payload.text;
-        var lastMod = payload.lastMod;
-
-        var lines = String(text || "").trim().split(/\r?\n/);
-        if (lines.length < 2) {
-          if (lastMod) el.textContent = "Last updated: " + lastMod;
-          return;
-        }
-
-        var headers = lines[0].split(",");
-        var idx = headers.indexOf("UpdatedAt");
-        if (idx === -1) idx = headers.indexOf("Updated At");
-
-        if (idx !== -1) {
-          var latest = "";
-          for (var i = 1; i < lines.length; i++) {
-            var cells = lines[i].split(",");
-            var v = cells[idx];
-            if (v && v > latest) latest = v;
-          }
-          if (latest) {
-            el.textContent = "Last updated: " + latest;
+  document.addEventListener("DOMContentLoaded", function () {
+
+    // ---------- Last updated ----------
+    (function () {
+      var el = document.getElementById("lastUpdated");
+      if (!el) return;
+
+      fetch("match_results.csv", { cache: "no-store" })
+        .then(function (r) {
+          if (!r.ok) throw new Error("match_results.csv not found");
+          var lastMod = r.headers.get("Last-Modified"); // may be null on some hosts
+          return r.text().then(function (t) { return { text: t, lastMod: lastMod }; });
+        })
+        .then(function (payload) {
+          var text = payload.text || "";
+          var lastMod = payload.lastMod;
+
+          var lines = String(text).trim().split(/\r?\n/);
+          if (lines.length < 2) {
+            if (lastMod) el.textContent = "Last updated: " + lastMod;
             return;
           }
+
+          var headers = lines[0].split(",");
+          var idx = headers.indexOf("UpdatedAt");
+          if (idx === -1) idx = headers.indexOf("Updated At");
+
+          if (idx !== -1) {
+            var latest = "";
+            for (var i = 1; i < lines.length; i++) {
+              var cells = lines[i].split(",");
+              var v = cells[idx];
+              if (v && v > latest) latest = v;
+            }
+            if (latest) {
+              el.textContent = "Last updated: " + latest;
+              return;
+            }
+          }
+
+          // fallback if no UpdatedAt column exists
+          if (lastMod) el.textContent = "Last updated: " + lastMod;
+        })
+        .catch(function (err) {
+          console.error("Last updated failed:", err);
+        });
+    })();
+
+    // ---------- To Catch logic (from tocatch.js) ----------
+    function trim(v){ return (v === undefined || v === null) ? "" : String(v).trim(); }
+    function toNum(v){ var n = Number(trim(v)); return isFinite(n) ? n : NaN; }
+    function parseCSV(text){
+      var lines = text.trim().split(/\r?\n/);
+      var out = [];
+      for (var i = 0; i < lines.length; i++) out.push(lines[i].split(","));
+      return out;
+    }
+    function cleanHeader(h){ return trim(h).replace(/:$/,"").replace(/\s+$/,""); }
+    function isLeague(details){ return /league/i.test(details || ""); }
+    function dateFromMatchId(id){
+      var m = trim(id).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if(!m) return null;
+      return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
+    }
+
+    var tbody = document.getElementById("tableBody");
+    var status = document.getElementById("status");
+    var select = document.getElementById("matchSelect");
+
+    status.textContent = "Loading league matches…";
+
+    fetch("match_results.csv", { cache:"no-store" })
+      .then(function(r){
+        if(!r.ok) throw new Error("CSV not found");
+        return r.text();
+      })
+      .then(function(text){
+        var grid = parseCSV(text);
+
+        var headerRow = -1;
+        for(var i=0;i<grid.length;i++){
+          for(var j=0;j<grid[i].length;j++){
+            if(cleanHeader(grid[i][j]) === "Match ID"){ headerRow=i; break; }
+          }
+          if(headerRow!==-1) break;
+        }
+        if(headerRow<0) throw new Error("Header row not found");
+
+        var headers = [];
+        for(i=0;i<grid[headerRow].length;i++) headers.push(cleanHeader(grid[headerRow][i]));
+        var rows = grid.slice(headerRow+1);
+
+        var data = [];
+        for(i=0;i<rows.length;i++){
+          var o = {};
+          for(j=0;j<headers.length;j++) o[headers[j]] = trim(rows[i][j]);
+          if(!o["Match ID"] || !o["Team Player"]) continue;
+          if(!isLeague(o["Match Details"])) continue;
+          if(o["Team Player"]==="Away" || o["Team Player"]==="A N Other") continue;
+
+          data.push({
+            matchId:o["Match ID"],
+            player:o["Team Player"],
+            score:o["Total Score"],
+            avg:o["League Averages"] || o["League Avg"] || o["League Average"] || ""
+          });
         }
 
-        if (lastMod) el.textContent = "Last updated: " + lastMod;
+        var rosterMap={}, matchMap={};
+        for(i=0;i<data.length;i++){
+          rosterMap[data[i].player]=true;
+          if(!matchMap[data[i].matchId]) matchMap[data[i].matchId]=[];
+          matchMap[data[i].matchId].push(data[i]);
+        }
+
+        var roster=[];
+        for(var nm in rosterMap) roster.push(nm);
+        roster.sort(function(a,b){ return a.localeCompare(b); });
+
+        var matchIds=[];
+        for(var mid in matchMap) matchIds.push(mid);
+        matchIds.sort(function(a,b){
+          var da=dateFromMatchId(a), db=dateFromMatchId(b);
+          if(!da && !db) return 0;
+          if(!da) return 1;
+          if(!db) return -1;
+          return db-da;
+        });
+
+        while(select.options.length>1) select.remove(1);
+        for(i=0;i<matchIds.length;i++){
+          var opt=document.createElement("option");
+          opt.value=matchIds[i];
+          opt.textContent=matchIds[i];
+          select.appendChild(opt);
+        }
+
+        var matchIdsAsc = matchIds.slice().reverse();
+        var pins={}, games={}, avgRef={}, snapshots={};
+
+        for(i=0;i<matchIdsAsc.length;i++){
+          var id = matchIdsAsc[i];
+          var rowsForMatch = matchMap[id];
+          var matchPins = {};
+
+          for(j=0;j<rowsForMatch.length;j++){
+            var rr=rowsForMatch[j];
+            var av=toNum(rr.avg);
+            if(isFinite(av)) avgRef[rr.player]=av;
+            var sc=toNum(rr.score);
+            if(isFinite(sc) && sc>0){
+              if(!pins[rr.player]) pins[rr.player]=0;
+              if(!games[rr.player]) games[rr.player]=0;
+              pins[rr.player]+=sc;
+              games[rr.player]+=1;
+              matchPins[rr.player]=sc;
+            }
+          }
+
+          var snapPins={}, snapGames={}, snapAvg={}, snapMatchPins={}, p;
+          for(p in pins) snapPins[p]=pins[p];
+          for(p in games) snapGames[p]=games[p];
+          for(p in avgRef) snapAvg[p]=avgRef[p];
+          for(p in matchPins) snapMatchPins[p]=matchPins[p];
+
+          snapshots[id]={ pins:snapPins, games:snapGames, avg:snapAvg, matchPins:snapMatchPins };
+        }
+
+        function renderForMatch(matchId){
+          tbody.innerHTML = "";
+          if(!matchId) matchId = matchIds[0];
+          var snap = snapshots[matchId];
+          if(!snap) return;
+
+          var out=[];
+          for(i=0;i<roster.length;i++){
+            var pl=roster[i];
+            var g=snap.games[pl] || 0;
+            var tp=snap.pins[pl] || 0;
+            var av2=snap.avg[pl];
+            var matchPin = snap.matchPins.hasOwnProperty(pl) ? String(snap.matchPins[pl]) : "Away";
+            var avgNum = (av2===undefined) ? NaN : Number(av2);
+
+            out.push({
+              player:pl,
+              matchPins:matchPin,
+              games:g,
+              avgNum:avgNum,
+              avg:(av2===undefined)?"":Number(av2).toFixed(1),
+              toCatch:""
+            });
+          }
+
+          out.sort(function(a,b){
+            var aa=isFinite(a.avgNum)?a.avgNum:-Infinity;
+            var bb=isFinite(b.avgNum)?b.avgNum:-Infinity;
+            if(bb!==aa) return bb-aa;
+            return a.player.localeCompare(b.player);
+          });
+
+          for (i = 0; i < out.length; i++) {
+            if (i === 0) out[i].toCatch = "0";
+            else {
+              var above = out[i - 1];
+              var me = out[i];
+              if (!isFinite(above.avgNum) || !isFinite(me.avgNum) || !isFinite(me.games)) out[i].toCatch = "";
+              else {
+                var diff = (above.avgNum - me.avgNum) * me.games;
+                diff = Math.round(diff);
+                if (diff < 0) diff = 0;
+                out[i].toCatch = String(diff);
+              }
+            }
+          }
+
+          for(i=0;i<out.length;i++){
+            var row=out[i];
+            tbody.innerHTML +=
+              "<tr>" +
+                "<td>" + row.player + "</td>" +
+                "<td>" + row.matchPins + "</td>" +
+                "<td>" + row.games + "</td>" +
+                "<td>" + row.avg + "</td>" +
+                "<td>" + row.toCatch + "</td>" +
+              "</tr>";
+          }
+
+          status.textContent="League match: "+matchId+" (Cup excluded; sorted by Avg).";
+        }
+
+        renderForMatch(select.value);
+        select.addEventListener("change", function(){ renderForMatch(select.value); });
       })
-      .catch(function (err) {
-        console.error("Last updated failed:", err);
+      .catch(function(e){
+        status.style.color="red";
+        status.textContent=e.message;
+        console.error(e);
       });
-  })();
+  });
   </script>
-  
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  document.body.insertAdjacentHTML(
-    "afterbegin",
-    "<div style='background:red;color:white;padding:6px'>JS IS RUNNING</div>"
-  );
-});
-</script>
-
-
-</body>
-</html>
-``
 
 </body>
 </html>
