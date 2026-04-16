@@ -46,6 +46,9 @@
       height: auto;
     }
 
+    /* ====================== */
+    /* NAV BUTTONS */
+    /* ====================== */
     .nav-buttons {
       margin-top: 15px;
       text-align: center;
@@ -67,7 +70,7 @@
     }
 
     /* ====================== */
-    /* MAIN CONTENT */
+    /* MAIN */
     /* ====================== */
     main {
       flex: 1;
@@ -191,30 +194,33 @@
     <div class="header-top">
       <h1>To Catch Next Player Above</h1>
 
+      <!-- TOP LOGO -->
       <div class="logo">
         <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
       </div>
     </div>
-    
-  <div class="nav-buttons">
-    <a href="/semington-a/index.html">Home</a>
-    <a href="/semington-a/fixtures.html">Fixtures & Results</a>
-    <a href="/semington-a/match-results.html">Match Results</a>
-    <a href="/semington-a/tocatch.html">To Catch</a>
-    <a href="/semington-a/gallery.html">Gallery</a>
-    <a href="/semington-a/rules.html">Rules</a>
-  </div>
 
+    <!-- ====================== -->
+    <!-- NAVIGATION (UPDATED PATHS) -->
+    <!-- ====================== -->
+    <div class="nav-buttons">
+      <a href="/semington-a/index.html">Home</a>
+      <a href="/semington-a/fixtures.html">Fixtures &amp; Results</a>
+      <a href="/semington-a/match-results.html">Match Results</a>
+      <a href="/semington-a/tocatch.html">To Catch</a>
+      <a href="/semington-a/gallery.html">Gallery</a>
+      <a href="/semington-a/rules.html">Rules</a>
+    </div>
   </header>
 
   <!-- ====================== -->
-  <!-- MAIN SECTION -->
+  <!-- MAIN CONTENT -->
   <!-- ====================== -->
   <main>
 
     <!-- ====================== -->
-    <!-- LAST UPDATED DISPLAY -->
-    <!-- Filled from csv_export.csv -->
+    <!-- LAST UPDATED DISPLAY (NEW) -->
+    <!-- Source: match_results.csv -->
     <!-- ====================== -->
     <div id="lastUpdated"
          style="text-align:center; font-size:12px; margin:0 0 12px; color:#555;">
@@ -233,7 +239,7 @@
     </div>
 
     <!-- ====================== -->
-    <!-- TO CATCH TABLE -->
+    <!-- TABLE -->
     <!-- ====================== -->
     <div class="table-wrap">
       <table>
@@ -263,13 +269,15 @@
   </footer>
 
   <!-- ====================== -->
-  <!-- TO CATCH LOGIC -->
+  <!-- EXISTING TO CATCH LOGIC (UNCHANGED) -->
+  <!-- This script already fetches match_results.csv -->
   <!-- ====================== -->
   <script src="/semington-a/tocatch.js"></script>
 
   <!-- ====================== -->
-  <!-- LAST UPDATED SCRIPT -->
-  <!-- Reads UpdatedAt from match_results.csv -->
+  <!-- LAST UPDATED SCRIPT (NEW) -->
+  <!-- Reads UpdatedAt from match_results.csv (if present).
+       Fallback: uses HTTP Last-Modified header if your host provides it. -->
   <!-- ====================== -->
   <script>
   (function () {
@@ -277,30 +285,52 @@
     fetch("match_results.csv", { cache: "no-store" })
       .then(function (r) {
         if (!r.ok) throw new Error("match_results.csv not found");
-        return r.text();
+
+        // Fallback option: HTTP Last-Modified header (if provided by hosting)
+        var headerLastMod = r.headers.get("Last-Modified");
+
+        return r.text().then(function (text) {
+          return { text: text, headerLastMod: headerLastMod };
+        });
       })
-      .then(function (text) {
+      .then(function (payload) {
+        var text = payload.text;
+        var headerLastMod = payload.headerLastMod;
+
         var lines = text.trim().split(/\r?\n/);
-        if (lines.length < 2) return;
+        if (lines.length < 2) {
+          if (headerLastMod) {
+            var el0 = document.getElementById("lastUpdated");
+            if (el0) el0.textContent = "Last updated: " + headerLastMod;
+          }
+          return;
+        }
 
         var headers = lines[0].split(",");
+        var idx = headers.indexOf("UpdatedAt");
+        if (idx === -1) idx = headers.indexOf("Updated At");
 
-        var updatedIndex = headers.indexOf("UpdatedAt");
-        if (updatedIndex === -1) updatedIndex = headers.indexOf("Updated At");
-        if (updatedIndex === -1) return;
-
-        var latest = "";
-
-        for (var i = 1; i < lines.length; i++) {
-          var cells = lines[i].split(",");
-          var val = cells[updatedIndex];
-          if (val && val > latest) latest = val;
+        // If UpdatedAt column exists, use it
+        if (idx !== -1) {
+          var latest = "";
+          for (var i = 1; i < lines.length; i++) {
+            var cells = lines[i].split(",");
+            var val = cells[idx];
+            if (val && val > latest) latest = val;
+          }
+          if (latest) {
+            var el = document.getElementById("lastUpdated");
+            if (el) el.textContent = "Last updated: " + latest;
+            return;
+          }
         }
 
-        if (latest) {
-          var el = document.getElementById("lastUpdated");
-          if (el) el.textContent = "Last updated: " + latest;
+        // Otherwise fall back to Last-Modified header
+        if (headerLastMod) {
+          var el2 = document.getElementById("lastUpdated");
+          if (el2) el2.textContent = "Last updated: " + headerLastMod;
         }
+
       })
       .catch(function (err) {
         console.error("Last updated fetch failed:", err);
