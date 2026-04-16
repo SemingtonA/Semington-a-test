@@ -371,6 +371,7 @@
 
           if (!matchId || !player) continue;
           if (!isLeagueLike(details)) continue; // cup excluded; league/premier ok
+          if (player === "A N Other") continue;
 
           var sc = toNum(score);
           if (!isFinite(sc)) continue;
