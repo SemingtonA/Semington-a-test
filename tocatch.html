@@ -153,4 +153,160 @@
     }
 
     /* ====================== */
+    /* MOBILE */
+    /* ====================== */
+    @media (max-width: 900px) {
+      .header-top {
+        flex-direction: column;
+        text-align: center;
+      }
 
+      header h1 {
+        font-size: 32px;
+        margin-top: 10px;
+      }
+
+      .logo img {
+        width: 150px;
+        margin-bottom: 10px;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      .footer-logo img {
+        width: 48px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ====================== -->
+  <!-- PAGE HEADER -->
+  <!-- ====================== -->
+  <header>
+    <div class="header-top">
+      <h1>To Catch Next Player Above</h1>
+
+      <div class="logo">
+        <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <a href="index.html">Home</a>
+      <a href="fixtures.html">Fixtures &amp; Results</a>
+      <a href="match-results-v2.html">Match Results</a>
+      <a href="tocatch.html">To Catch</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="rules.html">Rules</a>
+    </div>
+  </header>
+
+  <!-- ====================== -->
+  <!-- MAIN SECTION -->
+  <!-- ====================== -->
+  <main>
+
+    <!-- ====================== -->
+    <!-- LAST UPDATED DISPLAY -->
+    <!-- Filled from csv_export.csv -->
+    <!-- ====================== -->
+    <div id="lastUpdated"
+         style="text-align:center; font-size:12px; margin:0 0 12px; color:#555;">
+      Last updated: —
+    </div>
+
+    <!-- ====================== -->
+    <!-- FILTER PANEL -->
+    <!-- ====================== -->
+    <div class="panel">
+      <div class="label">Filter by League Match (Cup matches excluded)</div>
+      <select id="matchSelect">
+        <option value="">Latest League Match</option>
+      </select>
+      <div id="status"></div>
+    </div>
+
+    <!-- ====================== -->
+    <!-- TO CATCH TABLE -->
+    <!-- ====================== -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Total Match Pins</th>
+            <th>Games (to date)</th>
+            <th>Avg</th>
+            <th>Pins Behind Player Above</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <!-- ====================== -->
+  <!-- FOOTER -->
+  <!-- ====================== -->
+  <footer>
+    © Semington A Skittles Team
+    <div class="footer-logo">
+      <img src="Semington A Logo 5.jpg" alt="Logo">
+    </div>
+  </footer>
+
+  <!-- ====================== -->
+  <!-- TO CATCH LOGIC -->
+  <!-- ====================== -->
+  <script src="/semington-a/tocatch.js"></script>
+
+  <!-- ====================== -->
+  <!-- LAST UPDATED SCRIPT -->
+  <!-- Reads UpdatedAt from csv_export.csv -->
+  <!-- ====================== -->
+  <script>
+  (function () {
+
+    fetch("csv_export.csv", { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("csv_export.csv not found");
+        return r.text();
+      })
+      .then(function (text) {
+        var lines = text.trim().split(/\r?\n/);
+        if (lines.length < 2) return;
+
+        var headers = lines[0].split(",");
+
+        var updatedIndex = headers.indexOf("UpdatedAt");
+        if (updatedIndex === -1) updatedIndex = headers.indexOf("Updated At");
+        if (updatedIndex === -1) return;
+
+        var latest = "";
+
+        for (var i = 1; i < lines.length; i++) {
+          var cells = lines[i].split(",");
+          var val = cells[updatedIndex];
+          if (val && val > latest) latest = val;
+        }
+
+        if (latest) {
+          var el = document.getElementById("lastUpdated");
+          if (el) el.textContent = "Last updated: " + latest;
+        }
+      })
+      .catch(function (err) {
+        console.error("Last updated fetch failed:", err);
+      });
+
+  })();
+  </script>
+
+</body>
+</html>
