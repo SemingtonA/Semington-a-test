@@ -231,7 +231,7 @@
 <script>
 (function () {
 
-  fetch("/semington-a/match_results.csv", { cache: "no-store" })
+  fetch("csv_export.csv", { cache: "no-store" })
     .then(r => r.text())
     .then(text => {
       const lines = text.trim().split(/\r?\n/);
