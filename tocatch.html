@@ -9,9 +9,6 @@
   <title>To Catch Next Player Above</title>
 
   <style>
-    /* ====================== */
-    /* GLOBAL PAGE STYLES */
-    /* ====================== */
     body {
       margin: 0;
       min-height: 100vh;
@@ -21,12 +18,8 @@
       background-color: #f5f0e6;
     }
 
-    /* ====================== */
-    /* HEADER */
-    /* ====================== */
-    header {
-      padding: 20px;
-    }
+    /* ===== HEADER ===== */
+    header { padding: 20px; }
 
     .header-top {
       display: flex;
@@ -46,9 +39,6 @@
       height: auto;
     }
 
-    /* ====================== */
-    /* NAV BUTTONS */
-    /* ====================== */
     .nav-buttons {
       margin-top: 15px;
       text-align: center;
@@ -65,13 +55,9 @@
       font-weight: bold;
     }
 
-    .nav-buttons a:hover {
-      background: #163aa3;
-    }
+    .nav-buttons a:hover { background: #163aa3; }
 
-    /* ====================== */
-    /* MAIN */
-    /* ====================== */
+    /* ===== MAIN ===== */
     main {
       flex: 1;
       padding: 20px;
@@ -120,28 +106,18 @@
       font-size: 14px;
     }
 
-    th {
-      border-bottom: 1px solid #eee;
-      padding: 8px;
-      white-space: normal;
-      text-align: center;
-      background: #fafafa;
-    }
-
-    td {
+    th, td {
       border-bottom: 1px solid #eee;
       padding: 8px;
       white-space: nowrap;
       text-align: center;
     }
 
-    td:nth-child(1), th:nth-child(1) {
+    th:nth-child(1), td:nth-child(1) {
       text-align: left;
     }
 
-    /* ====================== */
-    /* FOOTER */
-    /* ====================== */
+    /* ===== FOOTER ===== */
     footer {
       margin-top: auto;
       text-align: center;
@@ -155,189 +131,131 @@
       opacity: 0.9;
     }
 
-    /* ====================== */
-    /* MOBILE */
-    /* ====================== */
+    /* ===== MOBILE ===== */
     @media (max-width: 900px) {
-      .header-top {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      header h1 {
-        font-size: 32px;
-        margin-top: 10px;
-      }
-
-      .logo img {
-        width: 150px;
-        margin-bottom: 10px;
-      }
-
-      table {
-        font-size: 12px;
-      }
-
-      .footer-logo img {
-        width: 48px;
-      }
+      .header-top { flex-direction: column; text-align: center; }
+      header h1 { font-size: 32px; margin-top: 10px; }
+      .logo img { width: 150px; margin-bottom: 10px; }
+      table { font-size: 12px; }
+      .footer-logo img { width: 48px; }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- ====================== -->
-  <!-- PAGE HEADER -->
-  <!-- ====================== -->
-  <header>
-    <div class="header-top">
-      <h1>To Catch Next Player Above</h1>
-
-      <!-- TOP LOGO -->
-      <div class="logo">
-        <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
-      </div>
+<!-- ====================== -->
+<!-- PAGE HEADER -->
+<!-- ====================== -->
+<header>
+  <div class="header-top">
+    <h1>To Catch Next Player Above</h1>
+    <div class="logo">
+      <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
     </div>
+  </div>
 
-    <!-- ====================== -->
-    <!-- NAVIGATION (UPDATED PATHS) -->
-    <!-- ====================== -->
-    <div class="nav-buttons">
-      <a href="/semington-a/index.html">Home</a>
-      <a href="/semington-a/fixtures.html">Fixtures &amp; Results</a>
-      <a href="/semington-a/match-results.html">Match Results</a>
-      <a href="/semington-a/tocatch.html">To Catch</a>
-      <a href="/semington-a/gallery.html">Gallery</a>
-      <a href="/semington-a/rules.html">Rules</a>
-    </div>
-  </header>
+  <div class="nav-buttons">
+    <a href="/semington-a/index.html">Home</a>
+    <a href="/semington-a/fixtures.html">Fixtures &amp; Results</a>
+    <a href="/semington-a/match-results-v2.html">Match Results</a>
+    <a href="/semington-a/tocatch.html">To Catch</a>
+    <a href="/semington-a/gallery.html">Gallery</a>
+    <a href="/semington-a/rules.html">Rules</a>
+  </div>
+</header>
 
-  <!-- ====================== -->
-  <!-- MAIN CONTENT -->
-  <!-- ====================== -->
-  <main>
-
-    <!-- ====================== -->
-    <!-- LAST UPDATED DISPLAY (NEW) -->
-    <!-- Source: match_results.csv -->
-    <!-- ====================== -->
-    <div id="lastUpdated"
-         style="text-align:center; font-size:12px; margin:0 0 12px; color:#555;">
-      Last updated: —
-    </div>
-
-    <!-- ====================== -->
-    <!-- FILTER PANEL -->
-    <!-- ====================== -->
-    <div class="panel">
-      <div class="label">Filter by League Match (Cup matches excluded)</div>
-      <select id="matchSelect">
-        <option value="">Latest League Match</option>
-      </select>
-      <div id="status"></div>
-    </div>
-
-    <!-- ====================== -->
-    <!-- TABLE -->
-    <!-- ====================== -->
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Player</th>
-            <th>Total Match Pins</th>
-            <th>Games (to date)</th>
-            <th>Avg</th>
-            <th>Pins Behind Player Above</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
-
-  </main>
+<!-- ====================== -->
+<!-- MAIN CONTENT -->
+<!-- ====================== -->
+<main>
 
   <!-- ====================== -->
-  <!-- FOOTER -->
+  <!-- LAST UPDATED (SAME AS MATCH RESULTS) -->
   <!-- ====================== -->
-  <footer>
-    © Semington A Skittles Team
-    <div class="footer-logo">
-      <img src="Semington A Logo 5.jpg" alt="Logo">
-    </div>
-  </footer>
+  <div id="lastUpdated"
+       style="text-align:center; font-size:12px; margin-bottom:12px; color:#555;">
+    Last updated: —
+  </div>
 
   <!-- ====================== -->
-  <!-- EXISTING TO CATCH LOGIC (UNCHANGED) -->
-  <!-- This script already fetches match_results.csv -->
+  <!-- FILTER PANEL -->
   <!-- ====================== -->
-  <script src="/semington-a/tocatch.js"></script>
+  <div class="panel">
+    <div class="label">Filter by League Match (Cup matches excluded)</div>
+    <select id="matchSelect">
+      <option value="">Latest League Match</option>
+    </select>
+    <div id="status"></div>
+  </div>
 
   <!-- ====================== -->
-  <!-- LAST UPDATED SCRIPT (NEW) -->
-  <!-- Reads UpdatedAt from match_results.csv (if present).
-       Fallback: uses HTTP Last-Modified header if your host provides it. -->
+  <!-- TO CATCH TABLE -->
   <!-- ====================== -->
-  <script>
-  (function () {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Total Match Pins</th>
+          <th>Games (to date)</th>
+          <th>Avg</th>
+          <th>Pins Behind Player Above</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
 
-    fetch("match_results.csv", { cache: "no-store" })
-      .then(function (r) {
-        if (!r.ok) throw new Error("match_results.csv not found");
+</main>
 
-        // Fallback option: HTTP Last-Modified header (if provided by hosting)
-        var headerLastMod = r.headers.get("Last-Modified");
+<!-- ====================== -->
+<!-- FOOTER -->
+<!-- ====================== -->
+<footer>
+  © Semington A Skittles Team
+  <div class="footer-logo">
+    <img src="Semington A Logo 5.jpg" alt="Logo">
+  </div>
+</footer>
 
-        return r.text().then(function (text) {
-          return { text: text, headerLastMod: headerLastMod };
-        });
-      })
-      .then(function (payload) {
-        var text = payload.text;
-        var headerLastMod = payload.headerLastMod;
+<!-- ====================== -->
+<!-- EXISTING TO CATCH LOGIC -->
+<!-- ====================== -->
+<script src="/semington-a/tocatch.js"></script>
 
-        var lines = text.trim().split(/\r?\n/);
-        if (lines.length < 2) {
-          if (headerLastMod) {
-            var el0 = document.getElementById("lastUpdated");
-            if (el0) el0.textContent = "Last updated: " + headerLastMod;
-          }
-          return;
-        }
+<!-- ====================== -->
+<!-- LAST UPDATED SCRIPT -->
+<!-- COPIED PATTERN FROM MATCH RESULTS -->
+<!-- ====================== -->
+<script>
+(function () {
 
-        var headers = lines[0].split(",");
-        var idx = headers.indexOf("UpdatedAt");
-        if (idx === -1) idx = headers.indexOf("Updated At");
+  fetch("/semington-a/match_results.csv", { cache: "no-store" })
+    .then(r => r.text())
+    .then(text => {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) return;
 
-        // If UpdatedAt column exists, use it
-        if (idx !== -1) {
-          var latest = "";
-          for (var i = 1; i < lines.length; i++) {
-            var cells = lines[i].split(",");
-            var val = cells[idx];
-            if (val && val > latest) latest = val;
-          }
-          if (latest) {
-            var el = document.getElementById("lastUpdated");
-            if (el) el.textContent = "Last updated: " + latest;
-            return;
-          }
-        }
+      const headers = lines[0].split(",");
+      let idx = headers.indexOf("UpdatedAt");
+      if (idx === -1) idx = headers.indexOf("Updated At");
+      if (idx === -1) return;
 
-        // Otherwise fall back to Last-Modified header
-        if (headerLastMod) {
-          var el2 = document.getElementById("lastUpdated");
-          if (el2) el2.textContent = "Last updated: " + headerLastMod;
-        }
+      let latest = "";
+      for (let i = 1; i < lines.length; i++) {
+        const v = lines[i].split(",")[idx];
+        if (v && v > latest) latest = v;
+      }
 
-      })
-      .catch(function (err) {
-        console.error("Last updated fetch failed:", err);
-      });
+      if (latest) {
+        document.getElementById("lastUpdated").textContent =
+          "Last updated: " + latest;
+      }
+    });
 
-  })();
-  </script>
+})();
+</script>
 
 </body>
 </html>
