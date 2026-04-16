@@ -269,14 +269,14 @@
 
   <!-- ====================== -->
   <!-- LAST UPDATED SCRIPT -->
-  <!-- Reads UpdatedAt from csv_export.csv -->
+  <!-- Reads UpdatedAt from match_results.csv -->
   <!-- ====================== -->
   <script>
   (function () {
 
-    fetch("csv_export.csv", { cache: "no-store" })
+    fetch("match_results.csv", { cache: "no-store" })
       .then(function (r) {
-        if (!r.ok) throw new Error("csv_export.csv not found");
+        if (!r.ok) throw new Error("match_results.csv not found");
         return r.text();
       })
       .then(function (text) {
