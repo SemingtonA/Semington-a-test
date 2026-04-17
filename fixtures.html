@@ -386,8 +386,14 @@
         }
 
         // Only count played league matches (matches live site behaviour)
-        if (!/cup/i.test(comp) && Number.isFinite(myPts)) {
-          totalPoints += myPts;
+          
+          to// Count ONLY real, played league fixtures
+          if (
+            !/cup/i.test(comp) &&
+            Number.isFinite(myPts) &&
+            dateStr &&                     // real date present
+            !/^league matches/i.test(dateStr)
+            ) {talPoints += myPts;
 
           if (myPts > 3.5) { win++; tr.classList.add("_win"); }
           else if (myPts < 3.5) { loss++; tr.classList.add("_loss"); }
