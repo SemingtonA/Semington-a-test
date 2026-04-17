@@ -234,7 +234,7 @@ function parseCSV(text) {
       let latest = "";
 
       rows.forEach(row => {
-        if (!row[idx("Date:")]) return;
+        
 
         const comp = row[idx("Match Details")] || "";
         const tr = document.createElement("tr");
