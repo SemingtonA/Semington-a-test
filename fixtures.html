@@ -183,165 +183,114 @@
     <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
   </div>
 </footer>
-  
-<script>
+
+  <script>
 (function () {
-  // ---------- helpers ----------
-  function clean(v) { return (v === undefined || v === null) ? "" : String(v).trim(); }
 
-  // Quote-aware CSV parser (safe with commas)
-  function parseCSV(text) {
-    var rows = [];
-    var row = [];
-    var cur = "";
-    var inQuotes = false;
-
-    for (var i = 0; i < text.length; i++) {
-      var c = text[i];
-
-      if (c === '"') {
-        if (inQuotes && text[i + 1] === '"') { cur += '"'; i++; }
-        else inQuotes = !inQuotes;
-      } else if (c === ',' && !inQuotes) {
-        row.push(cur); cur = "";
-      } else if (c === '\n' || c === '\r') {
-        if (c === '\r' && text[i + 1] === '\n') i++;
-        row.push(cur); cur = "";
-        // keep non-empty lines
-        var any = false;
-        for (var k = 0; k < row.length; k++) if (clean(row[k]) !== "") { any = true; break; }
-        if (any) rows.push(row);
-        row = [];
-      } else {
-        cur += c;
-      }
-    }
-    if (cur.length || row.length) {
-      row.push(cur);
-      var any2 = false;
-      for (var k2 = 0; k2 < row.length; k2++) if (clean(row[k2]) !== "") { any2 = true; break; }
-      if (any2) rows.push(row);
-    }
-    return rows;
+  function toHalf(n) {
+    if (!n) return NaN;
+    n = String(n).trim().replace(/\s+/g, "");
+    n = n.replace(/½/g, ".5");
+    if (n === "1/2") return 0.5;
+    n = n.replace(/(\d+)1\/2/g, "$1.5");
+    const v = Number(n);
+    return Number.isFinite(v) ? v : NaN;
   }
 
-  // Half-point parser: "6 1/2"->6.5, "1/2"->0.5, "½"->.5
-  function toHalfNum(s) {
-    s = clean(s);
-    if (!s) return NaN;
-
-    s = s.replace(/\s+/g, "");
-    s = s.replace(/½/g, ".5");
-    if (s === "1/2") return 0.5;
-    s = s.replace(/(\d+)1\/2/g, "$1.5");
-
-    var n = Number(s);
-    return Number.isFinite(n) ? n : NaN;
-  }
-
-  function parseDMY(dateTime) {
-    var dpart = clean(dateTime).split(" ")[0];
-    var p = dpart.split("/");
-    if (p.length !== 3) return null;
-    return new Date(Number(p[2]), Number(p[1]) - 1, Number(p[0]));
-  }
-
-  function findHeaderRow(rows) {
-    for (var i = 0; i < rows.length; i++) {
-      for (var j = 0; j < rows[i].length; j++) {
-        var h = clean(rows[i][j]).toLowerCase();
-        if (h === "date:" || h === "date") return i;
-      }
-    }
-    return -1;
-  }
-
-  function findCol(headers, name) {
-    var t = name.toLowerCase();
-    for (var i = 0; i < headers.length; i++) {
-      if (clean(headers[i]).toLowerCase() === t) return i;
-    }
-    return -1;
-  }
-
-  function findSecond(headers, name, firstIdx) {
-    var t = name.toLowerCase();
-    for (var i = firstIdx + 1; i < headers.length; i++) {
-      if (clean(headers[i]).toLowerCase() === t) return i;
-    }
-    return -1;
-  }
-
-  // ---------- elements ----------
-  var tbody = document.getElementById("fixturesBody");
-  var lastUpdatedEl = document.getElementById("lastUpdated");
-
-  if (!tbody) return;
-
-  // ---------- load CSV (cache-busted) ----------
   fetch("fixtures_web.csv?v=" + Date.now(), { cache: "no-store" })
-    .then(function (r) {
-      if (!r.ok) throw new Error("fixtures_web.csv not found (" + r.status + ")");
-      return r.text();
-    })
-    .then(function (text) {
-      var rows = parseCSV(text);
+    .then(r => r.text())
+    .then(text => {
 
-      // Find header row (file has title/blank rows before it) [1](https://onedrive.live.com/personal/c205089414b2510e/_layouts/15/doc.aspx?resid=0ab7cc2b-52e8-47f1-9949-0d3d0c58e71f&cid=c205089414b2510e)
-      var headerRow = findHeaderRow(rows);
-      if (headerRow < 0) throw new Error("Header row not found");
+      const lines = text
+        .split(/\r?\n/)
+        .map(l => l.trim())
+        .filter(l => l && !l.toLowerCase().startsWith("fixtures and scores"));
 
-      var headers = rows[headerRow].map(function (h) { return clean(h); });
-      var dataRows = rows.slice(headerRow + 1);
+      // The REAL header row is the one that starts with "Date:"
+      const headerIndex = lines.findIndex(l => l.startsWith("Date:"));
+      if (headerIndex === -1) return;
 
-      // Stop before bottom summary ("League Matches...") [1](https://onedrive.live.com/personal/c205089414b2510e/_layouts/15/doc.aspx?resid=0ab7cc2b-52e8-47f1-9949-0d3d0c58e71f&cid=c205089414b2510e)
-      var filtered = [];
-      for (var r0 = 0; r0 < dataRows.length; r0++) {
-        var first = clean(dataRows[r0][0]).toLowerCase();
-        if (first.indexOf("league matches") === 0) break;
-        filtered.push(dataRows[r0]);
-      }
-      dataRows = filtered;
+      const headers = lines[headerIndex].split(",");
+      const rows = lines.slice(headerIndex + 1)
+        .filter(l => !l.toLowerCase().startsWith("league matches"));
 
-      // Base columns
-      var iDate = findCol(headers, "Date:");
-      if (iDate === -1) iDate = findCol(headers, "Date");
-      var iDay = findCol(headers, "Day");
-      var iHomeTeam = findCol(headers, "Home Team");
-      var iAwayTeam = findCol(headers, "Away Team");
-      var iLoc = findCol(headers, "Location");
-      var iAlley = findCol(headers, "Alley");
-      var iComp = findCol(headers, "Match Details");
-      if (iComp === -1) iComp = findCol(headers, "Competition");
+      const idx = h => headers.indexOf(h);
 
-      // UpdatedAt
-      var iUpdated = findCol(headers, "UpdatedAt");
-      if (iUpdated === -1) iUpdated = findCol(headers, "Updated At");
-
-      // NEW style (if you renamed columns)
-      var iHomeScore = findCol(headers, "Home Score");
-      var iAwayScore = findCol(headers, "Away Score");
-      var iHomePts = findCol(headers, "Home Points");
-      var iAwayPts = findCol(headers, "Away Points");
-
-      // OLD style fallback (duplicate headers)
-      var iScore1 = findCol(headers, "Score");
-      var iScore2 = (iScore1 !== -1) ? findSecond(headers, "Score", iScore1) : -1;
-
-      var iPts1 = findCol(headers, "Points");
-      var iPts2 = (iPts1 !== -1) ? findSecond(headers, "Points", iPts1) : -1;
-
-      // Render
+      const tbody = document.getElementById("fixturesBody");
       tbody.innerHTML = "";
 
-      var win = 0, draw = 0, loss = 0, totalPoints = 0;
-      var latestUpdated = "";
+      let wins = 0, draws = 0, losses = 0, totalPts = 0;
+      let lastUpdated = "";
 
-      for (var i = 0; i < dataRows.length; i++) {
-        var row = dataRows[i];
+      rows.forEach(line => {
+        const c = line.split(",");
 
-        var dateStr = clean(row[iDate]);
-        <script>
+        const date = c[idx("Date:")];
+        if (!date) return;
+
+        const home = c[idx("Home Team")];
+        const away = c[idx("Away Team")];
+        const comp = c[idx("Match Details")];
+        const venue = c[idx("Location")];
+        const alley = c[idx("Alley")];
+
+        const homeScore = c[idx("Score")];
+        const awayScore = c[idx("Score", idx("Score") + 1)];
+
+        const homePts = toHalf(c[idx("Points")]);
+        const awayPts = toHalf(c[idx("Points", idx("Points") + 1)]);
+
+        let myPts = NaN;
+        if (/semington a/i.test(home)) myPts = homePts;
+        if (/semington a/i.test(away)) myPts = awayPts;
+
+        const tr = document.createElement("tr");
+
+        if (/cup/i.test(comp)) {
+          tr.classList.add("cup-match");
+        } else if (Number.isFinite(myPts)) {
+          totalPts += myPts;
+          if (myPts > 3.5) { wins++; tr.classList.add("_win"); }
+          else if (myPts < 3.5) { losses++; tr.classList.add("_loss"); }
+          else { draws++; tr.classList.add("_draw"); }
+        }
+
+        const scoreText = homeScore && awayScore ? `${homeScore}–${awayScore}` : "";
+        const ptsText = Number.isFinite(homePts) || Number.isFinite(awayPts)
+          ? `${isNaN(homePts) ? "" : homePts}–${isNaN(awayPts) ? "" : awayPts}` : "";
+
+        lastUpdated = c[c.length - 1] || lastUpdated;
+
+        tr.innerHTML = `
+          <td>${date}</td>
+          <td>${c[idx("Day")]}</td>
+          <td>${home} vs ${away}</td>
+          <td>${scoreText}</td>
+          <td class="points">${ptsText}</td>
+          <td>${venue}</td>
+          <td>${comp}</td>
+          <td>${alley}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("winCount").textContent = wins;
+      document.getElementById("drawCount").textContent = draws;
+      document.getElementById("lossCount").textContent = losses;
+      document.getElementById("pointsTotal").textContent = totalPts.toFixed(1);
+
+      if (lastUpdated) {
+        const p = lastUpdated.split(" ")[0].split("/");
+        const d = new Date(p[2], p[1] - 1, p[0]);
+        document.getElementById("lastUpdated").textContent =
+          "Last updated: " +
+          d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+      }
+    });
+
+})();
+</script>
+
 
         </body>
         </html>
