@@ -211,8 +211,13 @@
 
       const rows = lines.slice(h + 1)
         .filter(l => !l.toLowerCase().startsWith("league matches"));
-
+       let latestUpdated = "";
+       ``
       rows.forEach(line => {
+        // Capture UpdatedAt (last column)
+if (c[c.length - 1]) {
+  latestUpdated = c[c.length - 1];
+}
         const c = line.split(",");
 
         const date = clean(c[0]);
