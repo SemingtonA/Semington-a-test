@@ -179,9 +179,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
           players[name].duck += (+r[iDucks]) * 0.5;
         }
         console.log("Raw fines value:", r[iLowFines]);
-        const lowFine = parseFloat(
-        String(r[r.length - 1] || "").replace("£", "").trim()  ) || 0;
-        players[name].low += lowFine;
+        const lowFine = (parseInt(r[r.length - 1], 10) || 0) * 0.2;
 
       } else if (/cup/i.test(r[iDetails])) {
         players[name].cup++;
