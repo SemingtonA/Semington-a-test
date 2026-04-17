@@ -159,21 +159,37 @@
 <main>
   <div class="content-box">
     <h2>Fixtures</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Day</th>
-          <th>Fixture</th>
-          <th>Scores</th>
-          <th class="points">Points</th>
-          <th>Venue</th>
-          <th>Competition</th>
-          <th>Alley</th>
-        </tr>
-      </thead>
-      <tbody id="fixturesBody"></tbody>
-    </table>
+  <table>
+
+  <colgroup>
+    <col>
+    <col>
+    <col>
+    <col>
+    <col class="points">
+    <col>
+    <col>
+    <col>
+  </colgroup>
+
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Day</th>
+      <th>Fixture</th>
+      <th>Scores</th>
+      <th class="points">Points</th>
+      <th>Venue</th>
+      <th>Competition</th>
+      <th>Alley</th>
+    </tr>
+  </thead>
+
+  <tbody id="fixturesBody">
+    <!-- rows injected by JS -->
+  </tbody>
+
+</table> 
   </div>
 </main>
 
