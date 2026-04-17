@@ -221,11 +221,25 @@ function parseCSV(text) {
   }
   return rows;
 }
+  
+fetch("fixtures_web.csv?v=" + Date.now())
+  .then(r => {
+    console.log("FETCH STATUS:", r.status);
+    return r.text();
+  })
+  .then(text => {
+    console.log("CSV TEXT LENGTH:", text.length);
+    console.log("CSV PREVIEW:", text.slice(0, 200));
 
-     fetch("fixtures_Web.csv?v=" + Date.now())  
-    .then(r => r.text())
-    .then(text => {
-     const rows = parseCSV(text);
+    const rows = parseCSV(text);
+    console.log("ROWS PARSED:", rows.length);
+
+    // STOP HERE TEMPORARILY
+    if (!rows.length) return;
+
+    const headers = rows[0];
+    console.log("HEADERS:", headers);
+   
 
 // ✅ Skip title + blank rows
 rows.shift();
