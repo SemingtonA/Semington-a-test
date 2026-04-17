@@ -164,8 +164,11 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
         players[name].lg++;
         players[name].fees += 4;
         if (+r[iDucks] > 0) players[name].duck += (+r[iDucks]) * 0.5;
-        if (+r[iScore] <= 4) players[name].low += 0.2;
-      } else if (/cup/i.test(r[iDetails])) {
+        const score = Number(r[iScore]);
+        if (!isNaN(score) && score <= 4) {
+        players[name].low += 0.2;
+       }
+       } else if (/cup/i.test(r[iDetails])) {
         players[name].cup++;
       }
     });
