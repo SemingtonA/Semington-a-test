@@ -233,6 +233,19 @@ if (c[c.length - 1]) {
         const p1 = clean(c[4]);
         const p2 = clean(c[6]);
 
+        // Show Last Updated (same format as live site)
+if (latestUpdated) {
+  const d = latestUpdated.split(" ")[0].split("/");
+  const dateObj = new Date(d[2], d[1] - 1, d[0]);
+  document.getElementById("lastUpdated").textContent =
+    "Last updated: " +
+    dateObj.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+}
+
        // Always show the score if it exists (league OR cup)
       const ptsText =
       (p1 && p2) ? `${p1}–${p2}` : "";
