@@ -209,7 +209,9 @@
 
         if (/cup/i.test(comp)) tr.classList.add("cup-match");
 
-        const ptsText = `${row[idx("Points")]||""}–${row[idx("Points",+2)]||""}`.replace(/^–$/,"");
+        const leftPts  = row[idx("Points")] || "";
+        const rightPts = row[idx("Points")] && row[idx("Points")+2] ? row[idx("Points")+2] : "";
+        const ptsText  = leftPts && rightPts ? `${leftPts}–${rightPts}` : "";
         let myPts = parseFloat(row[idx("Points")]) || 0;
 
         if (!/cup/i.test(comp)) {
