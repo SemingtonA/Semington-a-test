@@ -185,15 +185,47 @@
 </footer>
 
 <script>
-(function () {
-  function csvParse(text) {
-    return text.trim().split(/\r?\n/).map(r => r.split(","));
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let cur = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+
+    if (c === '"') {
+      if (inQuotes && text[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (c === ',' && !inQuotes) {
+      row.push(cur);
+      cur = "";
+    } else if ((c === '\n' || c === '\r') && !inQuotes) {
+      if (cur || row.length) {
+        row.push(cur);
+        rows.push(row);
+        row = [];
+        cur = "";
+      }
+    } else {
+      cur += c;
+    }
   }
+  if (cur || row.length) {
+    row.push(cur);
+    rows.push(row);
+  }
+  return rows;
+}
 
   fetch("fixtures_web.csv?v=" + Date.now())
     .then(r => r.text())
     .then(text => {
-      const rows = csvParse(text);
+      const rows = ParseCSV(text);
       const headers = rows.shift().map(h => h.trim());
       const idx = n => headers.indexOf(n);
 
@@ -209,18 +241,21 @@
 
         if (/cup/i.test(comp)) tr.classList.add("cup-match");
 
-        const leftPts  = row[idx("Points")] || "";
-        const rightPts = row[idx("Points")] && row[idx("Points")+2] ? row[idx("Points")+2] : "";
-        const ptsText  = leftPts && rightPts ? `${leftPts}–${rightPts}` : "";
-        let myPts = parseFloat(row[idx("Points")]) || 0;
-
+        
         if (!/cup/i.test(comp)) {
           points += myPts;
           if (myPts > 3.5) { win++; tr.classList.add("_win"); }
           else if (myPts < 3.5) { loss++; tr.classList.add("_loss"); }
           else { draw++; tr.classList.add("_draw"); }
         }
-
+          const p1 = row[idx("Points")] || "";
+          const p2 = row[idx("Points") + 2] || "";
+          const ptsText = p1 && p2 ? `${p1}–${p2}` : "";
+ 
+          let myPts = 0;
+          if (/semington a/i.test(row[idx("Home Team")])) myPts = Number(p1) || 0;
+          else if (/semington a/i.test(row[idx("Away Team")])) myPts = Number(p2) || 0;
+        
         if (row[idx("UpdatedAt")] > latest) latest = row[idx("UpdatedAt")];
 
         tr.innerHTML = `
