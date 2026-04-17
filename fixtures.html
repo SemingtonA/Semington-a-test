@@ -222,7 +222,9 @@ function parseCSV(text) {
   return rows;
 }
 
+
   fetch("fixtures_web.csv?v=" + Date.now())
+   ``
     .then(r => r.text())
     .then(text => {
      const rows = parseCSV(text);
