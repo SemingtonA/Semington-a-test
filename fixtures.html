@@ -183,7 +183,6 @@
     <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
   </div>
 </footer>
-
 <script>
 function parseCSV(text) {
   const rows = [];
@@ -193,23 +192,19 @@ function parseCSV(text) {
 
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
-
     if (c === '"') {
       if (inQuotes && text[i + 1] === '"') {
-        cur += '"';
-        i++;
+        cur += '"'; i++;
       } else {
         inQuotes = !inQuotes;
       }
     } else if (c === ',' && !inQuotes) {
-      row.push(cur);
-      cur = "";
+      row.push(cur); cur = "";
     } else if ((c === '\n' || c === '\r') && !inQuotes) {
       if (cur || row.length) {
         row.push(cur);
         rows.push(row);
-        row = [];
-        cur = "";
+        row = []; cur = "";
       }
     } else {
       cur += c;
@@ -221,90 +216,76 @@ function parseCSV(text) {
   }
   return rows;
 }
-  
+
 fetch("fixtures_web.csv?v=" + Date.now())
-  .then(r => {
-    console.log("FETCH STATUS:", r.status);
-    return r.text();
-  })
+  .then(r => r.text())
   .then(text => {
-    console.log("CSV TEXT LENGTH:", text.length);
-    console.log("CSV PREVIEW:", text.slice(0, 200));
 
     const rows = parseCSV(text);
-    console.log("ROWS PARSED:", rows.length);
 
-    // STOP HERE TEMPORARILY
-    if (!rows.length) return;
+    // ✅ Skip title + blank rows
+    rows.shift();
+    rows.shift();
+    rows.shift();
 
-    const headers = rows[0];
-    console.log("HEADERS:", headers);
-   
+    // ✅ Real header row
+    const headers = rows.shift().map(h => h.trim());
+    const idx = name => headers.indexOf(name);
 
-// ✅ Skip title + blank rows
-rows.shift();
-rows.shift();
+    const tbody = document.getElementById("fixturesBody");
+    let win = 0, draw = 0, loss = 0, totalPoints = 0;
+    let latest = "";
 
-// ✅ Now this is the REAL header row
-const headers = rows.shift().map(h => h.trim()); 
-      const idx = n => headers.indexOf(n);
+    rows.forEach(row => {
+      if (!row[idx("Date:")]) return;
 
-      const body = document.getElementById("fixturesBody");
-      let win=0, draw=0, loss=0, points=0;
-      let latest = "";
+      const comp = row[idx("Match Details")] || "";
+      const tr = document.createElement("tr");
 
-      rows.forEach(row => {
-        
+      if (/cup/i.test(comp)) tr.classList.add("cup-match");
 
-        const comp = row[idx("Match Details")] || "";
-        const tr = document.createElement("tr");
+      const p1 = row[idx("Points")] || "";
+      const p2 = row[idx("Points") + 2] || "";
 
-        if (/cup/i.test(comp)) tr.classList.add("cup-match");
+      let myPts = 0;
+      if (/semington a/i.test(row[idx("Home Team")])) myPts = Number(p1) || 0;
+      else if (/semington a/i.test(row[idx("Away Team")])) myPts = Number(p2) || 0;
 
-        
-        if (!/cup/i.test(comp)) {
-          points += myPts;
-          if (myPts > 3.5) { win++; tr.classList.add("_win"); }
-          else if (myPts < 3.5) { loss++; tr.classList.add("_loss"); }
-          else { draw++; tr.classList.add("_draw"); }
-        }
-          const p1 = row[idx("Points")] || "";
-          const p2 = row[idx("Points") + 2] || "";
-          const ptsText = p1 && p2 ? `${p1}–${p2}` : "";
- 
-          let myPts = 0;
-          if (/semington a/i.test(row[idx("Home Team")])) myPts = Number(p1) || 0;
-          else if (/semington a/i.test(row[idx("Away Team")])) myPts = Number(p2) || 0;
-        
-        if (row[idx("UpdatedAt")] > latest) latest = row[idx("UpdatedAt")];
-
-        tr.innerHTML = `
-          <td>${row[idx("Date:")]}</td>
-          <td>${row[idx("Day")]}</td>
-          <td>${row[idx("Home Team")]} vs ${row[idx("Away Team")]}</td>
-          <td>${row[idx("Score")]||""}</td>
-          <td class="points">${ptsText}</td>
-          <td>${row[idx("Location")]}</td>
-          <td>${comp}</td>
-          <td>${row[idx("Alley")]||""}</td>
-        `;
-        body.appendChild(tr);
-      });
-
-      document.getElementById("winCount").textContent = win;
-      document.getElementById("drawCount").textContent = draw;
-      document.getElementById("lossCount").textContent = loss;
-      document.getElementById("pointsTotal").textContent = points.toFixed(1);
-
-      if (latest) {
-        const p = latest.split(" ")[0].split("/");
-        const d = new Date(p[2], p[1]-1, p[0]);
-        document.getElementById("lastUpdated").textContent =
-          "Last updated: " +
-          d.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+      if (!/cup/i.test(comp)) {
+        totalPoints += myPts;
+        if (myPts > 3.5) { win++; tr.classList.add("_win"); }
+        else if (myPts < 3.5) { loss++; tr.classList.add("_loss"); }
+        else { draw++; tr.classList.add("_draw"); }
       }
+
+      if (row[idx("UpdatedAt")] > latest) latest = row[idx("UpdatedAt")];
+
+      tr.innerHTML = `
+        <td>${row[idx("Date:")]}</td>
+        <td>${row[idx("Day")]}</td>
+        <td>${row[idx("Home Team")]} vs ${row[idx("Away Team")]}</td>
+        <td>${row[idx("Score")] || ""}</td>
+        <td class="points">${p1 && p2 ? `${p1}–${p2}` : ""}</td>
+        <td>${row[idx("Location")]}</td>
+        <td>${comp}</td>
+        <td>${row[idx("Alley")] || ""}</td>
+      `;
+      tbody.appendChild(tr);
     });
-})();
+
+    document.getElementById("winCount").textContent = win;
+    document.getElementById("drawCount").textContent = draw;
+    document.getElementById("lossCount").textContent = loss;
+    document.getElementById("pointsTotal").textContent = totalPoints.toFixed(1);
+
+    if (latest) {
+      const p = latest.split(" ")[0].split("/");
+      const d = new Date(p[2], p[1]-1, p[0]);
+      document.getElementById("lastUpdated").textContent =
+        "Last updated: " +
+        d.toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" });
+    }
+  });
 </script>
 
 </body>
