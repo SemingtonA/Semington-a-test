@@ -184,105 +184,58 @@
   </div>
 </footer>
 
-  <script>
+<script>
 (function () {
 
-  function toHalf(n) {
-    if (!n) return NaN;
-    n = String(n).trim().replace(/\s+/g, "");
-    n = n.replace(/½/g, ".5");
-    if (n === "1/2") return 0.5;
-    n = n.replace(/(\d+)1\/2/g, "$1.5");
-    const v = Number(n);
-    return Number.isFinite(v) ? v : NaN;
-  }
+  /* ======================================================
+     STEP 1: BUILD TABLE FROM CSV (NO LOGIC HERE)
+     ====================================================== */
+
+  function clean(v){ return (v==null?"":String(v).trim()); }
 
   fetch("fixtures_web.csv?v=" + Date.now(), { cache: "no-store" })
     .then(r => r.text())
     .then(text => {
+
+      const tbody = document.getElementById("fixturesBody");
+      tbody.innerHTML = "";
 
       const lines = text
         .split(/\r?\n/)
         .map(l => l.trim())
         .filter(l => l && !l.toLowerCase().startsWith("fixtures and scores"));
 
-      // The REAL header row is the one that starts with "Date:"
-      const headerIndex = lines.findIndex(l => l.startsWith("Date:"));
-      if (headerIndex === -1) return;
+      // Header row = line starting with Date:
+      const h = lines.findIndex(l => l.startsWith("Date:"));
+      if (h === -1) return;
 
-      const headers = lines[headerIndex].split(",");
-      const rows = lines.slice(headerIndex + 1)
+      const rows = lines.slice(h + 1)
         .filter(l => !l.toLowerCase().startsWith("league matches"));
-
-      const idx = h => headers.indexOf(h);
-
-      const tbody = document.getElementById("fixturesBody");
-      tbody.innerHTML = "";
-
-      let wins = 0, draws = 0, losses = 0, totalPts = 0;
-      let lastUpdated = "";
 
       rows.forEach(line => {
         const c = line.split(",");
 
-        const date = c[idx("Date:")];
+        const date = clean(c[0]);
         if (!date) return;
 
-        const home = c[idx("Home Team")];
-        const away = c[idx("Away Team")];
-        const comp = c[idx("Match Details")];
-        const venue = c[idx("Location")];
-        const alley = c[idx("Alley")];
+        const day   = clean(c[1]);
+        const home  = clean(c[2]);
+        const away  = clean(c[8]);
+        const venue = clean(c[9]);
+        const alley = clean(c[10]);
+        const comp  = clean(c[14]);
 
-        const homeScore = c[idx("Score")];
-        const awayScore = c[idx("Score", idx("Score") + 1)];
+        const p1 = clean(c[4]);
+        const p2 = clean(c[6]);
 
-        const homePts = toHalf(c[idx("Points")]);
-        const awayPts = toHalf(c[idx("Points", idx("Points") + 1)]);
-
-        let myPts = NaN;
-        if (/semington a/i.test(home)) myPts = homePts;
-        if (/semington a/i.test(away)) myPts = awayPts;
+        const ptsText = p1 && p2 ? `${p1}–${p2}` : "";
 
         const tr = document.createElement("tr");
-
-       /* =========================================================
-   MATCH OUTCOME LOGIC (MATCHES LIVE SITE)
-   ---------------------------------------------------------
-   - Only count matches with Points present
-   - Cup matches are excluded earlier
-   - ONLY 3.5 equals a draw
-   ========================================================= */
-
-if (!/cup/i.test(comp) && Number.isFinite(myPts)) {
-
-  totalPoints += myPts;
-
-  if (myPts > 3.5) {
-    win++;
-    tr.classList.add("_win");
-  }
-  else if (myPts < 3.5) {
-    loss++;
-    tr.classList.add("_loss");
-  }
-  else {
-    draw++;
-    tr.classList.add("_draw");
-  }
-}
-
-        const scoreText = homeScore && awayScore ? `${homeScore}–${awayScore}` : "";
-        const ptsText = Number.isFinite(homePts) || Number.isFinite(awayPts)
-          ? `${isNaN(homePts) ? "" : homePts}–${isNaN(awayPts) ? "" : awayPts}` : "";
-
-        lastUpdated = c[c.length - 1] || lastUpdated;
-
         tr.innerHTML = `
           <td>${date}</td>
-          <td>${c[idx("Day")]}</td>
+          <td>${day}</td>
           <td>${home} vs ${away}</td>
-          <td>${scoreText}</td>
+          <td></td>
           <td class="points">${ptsText}</td>
           <td>${venue}</td>
           <td>${comp}</td>
@@ -291,18 +244,68 @@ if (!/cup/i.test(comp) && Number.isFinite(myPts)) {
         tbody.appendChild(tr);
       });
 
-      document.getElementById("winCount").textContent = wins;
-      document.getElementById("drawCount").textContent = draws;
-      document.getElementById("lossCount").textContent = losses;
-      document.getElementById("pointsTotal").textContent = totalPts.toFixed(1);
+      /* ======================================================
+         STEP 2: RUN LIVE SITE LOGIC *UNCHANGED*
+         ====================================================== */
 
-      if (lastUpdated) {
-        const p = lastUpdated.split(" ")[0].split("/");
-        const d = new Date(p[2], p[1] - 1, p[0]);
-        document.getElementById("lastUpdated").textContent =
-          "Last updated: " +
-          d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+      function toHalfNum(s) {
+        if (!s) return NaN;
+        s = String(s).trim().replace(/\s+/g,"").replace(/½/g,".5");
+        if (s==="1/2") return 0.5;
+        s = s.replace(/(\d+)1\/2/g,"$1.5");
+        var n = Number(s);
+        return Number.isFinite(n)?n:NaN;
       }
+
+      function parsePoints(text) {
+        if (!text) return null;
+        var p=text.split(/[-–—]/).map(v=>v.trim());
+        if (p.length!==2) return null;
+        var a=toHalfNum(p[0]), b=toHalfNum(p[1]);
+        return (Number.isFinite(a)&&Number.isFinite(b))?{l:a,r:b}:null;
+      }
+
+      const headers = Array.from(document.querySelectorAll("thead th"))
+        .map(th => th.textContent.trim().toLowerCase());
+
+      const fixtureIdx = headers.indexOf("fixture");
+      const pointsIdx  = headers.indexOf("points");
+      const compIdx    = headers.indexOf("competition");
+
+      let wins=0,draws=0,losses=0,total=0;
+
+      document.querySelectorAll("tbody tr").forEach(tr=>{
+        const td=[...tr.querySelectorAll("td")];
+        const competition=td[compIdx].textContent.toLowerCase();
+        if(competition.includes("cup")){
+          tr.classList.add("cup-match");
+          return;
+        }
+
+        const ptsTxt=td[pointsIdx].textContent.trim();
+        if(!ptsTxt) return;
+
+        const pair=parsePoints(ptsTxt);
+        if(!pair) return;
+
+        const teams=td[fixtureIdx].textContent.split(/\s+vs\s+/i);
+        if(teams.length<2) return;
+
+        let myPts=NaN;
+        if(/semington a/i.test(teams[0])) myPts=pair.l;
+        else if(/semington a/i.test(teams[1])) myPts=pair.r;
+        else return;
+
+        total+=myPts;
+        if(myPts>3.5){ wins++; tr.classList.add("_win"); }
+        else if(myPts<3.5){ losses++; tr.classList.add("_loss"); }
+        else{ draws++; tr.classList.add("_draw"); }
+      });
+
+      winCount.textContent=wins;
+      drawCount.textContent=draws;
+      lossCount.textContent=losses;
+      pointsTotal.textContent=total.toFixed(1);
     });
 
 })();
