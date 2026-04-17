@@ -178,7 +178,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
         if (+r[iDucks] > 0) {
           players[name].duck += (+r[iDucks]) * 0.5;
         }
-
+        console.log("Raw fines value:", r[iLowFines]);
         const lowFine = Number(r[iLowFines]) || 0;
         players[name].low += lowFine;
 
