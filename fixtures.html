@@ -187,11 +187,9 @@
 <script>
 (function () {
 
-  /* ======================================================
-     STEP 1: BUILD TABLE FROM CSV (NO LOGIC HERE)
-     ====================================================== */
-
-  function clean(v){ return (v==null?"":String(v).trim()); }
+  function clean(v) {
+    return v == null ? "" : String(v).trim();
+  }
 
   fetch("fixtures_web.csv?v=" + Date.now(), { cache: "no-store" })
     .then(r => r.text())
@@ -205,131 +203,51 @@
         .map(l => l.trim())
         .filter(l => l && !l.toLowerCase().startsWith("fixtures and scores"));
 
-      // Header row = line starting with Date:
+      // Find header row
       const h = lines.findIndex(l => l.startsWith("Date:"));
       if (h === -1) return;
 
-      const rows = lines.slice(h + 1)
+      const rows = lines
+        .slice(h + 1)
         .filter(l => !l.toLowerCase().startsWith("league matches"));
-       let latestUpdated = "";
-       ``
+
       rows.forEach(line => {
-        // Capture UpdatedAt (last column)
-if (c[c.length - 1]) {
-  latestUpdated = c[c.length - 1];
-}
         const c = line.split(",");
 
         const date = clean(c[0]);
         if (!date) return;
 
-        const day   = clean(c[1]);
-        const home  = clean(c[2]);
-        const away  = clean(c[8]);
-        const venue = clean(c[9]);
-        const alley = clean(c[10]);
-        const comp  = clean(c[14]);
-
-        const p1 = clean(c[4]);
-        const p2 = clean(c[6]);
-
-        // Show Last Updated (same format as live site)
-if (latestUpdated) {
-  const d = latestUpdated.split(" ")[0].split("/");
-  const dateObj = new Date(d[2], d[1] - 1, d[0]);
-  document.getElementById("lastUpdated").textContent =
-    "Last updated: " +
-    dateObj.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
-}
-
-       // Always show the score if it exists (league OR cup)
-      const ptsText =
-      (p1 && p2) ? `${p1}–${p2}` : "";
-
         const tr = document.createElement("tr");
+
         tr.innerHTML = `
           <td>${date}</td>
-          <td>${day}</td>
-          <td>${home} vs ${away}</td>
-          <td></td>
-          <td class="points">${ptsText}</td>
-          <td>${venue}</td>
-          <td>${comp}</td>
-          <td>${alley}</td>
+          <td>${clean(c[1])}</td>
+          <td>${clean(c[2])} vs ${clean(c[8])}</td>
+          <td>${clean(c[3]) && clean(c[7]) ? clean(c[3]) + "–" + clean(c[7]) : ""}</td>
+          <td class="points">${clean(c[4]) && clean(c[6]) ? clean(c[4]) + "–" + clean(c[6]) : ""}</td>
+          <td>${clean(c[9])}</td>
+          <td>${clean(c[14])}</td>
+          <td>${clean(c[10])}</td>
         `;
+
+        // Cup row highlight only
+        if (clean(c[14]).toLowerCase().includes("cup")) {
+          tr.classList.add("cup-match");
+        }
+
         tbody.appendChild(tr);
       });
 
-      /* ======================================================
-         STEP 2: RUN LIVE SITE LOGIC *UNCHANGED*
-         ====================================================== */
-
-      function toHalfNum(s) {
-        if (!s) return NaN;
-        s = String(s).trim().replace(/\s+/g,"").replace(/½/g,".5");
-        if (s==="1/2") return 0.5;
-        s = s.replace(/(\d+)1\/2/g,"$1.5");
-        var n = Number(s);
-        return Number.isFinite(n)?n:NaN;
-      }
-
-      function parsePoints(text) {
-        if (!text) return null;
-        var p=text.split(/[-–—]/).map(v=>v.trim());
-        if (p.length!==2) return null;
-        var a=toHalfNum(p[0]), b=toHalfNum(p[1]);
-        return (Number.isFinite(a)&&Number.isFinite(b))?{l:a,r:b}:null;
-      }
-
-      const headers = Array.from(document.querySelectorAll("thead th"))
-        .map(th => th.textContent.trim().toLowerCase());
-
-      const fixtureIdx = headers.indexOf("fixture");
-      const pointsIdx  = headers.indexOf("points");
-      const compIdx    = headers.indexOf("competition");
-
-      let wins=0,draws=0,losses=0,total=0;
-
-      document.querySelectorAll("tbody tr").forEach(tr=>{
-        const td=[...tr.querySelectorAll("td")];
-        const competition=td[compIdx].textContent.toLowerCase();
-        if(competition.includes("cup")){
-          tr.classList.add("cup-match");
-          return;
-        }
-
-        const ptsTxt=td[pointsIdx].textContent.trim();
-        if(!ptsTxt) return;
-
-        const pair=parsePoints(ptsTxt);
-        if(!pair) return;
-
-        const teams=td[fixtureIdx].textContent.split(/\s+vs\s+/i);
-        if(teams.length<2) return;
-
-        let myPts=NaN;
-        if(/semington a/i.test(teams[0])) myPts=pair.l;
-        else if(/semington a/i.test(teams[1])) myPts=pair.r;
-        else return;
-
-        total+=myPts;
-        if(myPts>3.5){ wins++; tr.classList.add("_win"); }
-        else if(myPts<3.5){ losses++; tr.classList.add("_loss"); }
-        else{ draws++; tr.classList.add("_draw"); }
-      });
-
-      winCount.textContent=wins;
-      drawCount.textContent=draws;
-      lossCount.textContent=losses;
-      pointsTotal.textContent=total.toFixed(1);
+      // reset counters for now
+      winCount.textContent = "0";
+      drawCount.textContent = "0";
+      lossCount.textContent = "0";
+      pointsTotal.textContent = "0";
     });
 
 })();
 </script>
+``
 
 
         </body>
