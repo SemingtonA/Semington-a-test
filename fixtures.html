@@ -246,14 +246,31 @@
 
         const tr = document.createElement("tr");
 
-        if (/cup/i.test(comp)) {
-          tr.classList.add("cup-match");
-        } else if (Number.isFinite(myPts)) {
-          totalPts += myPts;
-          if (myPts > 3.5) { wins++; tr.classList.add("_win"); }
-          else if (myPts < 3.5) { losses++; tr.classList.add("_loss"); }
-          else { draws++; tr.classList.add("_draw"); }
-        }
+       /* =========================================================
+   MATCH OUTCOME LOGIC (MATCHES LIVE SITE)
+   ---------------------------------------------------------
+   - Only count matches with Points present
+   - Cup matches are excluded earlier
+   - ONLY 3.5 equals a draw
+   ========================================================= */
+
+if (!/cup/i.test(comp) && Number.isFinite(myPts)) {
+
+  totalPoints += myPts;
+
+  if (myPts > 3.5) {
+    win++;
+    tr.classList.add("_win");
+  }
+  else if (myPts < 3.5) {
+    loss++;
+    tr.classList.add("_loss");
+  }
+  else {
+    draw++;
+    tr.classList.add("_draw");
+  }
+}
 
         const scoreText = homeScore && awayScore ? `${homeScore}–${awayScore}` : "";
         const ptsText = Number.isFinite(homePts) || Number.isFinite(awayPts)
