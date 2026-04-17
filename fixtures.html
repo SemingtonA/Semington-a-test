@@ -244,6 +244,91 @@
       lossCount.textContent = "0";
       pointsTotal.textContent = "0";
     });
+  // =====================================================
+// LIVE-SITE W/D/L + POINTS LOGIC (TABLE-DRIVEN)
+// =====================================================
+
+(function () {
+
+  function toHalfNum(s) {
+    if (!s) return NaN;
+    s = String(s).trim().replace(/\s+/g, "");
+    s = s.replace(/½/g, ".5");
+    if (s === "1/2") return 0.5;
+    s = s.replace(/(\d+)1\/2/g, "$1.5");
+    var n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function parsePoints(text) {
+    if (!text) return null;
+    var parts = text.split(/[-–—]/).map(p => p.trim());
+    if (parts.length !== 2) return null;
+
+    var a = toHalfNum(parts[0]);
+    var b = toHalfNum(parts[1]);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+
+    return { left: a, right: b };
+  }
+
+  const table = document.querySelector("table");
+  if (!table) return;
+
+  const headers = Array.from(table.querySelectorAll("thead th"))
+    .map(th => th.textContent.trim().toLowerCase());
+
+  const fixtureIdx = headers.indexOf("fixture");
+  const pointsIdx  = headers.indexOf("points");
+  const compIdx    = headers.indexOf("competition");
+
+  let wins = 0, draws = 0, losses = 0, totalPoints = 0;
+
+  table.querySelectorAll("tbody tr").forEach(tr => {
+    const tds = Array.from(tr.querySelectorAll("td"));
+    if (!tds.length) return;
+
+    const competition = tds[compIdx].textContent.toLowerCase();
+    if (competition.includes("cup")) {
+      tr.classList.add("cup-match");
+      return; // cup matches excluded from totals
+    }
+
+    const pointsText = tds[pointsIdx].textContent.trim();
+    if (!pointsText) return; // unplayed match → ignore
+
+    const pair = parsePoints(pointsText);
+    if (!pair) return;
+
+    const fixtureText = tds[fixtureIdx].textContent;
+    const teams = fixtureText.split(/\s+vs\s+/i);
+    if (teams.length < 2) return;
+
+    let myPts = NaN;
+    if (/semington a/i.test(teams[0])) myPts = pair.left;
+    else if (/semington a/i.test(teams[1])) myPts = pair.right;
+    else return;
+
+    totalPoints += myPts;
+
+    if (myPts > 3.5) {
+      wins++;
+      tr.classList.add("_win");
+    } else if (myPts < 3.5) {
+      losses++;
+      tr.classList.add("_loss");
+    } else {
+      draws++;
+      tr.classList.add("_draw");
+    }
+  });
+
+  winCount.textContent = wins;
+  drawCount.textContent = draws;
+  lossCount.textContent = losses;
+  pointsTotal.textContent = totalPoints.toFixed(1);
+
+})();
 
 })();
 </script>
