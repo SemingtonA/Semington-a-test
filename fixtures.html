@@ -385,7 +385,16 @@
           tr.classList.add("cup-match");
         }
 
-        // Only count played league matches (matches live site behaviour)
+        // Only count played LEAGUE matches (live site behaviour)
+// - Cup matches are excluded
+// - Unplayed matches stay white (myPts is NaN)
+if (!/cup/i.test(comp) && Number.isFinite(myPts)) {
+  totalPoints += myPts;
+
+  if (myPts > 3.5) { win++; tr.classList.add("_win"); }
+  else if (myPts < 3.5) { loss++; tr.classList.add("_loss"); }
+  else { draw++; tr.classList.add("_draw"); }
+}
           
           to// Count ONLY real, played league fixtures
           if (
