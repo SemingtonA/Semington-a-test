@@ -183,109 +183,263 @@
     <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
   </div>
 </footer>
+  
 <script>
-function parseCSV(text) {
-  const rows = [];
-  let row = [];
-  let cur = "";
-  let inQuotes = false;
+(function () {
+  // ---------- helpers ----------
+  function clean(v) {
+    return (v === undefined || v === null) ? "" : String(v).trim();
+  }
 
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (c === '"') {
-      if (inQuotes && text[i + 1] === '"') {
-        cur += '"'; i++;
+  // Quote-aware CSV parser (handles commas safely)
+  function parseCSV(text) {
+    var rows = [];
+    var row = [];
+    var cur = "";
+    var inQuotes = false;
+
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+
+      if (c === '"') {
+        if (inQuotes && text[i + 1] === '"') { cur += '"'; i++; }
+        else inQuotes = !inQuotes;
+      } else if (c === ',' && !inQuotes) {
+        row.push(cur); cur = "";
+      } else if ((c === '\n' || c === '\r') && !inQuotes) {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(cur); cur = "";
+        // keep non-empty rows
+        if (row.some(function(x){ return clean(x) !== ""; })) rows.push(row);
+        row = [];
       } else {
-        inQuotes = !inQuotes;
+        cur += c;
       }
-    } else if (c === ',' && !inQuotes) {
-      row.push(cur); cur = "";
-    } else if ((c === '\n' || c === '\r') && !inQuotes) {
-      if (cur || row.length) {
-        row.push(cur);
-        rows.push(row);
-        row = []; cur = "";
-      }
-    } else {
-      cur += c;
     }
+    if (cur.length || row.length) {
+      row.push(cur);
+      if (row.some(function(x){ return clean(x) !== ""; })) rows.push(row);
+    }
+    return rows;
   }
-  if (cur || row.length) {
-    row.push(cur);
-    rows.push(row);
+
+  // Half-point parser: "6 1/2" -> 6.5, "1/2" -> 0.5, "½" -> .5
+  function toHalfNum(s) {
+    s = clean(s);
+    if (!s) return NaN;
+
+    s = s.replace(/\s+/g, "");
+    s = s.replace(/½/g, ".5");
+    if (s === "1/2") return 0.5;
+    s = s.replace(/(\d+)1\/2/g, "$1.5");
+
+    var n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
   }
-  return rows;
-}
 
-fetch("fixtures_web.csv?v=" + Date.now())
-  .then(r => r.text())
-  .then(text => {
+  // dd/mm/yyyy HH:MM -> Date
+  function parseDMY(dateTime) {
+    var dpart = clean(dateTime).split(" ")[0]; // "16/04/2026"
+    var p = dpart.split("/");
+    if (p.length !== 3) return null;
+    return new Date(Number(p[2]), Number(p[1]) - 1, Number(p[0]));
+  }
 
-    const rows = parseCSV(text);
+  // Find header row by looking for "Date" or "Date:"
+  function findHeaderRow(rows) {
+    for (var i = 0; i < rows.length; i++) {
+      for (var j = 0; j < rows[i].length; j++) {
+        var h = clean(rows[i][j]).toLowerCase();
+        if (h === "date" || h === "date:") return i;
+      }
+    }
+    return -1;
+  }
 
-    // ✅ Skip title + blank rows
-    rows.shift();
-    rows.shift();
-    rows.shift();
+  // Get first and second occurrence of a header name (for duplicate columns like Points/Score)
+  function indexOfHeader(headers, name, startAt) {
+    var target = name.toLowerCase();
+    for (var i = startAt || 0; i < headers.length; i++) {
+      if (headers[i].toLowerCase() === target) return i;
+    }
+    return -1;
+  }
 
-    // ✅ Real header row
-    const headers = rows.shift().map(h => h.trim());
-    const idx = name => headers.indexOf(name);
+  // ---------- elements ----------
+  var tbody = document.getElementById("fixturesBody");
+  var lastUpdatedEl = document.getElementById("lastUpdated");
 
-    const tbody = document.getElementById("fixturesBody");
-    let win = 0, draw = 0, loss = 0, totalPoints = 0;
-    let latest = "";
+  if (!tbody) return;
 
-    rows.forEach(row => {
-      if (!row[idx("Date:")]) return;
+  // ---------- load CSV (cache-busted for GitHub Pages) ----------
+  fetch("fixtures_web.csv?v=" + Date.now(), { cache: "no-store" })
+    .then(function (r) {
+      if (!r.ok) throw new Error("fixtures_web.csv not found (" + r.status + ")");
+      return r.text();
+    })
+    .then(function (text) {
 
-      const comp = row[idx("Match Details")] || "";
-      const tr = document.createElement("tr");
+      var rows = parseCSV(text);
 
-      if (/cup/i.test(comp)) tr.classList.add("cup-match");
+      // Find the real header row (your file has title/blank rows above it) 
+      var headerRow = findHeaderRow(rows);
+      if (headerRow < 0) throw new Error("Header row not found in fixtures_web.csv");
 
-      const p1 = row[idx("Points")] || "";
-      const p2 = row[idx("Points") + 2] || "";
+      var headers = rows[headerRow].map(function (h) { return clean(h); });
+      var dataRows = rows.slice(headerRow + 1);
 
-      let myPts = 0;
-      if (/semington a/i.test(row[idx("Home Team")])) myPts = Number(p1) || 0;
-      else if (/semington a/i.test(row[idx("Away Team")])) myPts = Number(p2) || 0;
+      // Stop if we hit the summary block at the bottom ("League Matches...") 
+      var filtered = [];
+      for (var r = 0; r < dataRows.length; r++) {
+        var first = clean(dataRows[r][0]).toLowerCase();
+        if (first.indexOf("league matches") === 0) break;
+        filtered.push(dataRows[r]);
+      }
+      dataRows = filtered;
 
-      if (!/cup/i.test(comp)) {
-        totalPoints += myPts;
-        if (myPts > 3.5) { win++; tr.classList.add("_win"); }
-        else if (myPts < 3.5) { loss++; tr.classList.add("_loss"); }
-        else { draw++; tr.classList.add("_draw"); }
+      // Indices (support BOTH old and new header styles) 
+      var iDate = indexOfHeader(headers, "Date:", 0);
+      if (iDate === -1) iDate = indexOfHeader(headers, "Date", 0);
+
+      var iDay = indexOfHeader(headers, "Day", 0);
+      var iHomeTeam = indexOfHeader(headers, "Home Team", 0);
+      var iAwayTeam = indexOfHeader(headers, "Away Team", 0);
+      var iLocation = indexOfHeader(headers, "Location", 0);
+      var iAlley = indexOfHeader(headers, "Alley", 0);
+      var iComp = indexOfHeader(headers, "Match Details", 0);
+      if (iComp === -1) iComp = indexOfHeader(headers, "Competition", 0);
+
+      // UpdatedAt
+      var iUpdated = indexOfHeader(headers, "UpdatedAt", 0);
+      if (iUpdated === -1) iUpdated = indexOfHeader(headers, "Updated At", 0);
+
+      // NEW format support
+      var iHomeScore = indexOfHeader(headers, "Home Score", 0);
+      var iAwayScore = indexOfHeader(headers, "Away Score", 0);
+      var iHomePts = indexOfHeader(headers, "Home Points", 0);
+      var iAwayPts = indexOfHeader(headers, "Away Points", 0);
+
+      // OLD format fallback: Score, Points appear twice
+      var iScore1 = indexOfHeader(headers, "Score", 0);
+      var iScore2 = (iScore1 !== -1) ? indexOfHeader(headers, "Score", iScore1 + 1) : -1;
+
+      var iPts1 = indexOfHeader(headers, "Points", 0);
+      var iPts2 = (iPts1 !== -1) ? indexOfHeader(headers, "Points", iPts1 + 1) : -1;
+
+      // ---------- render ----------
+      tbody.innerHTML = "";
+
+      var win = 0, draw = 0, loss = 0, totalPoints = 0;
+      var latestUpdated = "";
+
+      for (var k = 0; k < dataRows.length; k++) {
+        var row = dataRows[k];
+
+        // Skip empty rows
+        if (!clean(row[iDate])) continue;
+
+        var dateStr = clean(row[iDate]);
+        var dayStr = clean(row[iDay]);
+        var homeTeam = clean(row[iHomeTeam]);
+        var awayTeam = clean(row[iAwayTeam]);
+        var comp = clean(row[iComp]);
+        var venue = clean(row[iLocation]);
+        var alley = clean(row[iAlley]);
+
+        // Read score/points in either format
+        var homeScoreStr = "";
+        var awayScoreStr = "";
+        var homePtsStr = "";
+        var awayPtsStr = "";
+
+        if (iHomeScore !== -1 && iAwayScore !== -1) {
+          // new headers
+          homeScoreStr = clean(row[iHomeScore]);
+          awayScoreStr = clean(row[iAwayScore]);
+        } else if (iScore1 !== -1 && iScore2 !== -1) {
+          // old headers
+          homeScoreStr = clean(row[iScore1]);
+          awayScoreStr = clean(row[iScore2]);
+        }
+
+        if (iHomePts !== -1 && iAwayPts !== -1) {
+          homePtsStr = clean(row[iHomePts]);
+          awayPtsStr = clean(row[iAwayPts]);
+        } else if (iPts1 !== -1 && iPts2 !== -1) {
+          homePtsStr = clean(row[iPts1]);
+          awayPtsStr = clean(row[iPts2]);
+        }
+
+        var homePtsNum = toHalfNum(homePtsStr);
+        var awayPtsNum = toHalfNum(awayPtsStr);
+
+        // Determine Semington's points (NaN means "not played / no points yet")
+        var myPts = NaN;
+        if (/semington a/i.test(homeTeam)) myPts = homePtsNum;
+        else if (/semington a/i.test(awayTeam)) myPts = awayPtsNum;
+
+        var tr = document.createElement("tr");
+
+        // Highlight cup matches but do NOT count them
+        if (/cup/i.test(comp)) {
+          tr.classList.add("cup-match");
+        }
+
+        // Only count played league matches (matches live site behaviour)
+        if (!/cup/i.test(comp) && Number.isFinite(myPts)) {
+          totalPoints += myPts;
+
+          if (myPts > 3.5) { win++; tr.classList.add("_win"); }
+          else if (myPts < 3.5) { loss++; tr.classList.add("_loss"); }
+          else { draw++; tr.classList.add("_draw"); }
+        }
+
+        // Display text (blank if unplayed)
+        var scoreText = (homeScoreStr && awayScoreStr) ? (homeScoreStr + "–" + awayScoreStr) : "";
+        var ptsText = (homePtsStr && awayPtsStr) ? (homePtsStr + "–" + awayPtsStr) : "";
+
+        // UpdatedAt tracking
+        if (iUpdated !== -1) {
+          var up = clean(row[iUpdated]);
+          if (up && up > latestUpdated) latestUpdated = up;
+        }
+
+        tr.innerHTML =
+          "<td>" + dateStr + "</td>" +
+          "<td>" + dayStr + "</td>" +
+          "<td>" + homeTeam + " vs " + awayTeam + "</td>" +
+          "<td>" + scoreText + "</td>" +
+          "<td class=\"points\">" + ptsText + "</td>" +
+          "<td>" + venue + "</td>" +
+          "<td>" + comp + "</td>" +
+          "<td>" + alley + "</td>";
+
+        tbody.appendChild(tr);
       }
 
-      if (row[idx("UpdatedAt")] > latest) latest = row[idx("UpdatedAt")];
+      // Update counters
+      document.getElementById("winCount").textContent = String(win);
+      document.getElementById("drawCount").textContent = String(draw);
+      document.getElementById("lossCount").textContent = String(loss);
+      document.getElementById("pointsTotal").textContent = totalPoints.toFixed(1);
 
-      tr.innerHTML = `
-        <td>${row[idx("Date:")]}</td>
-        <td>${row[idx("Day")]}</td>
-        <td>${row[idx("Home Team")]} vs ${row[idx("Away Team")]}</td>
-        <td>${row[idx("Score")] || ""}</td>
-        <td class="points">${p1 && p2 ? `${p1}–${p2}` : ""}</td>
-        <td>${row[idx("Location")]}</td>
-        <td>${comp}</td>
-        <td>${row[idx("Alley")] || ""}</td>
-      `;
-      tbody.appendChild(tr);
+      // UpdatedAt display (dd/mm/yyyy parsing)
+      if (lastUpdatedEl && latestUpdated) {
+        var d = parseDMY(latestUpdated);
+        if (d) {
+          lastUpdatedEl.textContent =
+            "Last updated: " +
+            d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+        }
+      }
+    })
+    .catch(function (e) {
+      // If anything fails, show it in the "Last updated" line so you see the error on-page
+      if (lastUpdatedEl) lastUpdatedEl.textContent = "Last updated: (error loading fixtures)";
+      console.error(e);
     });
 
-    document.getElementById("winCount").textContent = win;
-    document.getElementById("drawCount").textContent = draw;
-    document.getElementById("lossCount").textContent = loss;
-    document.getElementById("pointsTotal").textContent = totalPoints.toFixed(1);
-
-    if (latest) {
-      const p = latest.split(" ")[0].split("/");
-      const d = new Date(p[2], p[1]-1, p[0]);
-      document.getElementById("lastUpdated").textContent =
-        "Last updated: " +
-        d.toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" });
-    }
-  });
+})();
 </script>
 
 </body>
