@@ -154,6 +154,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     const iDetails = idx("Match Details");
     const iMatchId = idx("Match ID");
     const iUpdated = idx("UpdatedAt");
+    const iLowFines = idx("Fines");   // column K
 
     const players = {};
     let totalLeagueFees = 0;
@@ -178,11 +179,9 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
         players[name].lg++;
         players[name].fees += 4;
         if (+r[iDucks] > 0) players[name].duck += (+r[iDucks]) * 0.5;
-        const score = Number(r[iScore]);
-        if (!isNaN(score) && score <= 4) {
-        players[name].low += 0.2;
-       }
-       } else if (/cup/i.test(r[iDetails])) {
+        const lowFine = Number(r[iLowFines]) || 0;
+        players[name].low += lowFine;
+      } else if (/cup/i.test(r[iDetails])) {
         players[name].cup++;
       }
     });
