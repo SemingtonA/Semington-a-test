@@ -109,6 +109,16 @@ if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
   </div>
 
   <table>
+    <colgroup>
+  <col>
+  <col style="width: 110px">
+  <col style="width: 110px">
+  <col style="width: 130px">
+  <col style="width: 120px">
+  <col style="width: 140px">
+  <col style="width: 120px">
+  <col style="width: 130px">
+</colgroup>
     <thead>
       <tr>
         <th>Player</th>
@@ -146,6 +156,10 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     const iUpdated = idx("UpdatedAt");
 
     const players = {};
+    let totalLeagueFees = 0;
+    let totalDuckFines = 0;
+    let totalLowFines = 0;
+    let totalOwed = 0;
     const seen = {};
     let latest = "";
 
@@ -180,6 +194,11 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
       const p = players[n];
       const fines = p.duck + p.low;
       const owed = p.fees + fines;
+      
+      totalLeagueFees += p.fees;
+      totalDuckFines += p.duck;
+      totalLowFines += p.low;
+      totalOwed += owed;
 
       body.insertAdjacentHTML("beforeend", `
         <tr>
@@ -194,6 +213,19 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
         </tr>
       `);
     });
+    
+    body.insertAdjacentHTML("beforeend", `
+  <tr style="font-weight:bold; background:#f0f0f0;">
+    <td>Total</td>
+    <td></td>
+    <td></td>
+    <td class="num">£${totalLeagueFees.toFixed(2)}</td>
+    <td class="num">£${totalDuckFines.toFixed(2)}</td>
+    <td class="num">£${totalLowFines.toFixed(2)}</td>
+    <td class="num">£${(totalDuckFines + totalLowFines).toFixed(2)}</td>
+    <td class="num"><strong>£${totalOwed.toFixed(2)}</strong></td>
+  </tr>
+`);
 
     document.getElementById("lastUpdated").textContent =
       latest ? "Last updated: " + latest : "Last updated: —";
