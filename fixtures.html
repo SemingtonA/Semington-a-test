@@ -228,7 +228,9 @@
         const p1 = clean(c[4]);
         const p2 = clean(c[6]);
 
-        const ptsText = p1 && p2 ? `${p1}–${p2}` : "";
+       // Always show the score if it exists (league OR cup)
+      const ptsText =
+      (p1 && p2) ? `${p1}–${p2}` : "";
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
