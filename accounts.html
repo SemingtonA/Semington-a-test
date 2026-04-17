@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Accounts (Private)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f5f0e6;
+    }
+    .content-box {
+      background: #fff;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    h2 { margin: 0; }
+    #lastUpdated {
+      font-size: 12px;
+      color: #555;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      font-size: 14px;
+    }
+    th {
+      background: #f0f0f0;
+      text-align: left;
+    }
+    td.center { text-align: center; }
+    td.num { text-align: right; white-space: nowrap; }
+  </style>
+</head>
+
+<body>
+
+<!-- ✅ PASSWORD PROTECTION GOES HERE -->
+<script>
+const pw = prompt("Admin access – enter password:");
+if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
+  document.body.innerHTML =
+    "<h2 style='text-align:center;margin-top:50px'>Access denied</h2>";
+}
+</script>
+``
+</script>
+
+</body>
+</html>
+
+</head>
+
+<body>
+
+<div class="content-box">
+  <div class="header-row">
+    <h2>Accounts (Private)</h2>
+    <div id="lastUpdated">Last updated: —</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Player</th>
+        <th class="center">League Games</th>
+        <th class="center">Cup Games</th>
+        <th class="num">League Fees</th>
+        <th class="num">Duck Fines</th>
+        <th class="num">Fines</th>
+        <th class="num">Total Fines</th>
+        <th class="num">Net Owed</th>
+      </tr>
+    </thead>
+    <tbody id="accountsBody"></tbody>
+  </table>
+</div>
+
+<!-- ===== EMBEDDED CSV DATA ===== -->
+<!-- =========================================================
+     CSV DATA (PASTE FULL csv_export.csv CONTENTS BELOW)
+     - Include the HEADER row
+     - Include ALL data rows
+     - No HTML tags, just plain CSV text
+     ========================================================= -->
+<script type="text/plain" id="csvData">
+PASTE THE ENTIRE csv_export.csv CONTENTS HERE (INCLUDING HEADER ROW)
+</script>
+
+<!-- =========================================================
+     ACCOUNTS LOGIC (NO FETCH — WORKS FROM file:///)
+     Uses:
+       - League fee £4.00 per league match
+       - Duck fine £0.50 per duck (league only)
+       - Low score fine £0.20 if Total Score <= 4 (league only)
+     ========================================================= -->
+<script>
+(function () {
+
+  // ===== RULES =====
+  const LEAGUE_FEE = 4.00;
+  const DUCK_FINE = 0.50;
+  const LOW_SCORE_FINE = 0.20;
+  const LOW_SCORE_THRESHOLD = 4;
+
+  const tbody = document.getElementById("accountsBody");
+  const lastUpdatedEl = document.getElementById("lastUpdated");
+  if (!tbody) return;
+
+  function clean(v){ return v == null ? "" : String(v).trim(); }
+  function toNum(v){
+    v = clean(v);
+    if (!v) return NaN;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : NaN;
+  }
+  function money(n){ return "£" + (Number.isFinite(n) ? n : 0).toFixed(2); }
+
+  // Quote-aware CSV parser
+  function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let cur = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+
+      if (c === '"') {
+        if (inQuotes && text[i + 1] === '"') { cur += '"'; i++; }
+        else inQuotes = !inQuotes;
+      } else if (c === ',' && !inQuotes) {
+        row.push(cur); cur = "";
+      } else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(cur); cur = "";
+        if (row.length > 1) rows.push(row);
+        row = [];
+      } else {
+        cur += c;
+      }
+    }
+
+    if (cur.length || row.length) {
+      row.push(cur);
+      if (row.length > 1) rows.push(row);
+    }
+    return rows;
+  }
+
+  // ✅ READ EMBEDDED CSV TEXT (NO fetch)
+  const csvText = clean(document.getElementById("csvData")?.textContent || "");
+
+  // If placeholder still present, show a clear message
+  if (!csvText || /^PASTE/i.test(csvText)) {
+    if (lastUpdatedEl) lastUpdatedEl.textContent =
+      "Last updated: (paste csv_export.csv into the csvData block above)";
+    return;
+  }
+
+  const grid = parseCSV(csvText);
+  if (!grid.length) {
+    if (lastUpdatedEl) lastUpdatedEl.textContent = "Last updated: (csvData is empty)";
+    return;
+  }
+
+  const headers = grid[0].map(clean);
+  const col = (name) => headers.indexOf(name);
+
+  // Columns from your csv_export.csv [2](https://outlook.live.com/owa/?ItemID=AQMkADAwATE0OTQwLTUyMgBkLTJkOWEtMDACLTAwCgBGAAADFvyS4gBJBkKZOuA2Qf%2fEowcAes2SqILv1UGRPAwF7jIkigAAAgFWAAAAes2SqILv1UGRPAwF7jIkigAILDkFhAAAAA%3d%3d&exvsurl=1&viewmodel=ReadMessageItem)[2](https://outlook.live.com/owa/?ItemID=AQMkADAwATE0OTQwLTUyMgBkLTJkOWEtMDACLTAwCgBGAAADFvyS4gBJBkKZOuA2Qf%2fEowcAes2SqILv1UGRPAwF7jIkigAAAgFWAAAAes2SqILv1UGRPAwF7jIkigAILDkFhAAAAA%3d%3d&exvsurl=1&viewmodel=ReadMessageItem)
+  const iPlayer  = col("Semington A Player Name");
+  const iScore   = col("Total Score");
+  const iDucks   = col("Ducks");
+  const iDetails = col("Match Details");
+  const iMatchId = col("Match ID");
+  const iUpdated = col("UpdatedAt");
+
+  if (iPlayer < 0 || iScore < 0 || iDucks < 0 || iDetails < 0 || iMatchId < 0) {
+    if (lastUpdatedEl) lastUpdatedEl.textContent =
+      "Last updated: (CSV header missing required columns)";
+    return;
+  }
+
+  const players = {}; // name -> aggregates
+  const seen = {};    // name||matchId -> true
+  let latestUpdate = "";
+
+  for (let i = 1; i < grid.length; i++) {
+    const r = grid[i];
+
+    const name = clean(r[iPlayer]);
+    if (!name || name === "A N Other" || name === "0") continue;
+
+    if (iUpdated >= 0 && r[iUpdated]) latestUpdate = clean(r[iUpdated]);
+
+    const details = clean(r[iDetails]);
+    const score = toNum(r[iScore]);
+    const ducks = toNum(r[iDucks]);
+    const matchId = clean(r[iMatchId]);
+
+    const key = name + "||" + matchId;
+    if (seen[key]) continue;
+    seen[key] = true;
+
+    players[name] ||= {
+      name,
+      league: 0,
+      cup: 0,
+      leagueFees: 0,
+      duckFines: 0,
+      lowScoreFines: 0
+    };
+
+    if (/league/i.test(details)) {
+      players[name].league++;
+      players[name].leagueFees += LEAGUE_FEE;
+
+      if (Number.isFinite(ducks) && ducks > 0) {
+        players[name].duckFines += ducks * DUCK_FINE;
+      }
+      if (Number.isFinite(score) && score <= LOW_SCORE_THRESHOLD) {
+        players[name].lowScoreFines += LOW_SCORE_FINE;
+      }
+
+    } else if (/cup/i.test(details)) {
+      players[name].cup++;
+    }
+  }
+
+  // Render rows
+  tbody.innerHTML = "";
+
+  Object.values(players)
+    .sort((a,b)=>a.name.localeCompare(b.name))
+    .forEach(p => {
+      const totalFines = p.duckFines + p.lowScoreFines;
+      const owed = p.leagueFees + totalFines;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${p.name}</td>
+        <td class="center">${p.league}</td>
+        <td class="center">${p.cup}</td>
+        <td class="num">${money(p.leagueFees)}</td>
+        <td class="num">${money(p.duckFines)}</td>
+        <td class="num">${money(p.lowScoreFines)}</td>
+        <td class="num">${money(totalFines)}</td>
+        <td class="num"><strong>${money(owed)}</strong></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+  if (lastUpdatedEl) {
+    lastUpdatedEl.textContent = latestUpdate ? ("Last updated: " + latestUpdate) : "Last updated: —";
+  }
+
+})();
+</script>
+
+</body>
+</html>
