@@ -225,8 +225,14 @@ function parseCSV(text) {
   fetch("fixtures_web.csv?v=" + Date.now())
     .then(r => r.text())
     .then(text => {
-      const rows = ParseCSV(text);
-      const headers = rows.shift().map(h => h.trim());
+     const rows = parseCSV(text);
+
+// ✅ Skip title + blank rows
+rows.shift();
+rows.shift();
+
+// ✅ Now this is the REAL header row
+const headers = rows.shift().map(h => h.trim()); 
       const idx = n => headers.indexOf(n);
 
       const body = document.getElementById("fixturesBody");
