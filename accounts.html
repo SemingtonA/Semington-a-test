@@ -11,6 +11,28 @@
       font-family: Arial, sans-serif;
       background-color: #f5f0e6;
     }
+
+    /* NAV BUTTONS – SAME AS REST OF SITE */
+    .nav-buttons {
+      width: 100%;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .nav-buttons a {
+      display: inline-block;
+      margin: 6px;
+      padding: 10px 18px;
+      background: #000;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .nav-buttons a:hover {
+      background: #163aa3;
+    }
+
+    /* PAGE CONTENT */
     .content-box {
       background: #fff;
       max-width: 1200px;
@@ -45,34 +67,12 @@
     }
     td.center { text-align: center; }
     td.num { text-align: right; white-space: nowrap; }
-
- .nav-buttons {
-  width: 100%;
-  text-align: center;
-  margin: 20px 0;
-}
-
-.nav-buttons a {
-  display: inline-block;
-  margin: 6px;
-  padding: 10px 18px;
-  background: #000;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
-.nav-buttons a:hover {
-  background: #163aa3;
-}   
-  
   </style>
 </head>
 
 <body>
 
-<!-- ✅ PASSWORD PROTECTION GOES HERE -->
+<!-- PASSWORD GATE -->
 <script>
 const pw = prompt("Admin access – enter password:");
 if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
@@ -81,6 +81,7 @@ if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
 }
 </script>
 
+<!-- NAV BUTTONS -->
 <div class="nav-buttons">
   <a href="index.html">Home</a>
   <a href="fixtures.html">Fixtures &amp; Results</a>
@@ -90,15 +91,8 @@ if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
   <a href="rules.html">Rules</a>
   <a href="accounts.html">Accounts (admin only)</a>
 </div>
-</script>
 
-</body>
-</html>
-
-</head>
-
-<body>
-
+<!-- CONTENT -->
 <div class="content-box">
   <div class="header-row">
     <h2>Accounts (Private)</h2>
@@ -113,7 +107,7 @@ if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
         <th class="center">Cup Games</th>
         <th class="num">League Fees</th>
         <th class="num">Duck Fines</th>
-        <th class="num">Fines</th>
+        <th class="num">Low Score Fines</th>
         <th class="num">Total Fines</th>
         <th class="num">Net Owed</th>
       </tr>
@@ -122,185 +116,82 @@ if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
   </table>
 </div>
 
-<!-- ===== EMBEDDED CSV DATA ===== -->
-<!-- =========================================================
-     CSV DATA (PASTE FULL csv_export.csv CONTENTS BELOW)
-     - Include the HEADER row
-     - Include ALL data rows
-     - No HTML tags, just plain CSV text
-     ========================================================= -->
-<script type="text/plain" id="csvData">
-PASTE THE ENTIRE csv_export.csv CONTENTS HERE (INCLUDING HEADER ROW)
-</script>
-
-<!-- =========================================================
-     ACCOUNTS LOGIC (NO FETCH — WORKS FROM file:///)
-     Uses:
-       - League fee £4.00 per league match
-       - Duck fine £0.50 per duck (league only)
-       - Low score fine £0.20 if Total Score <= 4 (league only)
-     ========================================================= -->
+<!-- ACCOUNTS SCRIPT (FETCHES EXISTING CSV) -->
 <script>
-(function () {
+fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
+  .then(r => {
+    if (!r.ok) throw new Error("csv_export.csv not found");
+    return r.text();
+  })
+  .then(text => {
+    const rows = text.trim().split(/\r?\n/).map(r => r.split(","));
+    const header = rows.shift();
 
-  // ===== RULES =====
-  const LEAGUE_FEE = 4.00;
-  const DUCK_FINE = 0.50;
-  const LOW_SCORE_FINE = 0.20;
-  const LOW_SCORE_THRESHOLD = 4;
+    const idx = n => header.indexOf(n);
 
-  const tbody = document.getElementById("accountsBody");
-  const lastUpdatedEl = document.getElementById("lastUpdated");
-  if (!tbody) return;
+    const iPlayer  = idx("Semington A Player Name");
+    const iScore   = idx("Total Score");
+    const iDucks   = idx("Ducks");
+    const iDetails = idx("Match Details");
+    const iMatchId = idx("Match ID");
+    const iUpdated = idx("UpdatedAt");
 
-  function clean(v){ return v == null ? "" : String(v).trim(); }
-  function toNum(v){
-    v = clean(v);
-    if (!v) return NaN;
-    const n = Number(v);
-    return Number.isFinite(n) ? n : NaN;
-  }
-  function money(n){ return "£" + (Number.isFinite(n) ? n : 0).toFixed(2); }
+    const players = {};
+    const seen = {};
+    let latest = "";
 
-  // Quote-aware CSV parser
-  function parseCSV(text) {
-    const rows = [];
-    let row = [];
-    let cur = "";
-    let inQuotes = false;
+    rows.forEach(r => {
+      const name = r[iPlayer];
+      if (!name) return;
 
-    for (let i = 0; i < text.length; i++) {
-      const c = text[i];
+      if (r[iUpdated]) latest = r[iUpdated];
 
-      if (c === '"') {
-        if (inQuotes && text[i + 1] === '"') { cur += '"'; i++; }
-        else inQuotes = !inQuotes;
-      } else if (c === ',' && !inQuotes) {
-        row.push(cur); cur = "";
-      } else if (c === '\n' || c === '\r') {
-        if (c === '\r' && text[i + 1] === '\n') i++;
-        row.push(cur); cur = "";
-        if (row.length > 1) rows.push(row);
-        row = [];
-      } else {
-        cur += c;
+      const key = name + r[iMatchId];
+      if (seen[key]) return;
+      seen[key] = true;
+
+      players[name] ||= { league:0, cup:0, fees:0, duck:0, low:0 };
+
+      if (/league/i.test(r[iDetails])) {
+        players[name].league++;
+        players[name].fees += 4;
+        if (+r[iDucks] > 0) players[name].duck += (+r[iDucks]) * 0.5;
+        if (+r[iScore] <= 4) players[name].low += 0.2;
+      } else if (/cup/i.test(r[iDetails])) {
+        players[name].cup++;
       }
-    }
-
-    if (cur.length || row.length) {
-      row.push(cur);
-      if (row.length > 1) rows.push(row);
-    }
-    return rows;
-  }
-
-  // ✅ READ EMBEDDED CSV TEXT (NO fetch)
-  const csvText = clean(document.getElementById("csvData")?.textContent || "");
-
-  // If placeholder still present, show a clear message
-  if (!csvText || /^PASTE/i.test(csvText)) {
-    if (lastUpdatedEl) lastUpdatedEl.textContent =
-      "Last updated: (paste csv_export.csv into the csvData block above)";
-    return;
-  }
-
-  const grid = parseCSV(csvText);
-  if (!grid.length) {
-    if (lastUpdatedEl) lastUpdatedEl.textContent = "Last updated: (csvData is empty)";
-    return;
-  }
-
-  const headers = grid[0].map(clean);
-  const col = (name) => headers.indexOf(name);
-
-  // Columns from your csv_export.csv [2](https://outlook.live.com/owa/?ItemID=AQMkADAwATE0OTQwLTUyMgBkLTJkOWEtMDACLTAwCgBGAAADFvyS4gBJBkKZOuA2Qf%2fEowcAes2SqILv1UGRPAwF7jIkigAAAgFWAAAAes2SqILv1UGRPAwF7jIkigAILDkFhAAAAA%3d%3d&exvsurl=1&viewmodel=ReadMessageItem)[2](https://outlook.live.com/owa/?ItemID=AQMkADAwATE0OTQwLTUyMgBkLTJkOWEtMDACLTAwCgBGAAADFvyS4gBJBkKZOuA2Qf%2fEowcAes2SqILv1UGRPAwF7jIkigAAAgFWAAAAes2SqILv1UGRPAwF7jIkigAILDkFhAAAAA%3d%3d&exvsurl=1&viewmodel=ReadMessageItem)
-  const iPlayer  = col("Semington A Player Name");
-  const iScore   = col("Total Score");
-  const iDucks   = col("Ducks");
-  const iDetails = col("Match Details");
-  const iMatchId = col("Match ID");
-  const iUpdated = col("UpdatedAt");
-
-  if (iPlayer < 0 || iScore < 0 || iDucks < 0 || iDetails < 0 || iMatchId < 0) {
-    if (lastUpdatedEl) lastUpdatedEl.textContent =
-      "Last updated: (CSV header missing required columns)";
-    return;
-  }
-
-  const players = {}; // name -> aggregates
-  const seen = {};    // name||matchId -> true
-  let latestUpdate = "";
-
-  for (let i = 1; i < grid.length; i++) {
-    const r = grid[i];
-
-    const name = clean(r[iPlayer]);
-    if (!name || name === "A N Other" || name === "0") continue;
-
-    if (iUpdated >= 0 && r[iUpdated]) latestUpdate = clean(r[iUpdated]);
-
-    const details = clean(r[iDetails]);
-    const score = toNum(r[iScore]);
-    const ducks = toNum(r[iDucks]);
-    const matchId = clean(r[iMatchId]);
-
-    const key = name + "||" + matchId;
-    if (seen[key]) continue;
-    seen[key] = true;
-
-    players[name] ||= {
-      name,
-      league: 0,
-      cup: 0,
-      leagueFees: 0,
-      duckFines: 0,
-      lowScoreFines: 0
-    };
-
-    if (/league/i.test(details)) {
-      players[name].league++;
-      players[name].leagueFees += LEAGUE_FEE;
-
-      if (Number.isFinite(ducks) && ducks > 0) {
-        players[name].duckFines += ducks * DUCK_FINE;
-      }
-      if (Number.isFinite(score) && score <= LOW_SCORE_THRESHOLD) {
-        players[name].lowScoreFines += LOW_SCORE_FINE;
-      }
-
-    } else if (/cup/i.test(details)) {
-      players[name].cup++;
-    }
-  }
-
-  // Render rows
-  tbody.innerHTML = "";
-
-  Object.values(players)
-    .sort((a,b)=>a.name.localeCompare(b.name))
-    .forEach(p => {
-      const totalFines = p.duckFines + p.lowScoreFines;
-      const owed = p.leagueFees + totalFines;
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${p.name}</td>
-        <td class="center">${p.league}</td>
-        <td class="center">${p.cup}</td>
-        <td class="num">${money(p.leagueFees)}</td>
-        <td class="num">${money(p.duckFines)}</td>
-        <td class="num">${money(p.lowScoreFines)}</td>
-        <td class="num">${money(totalFines)}</td>
-        <td class="num"><strong>${money(owed)}</strong></td>
-      `;
-      tbody.appendChild(tr);
     });
 
-  if (lastUpdatedEl) {
-    lastUpdatedEl.textContent = latestUpdate ? ("Last updated: " + latestUpdate) : "Last updated: —";
-  }
+    const tbody = document.getElementById("accountsBody");
+    tbody.innerHTML = "";
 
-})();
+    Object.keys(players).sort().forEach(name => {
+      const p = players[name];
+      const fines = p.duck + p.low;
+      const owed = p.fees + fines;
+
+      tbody.insertAdjacentHTML("beforeend", `
+        <tr>
+          <td>${name}</td>
+          <td class="center">${p.league}</td>
+          <td class="center">${p.cup}</td>
+          <td class="num">£${p.fees.toFixed(2)}</td>
+          <td class="num">£${p.duck.toFixed(2)}</td>
+          <td class="num">£${p.low.toFixed(2)}</td>
+          <td class="num">£${fines.toFixed(2)}</td>
+          <td class="num"><strong>£${owed.toFixed(2)}</strong></td>
+        </tr>
+      `);
+    });
+
+    document.getElementById("lastUpdated").textContent =
+      latest ? "Last updated: " + latest : "Last updated: —";
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("lastUpdated").textContent =
+      "Last updated: ERROR loading CSV";
+  });
 </script>
 
 </body>
