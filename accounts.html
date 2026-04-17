@@ -18,6 +18,7 @@
       text-align: center;
       margin: 20px 0;
     }
+
     .nav-buttons a {
       display: inline-block;
       margin: 6px;
@@ -28,11 +29,12 @@
       border-radius: 4px;
       font-weight: bold;
     }
+
     .nav-buttons a:hover {
       background: #163aa3;
     }
 
-    /* PAGE CONTENT */
+    /* CONTENT */
     .content-box {
       background: #fff;
       max-width: 1200px;
@@ -41,30 +43,37 @@
       border-radius: 8px;
       overflow-x: auto;
     }
+
     .header-row {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
       margin-bottom: 10px;
     }
+
     h2 { margin: 0; }
+
     #lastUpdated {
       font-size: 12px;
       color: #555;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
     }
+
     th, td {
       padding: 8px;
       border-bottom: 1px solid #ddd;
       font-size: 14px;
     }
+
     th {
       background: #f0f0f0;
       text-align: left;
     }
+
     td.center { text-align: center; }
     td.num { text-align: right; white-space: nowrap; }
   </style>
@@ -116,7 +125,7 @@ if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
   </table>
 </div>
 
-<!-- ACCOUNTS SCRIPT (FETCHES EXISTING CSV) -->
+<!-- DATA SCRIPT (FETCH CSV, SAME AS OTHER PAGES) -->
 <script>
 fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
   .then(r => {
@@ -145,15 +154,14 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
       if (!name) return;
 
       if (r[iUpdated]) latest = r[iUpdated];
-
       const key = name + r[iMatchId];
       if (seen[key]) return;
       seen[key] = true;
 
-      players[name] ||= { league:0, cup:0, fees:0, duck:0, low:0 };
+      players[name] ||= { lg:0, cup:0, fees:0, duck:0, low:0 };
 
       if (/league/i.test(r[iDetails])) {
-        players[name].league++;
+        players[name].lg++;
         players[name].fees += 4;
         if (+r[iDucks] > 0) players[name].duck += (+r[iDucks]) * 0.5;
         if (+r[iScore] <= 4) players[name].low += 0.2;
@@ -162,18 +170,18 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
       }
     });
 
-    const tbody = document.getElementById("accountsBody");
-    tbody.innerHTML = "";
+    const body = document.getElementById("accountsBody");
+    body.innerHTML = "";
 
-    Object.keys(players).sort().forEach(name => {
-      const p = players[name];
+    Object.keys(players).sort().forEach(n => {
+      const p = players[n];
       const fines = p.duck + p.low;
       const owed = p.fees + fines;
 
-      tbody.insertAdjacentHTML("beforeend", `
+      body.insertAdjacentHTML("beforeend", `
         <tr>
-          <td>${name}</td>
-          <td class="center">${p.league}</td>
+          <td>${n}</td>
+          <td class="center">${p.lg}</td>
           <td class="center">${p.cup}</td>
           <td class="num">£${p.fees.toFixed(2)}</td>
           <td class="num">£${p.duck.toFixed(2)}</td>
