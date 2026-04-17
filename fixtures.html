@@ -187,82 +187,34 @@
 <script>
 (function () {
 
-  function clean(v) {
-    return v == null ? "" : String(v).trim();
-  }
+  /* =========================================================
+     FIXTURES (TEST) — CSV → TABLE → LIVE-STYLE STATS
+     Data source: fixtures_web.csv
+     ========================================================= */
 
-  fetch("fixtures_web.csv?v=" + Date.now(), { cache: "no-store" })
-    .then(r => r.text())
-    .then(text => {
+  function clean(v) { return (v == null) ? "" : String(v).trim(); }
 
-      const tbody = document.getElementById("fixturesBody");
-      tbody.innerHTML = "";
+  // Simple CSV split is OK for your fixtures_web.csv rows (no quoted commas in fields)
+  function splitRow(line) { return line.split(","); }
 
-      const lines = text
-        .split(/\r?\n/)
-        .map(l => l.trim())
-        .filter(l => l && !l.toLowerCase().startsWith("fixtures and scores"));
-
-      // Find header row
-      const h = lines.findIndex(l => l.startsWith("Date:"));
-      if (h === -1) return;
-
-      const rows = lines
-        .slice(h + 1)
-        .filter(l => !l.toLowerCase().startsWith("league matches"));
-
-      rows.forEach(line => {
-        const c = line.split(",");
-
-        const date = clean(c[0]);
-        if (!date) return;
-
-        const tr = document.createElement("tr");
-
-        tr.innerHTML = `
-          <td>${date}</td>
-          <td>${clean(c[1])}</td>
-          <td>${clean(c[2])} vs ${clean(c[8])}</td>
-          <td>${clean(c[3]) && clean(c[7]) ? clean(c[3]) + "–" + clean(c[7]) : ""}</td>
-          <td class="points">${clean(c[4]) && clean(c[6]) ? clean(c[4]) + "–" + clean(c[6]) : ""}</td>
-          <td>${clean(c[9])}</td>
-          <td>${clean(c[14])}</td>
-          <td>${clean(c[10])}</td>
-        `;
-
-        // Cup row highlight only
-        if (clean(c[14]).toLowerCase().includes("cup")) {
-          tr.classList.add("cup-match");
-        }
-
-        tbody.appendChild(tr);
-      });
-
-      // reset counters for now
-      winCount.textContent = "0";
-      drawCount.textContent = "0";
-      lossCount.textContent = "0";
-      pointsTotal.textContent = "0";
-    });
-  // =====================================================
-// LIVE-SITE W/D/L + POINTS LOGIC (TABLE-DRIVEN)
-// =====================================================
-
-(function () {
-
+  // Half parser to match live behaviour
   function toHalfNum(s) {
     if (!s) return NaN;
-    s = String(s).trim().replace(/\s+/g, "");
-    s = s.replace(/½/g, ".5");
+    s = String(s).trim();
+    if (!s) return NaN;
+
+    s = s.replace(/\s+/g, "");  // "6 1/2" -> "61/2"
+    s = s.replace(/½/g, ".5");  // "½" -> ".5"
     if (s === "1/2") return 0.5;
     s = s.replace(/(\d+)1\/2/g, "$1.5");
+
     var n = Number(s);
     return Number.isFinite(n) ? n : NaN;
   }
 
   function parsePoints(text) {
     if (!text) return null;
-    var parts = text.split(/[-–—]/).map(p => p.trim());
+    var parts = String(text).trim().split(/[-–—]/).map(function (p) { return p.trim(); });
     if (parts.length !== 2) return null;
 
     var a = toHalfNum(parts[0]);
@@ -272,67 +224,181 @@
     return { left: a, right: b };
   }
 
-  const table = document.querySelector("table");
-  if (!table) return;
+  // ---------- DOM ----------
+  var tbody = document.getElementById("fixturesBody");
+  if (!tbody) return;
 
-  const headers = Array.from(table.querySelectorAll("thead th"))
-    .map(th => th.textContent.trim().toLowerCase());
+  // ---------- FETCH CSV (cache-busted for GitHub Pages) ----------
+  fetch("fixtures_web.csv?v=" + Date.now(), { cache: "no-store" })
+    .then(function (r) {
+      if (!r.ok) throw new Error("fixtures_web.csv not found (" + r.status + ")");
+      return r.text();
+    })
+    .then(function (text) {
 
-  const fixtureIdx = headers.indexOf("fixture");
-  const pointsIdx  = headers.indexOf("points");
-  const compIdx    = headers.indexOf("competition");
+      var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); });
 
-  let wins = 0, draws = 0, losses = 0, totalPoints = 0;
+      // Find real header row (your file has title/blank rows before it) [1](https://onedrive.live.com/?id=7cbb65b0-5a33-44ef-8292-44bee12a8f9e&cid=c205089414b2510e&web=1)
+      var headerLineIndex = -1;
+      for (var i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith("Date:")) { headerLineIndex = i; break; }
+      }
+      if (headerLineIndex < 0) throw new Error("Header row not found (Date:)");
 
-  table.querySelectorAll("tbody tr").forEach(tr => {
-    const tds = Array.from(tr.querySelectorAll("td"));
-    if (!tds.length) return;
+      var header = splitRow(lines[headerLineIndex]).map(clean);
 
-    const competition = tds[compIdx].textContent.toLowerCase();
-    if (competition.includes("cup")) {
-      tr.classList.add("cup-match");
-      return; // cup matches excluded from totals
-    }
+      function idx(name) { return header.indexOf(name); }
+      var iDate = idx("Date:");
+      var iDay = idx("Day");
+      var iHome = idx("Home Team");
+      var iAway = idx("Away Team");
+      var iLoc = idx("Location");
+      var iAlley = idx("Alley");
+      var iComp = idx("Match Details");
+      var iPts1 = idx("Points");
+      // second Points is after "vs" column in your file [1](https://onedrive.live.com/?id=7cbb65b0-5a33-44ef-8292-44bee12a8f9e&cid=c205089414b2510e&web=1)
+      var iPts2 = iPts1 >= 0 ? iPts1 + 2 : -1;
 
-    const pointsText = tds[pointsIdx].textContent.trim();
-    if (!pointsText) return; // unplayed match → ignore
+      // Scores appear twice too (home score at first "Score", away score at second) [1](https://onedrive.live.com/?id=7cbb65b0-5a33-44ef-8292-44bee12a8f9e&cid=c205089414b2510e&web=1)
+      var iScore1 = idx("Score");
+      var iScore2 = -1;
+      if (iScore1 !== -1) {
+        // find second "Score"
+        for (var s = iScore1 + 1; s < header.length; s++) {
+          if (header[s] === "Score") { iScore2 = s; break; }
+        }
+      }
 
-    const pair = parsePoints(pointsText);
-    if (!pair) return;
+      // UpdatedAt is last column in your file [1](https://onedrive.live.com/?id=7cbb65b0-5a33-44ef-8292-44bee12a8f9e&cid=c205089414b2510e&web=1)
+      var iUpdated = idx("UpdatedAt");
 
-    const fixtureText = tds[fixtureIdx].textContent;
-    const teams = fixtureText.split(/\s+vs\s+/i);
-    if (teams.length < 2) return;
+      // ---------- BUILD TABLE ----------
+      tbody.innerHTML = "";
 
-    let myPts = NaN;
-    if (/semington a/i.test(teams[0])) myPts = pair.left;
-    else if (/semington a/i.test(teams[1])) myPts = pair.right;
-    else return;
+      var latestUpdated = "";
 
-    totalPoints += myPts;
+      for (var r2 = headerLineIndex + 1; r2 < lines.length; r2++) {
+        var line = lines[r2];
+        if (!line) continue;
 
-    if (myPts > 3.5) {
-      wins++;
-      tr.classList.add("_win");
-    } else if (myPts < 3.5) {
-      losses++;
-      tr.classList.add("_loss");
-    } else {
-      draws++;
-      tr.classList.add("_draw");
-    }
-  });
+        // Stop before footer summary ("League Matches...") [1](https://onedrive.live.com/?id=7cbb65b0-5a33-44ef-8292-44bee12a8f9e&cid=c205089414b2510e&web=1)
+        if (line.toLowerCase().startsWith("league matches")) break;
+        if (line.toLowerCase().startsWith("fixtures and scores")) continue;
 
-  winCount.textContent = wins;
-  drawCount.textContent = draws;
-  lossCount.textContent = losses;
-  pointsTotal.textContent = totalPoints.toFixed(1);
+        var row = splitRow(line).map(clean);
+        if (!row[iDate]) continue;
 
-})();
+        var dateStr = row[iDate];
+        var dayStr = row[iDay] || "";
+        var homeTeam = row[iHome] || "";
+        var awayTeam = row[iAway] || "";
+        var venue = row[iLoc] || "";
+        var alley = row[iAlley] || "";
+        var comp = row[iComp] || "";
+
+        var p1 = (iPts1 !== -1) ? (row[iPts1] || "") : "";
+        var p2 = (iPts2 !== -1) ? (row[iPts2] || "") : "";
+        var ptsText = (p1 && p2) ? (p1 + "–" + p2) : ""; // blank => unplayed (white)
+
+        var hs = (iScore1 !== -1) ? (row[iScore1] || "") : "";
+        var as = (iScore2 !== -1) ? (row[iScore2] || "") : "";
+        var scoreText = (hs && as) ? (hs + "–" + as) : "";
+
+        if (iUpdated !== -1 && row[iUpdated]) latestUpdated = row[iUpdated];
+
+        var tr = document.createElement("tr");
+        if (/cup/i.test(comp)) tr.classList.add("cup-match");
+
+        tr.innerHTML =
+          "<td>" + dateStr + "</td>" +
+          "<td>" + dayStr + "</td>" +
+          "<td>" + homeTeam + " vs " + awayTeam + "</td>" +
+          "<td>" + scoreText + "</td>" +
+          "<td class=\"points\">" + ptsText + "</td>" +
+          "<td>" + venue + "</td>" +
+          "<td>" + comp + "</td>" +
+          "<td>" + alley + "</td>";
+
+        tbody.appendChild(tr);
+      }
+
+      // ---------- LIVE-STYLE STATS (AFTER ROWS EXIST) ----------
+      var table = document.querySelector("table");
+      var ths = Array.from(table.querySelectorAll("thead th")).map(function (th) {
+        return th.textContent.trim().toLowerCase();
+      });
+
+      var fixtureIdx = ths.indexOf("fixture");
+      var pointsIdx  = ths.indexOf("points");
+      var compIdx    = ths.indexOf("competition");
+
+      var wins = 0, draws = 0, losses = 0, totalPoints = 0;
+
+      Array.from(table.querySelectorAll("tbody tr")).forEach(function (tr) {
+        var tds = Array.from(tr.querySelectorAll("td"));
+        if (!tds.length) return;
+
+        var competition = (tds[compIdx] ? tds[compIdx].textContent : "").toLowerCase();
+        if (competition.includes("cup")) return; // cup excluded from totals
+
+        var pointsText = (tds[pointsIdx] ? tds[pointsIdx].textContent : "").trim();
+        if (!pointsText) return; // unplayed stays white, not counted
+
+        var pair = parsePoints(pointsText);
+        if (!pair) return;
+
+        var fixtureText = (tds[fixtureIdx] ? tds[fixtureIdx].textContent : "").trim();
+        var parts = fixtureText.split(/\s+vs\s+/i);
+        if (parts.length < 2) return;
+
+        var homeTeam = parts[0].trim();
+        var awayTeam = parts[1].trim();
+
+        var myPts = NaN;
+        if (/semington a/i.test(homeTeam)) myPts = pair.left;
+        else if (/semington a/i.test(awayTeam)) myPts = pair.right;
+        else return;
+
+        totalPoints += myPts;
+
+        tr.classList.remove("_win","_loss","_draw");
+
+        // ONLY draw is 3.5–3.5
+        if (myPts === 3.5) { draws++; tr.classList.add("_draw"); }
+        else if (myPts > 3.5) { wins++; tr.classList.add("_win"); }
+        else { losses++; tr.classList.add("_loss"); }
+      });
+
+      document.getElementById("winCount").textContent = wins;
+      document.getElementById("drawCount").textContent = draws;
+      document.getElementById("lossCount").textContent = losses;
+      document.getElementById("pointsTotal").textContent = totalPoints.toFixed(1);
+
+      // ---------- Last Updated ----------
+      if (latestUpdated) {
+        var d = parseDMY(latestUpdated);
+        if (d) {
+          document.getElementById("lastUpdated").textContent =
+            "Last updated: " +
+            d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+        }
+      }
+
+      function parseDMY(dateTime) {
+        var dpart = clean(dateTime).split(" ")[0];
+        var p = dpart.split("/");
+        if (p.length !== 3) return null;
+        return new Date(Number(p[2]), Number(p[1]) - 1, Number(p[0]));
+      }
+    })
+    .catch(function (e) {
+      console.error(e);
+      var lu = document.getElementById("lastUpdated");
+      if (lu) lu.textContent = "Last updated: (error loading fixtures)";
+    });
 
 })();
 </script>
-``
 
 
         </body>
