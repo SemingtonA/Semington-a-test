@@ -106,23 +106,60 @@
 
     main {
   flex: 1;
-  padding: 20px 0;      /* vertical space only */
+  padding: 20px 0;
 }
 
+/* Container should NOT add side space */
 .content-box {
   background: #fff;
   width: 100%;
   margin: 0;
-  padding: 0;           /* ✅ NO LEFT GUTTER */
+  padding: 0;
   border-radius: 8px;
   overflow-x: auto;
 }
 
+/* Header gets the white box */
+.fixtures-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 16px;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Table must have zero margin */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin: 0;            /* ✅ FIXED: removes browser default margin */
+  margin: 0;
 }
+
+/* THIS is the padding inside the table */
+th, td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+}
+
+th {
+  background: #f0f0f0;
+  text-align: left;
+}
+
+th.points,
+td.points {
+  text-align: center;
+  white-space: nowrap;
+}
+
+tr._win td { background: #e8f8f1; }
+tr._loss td { background: #fdecea; }
+tr._draw td { background: #fff8e1; }
+tr.cup-match td { background: #e6f2ff; }
+    
     th, td { padding: 8px; border-bottom: 1px solid #ddd; font-size: 14px; }
     th { background: #f0f0f0; text-align: left; }
     th.points,
@@ -249,30 +286,21 @@ table {
 
   <script>
 (function () {
-  function clean(v) { return (v == null) ? "" : String(v).trim(); }
+
+  function clean(v) { return v == null ? "" : String(v).trim(); }
   function splitRow(line) { return line.split(","); }
 
-  // Parse numbers including: 6.5, 0.5, "6 1/2", "1/2", "6½", "½", with Excel NBSPs
   function toHalfNum(s) {
-    if (s == null) return NaN;
-    s = String(s).replace(/[\u00A0\s]+/g, "").trim(); // remove spaces + NBSP
     if (!s) return NaN;
-
-    // unicode half
+    s = String(s).replace(/[\u00A0\s]/g, "");
     if (s === "½") return 0.5;
-    var mh = s.match(/^(\d+)½$/);
-    if (mh) return Number(mh[1]) + 0.5;
-
-    // ascii half
     if (s === "1/2") return 0.5;
-    var m = s.match(/^(\d+)1\/2$/);
+    var m = s.match(/^(\d+)(?:½|1\/2)$/);
     if (m) return Number(m[1]) + 0.5;
-
     var n = Number(s);
     return Number.isFinite(n) ? n : NaN;
   }
 
-  // Display 0.5 as ½ and x.5 as x½ (for UI only)
   function displayHalf(n) {
     if (!Number.isFinite(n)) return "";
     if (n === 0.5) return "½";
@@ -280,203 +308,120 @@ table {
     return String(n);
   }
 
-  // UpdatedAt accepts: "Sun April 2026 11:04" or "19/04/2026" or "19/04/2026 11:04"
   function parseUpdatedAt(v) {
     if (!v) return null;
-    var m = String(v).match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    var m = v.match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}:\d{2}))?/);
     if (!m) return null;
-    return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+    return new Date(
+      Number(m[3]),
+      Number(m[2]) - 1,
+      Number(m[1]),
+      m[4] ? Number(m[4].split(":")[0]) : 0,
+      m[4] ? Number(m[4].split(":")[1]) : 0
+    );
+  }
+
+  function ordinal(n) {
+    return n + (
+      n % 10 === 1 && n % 100 !== 11 ? "st" :
+      n % 10 === 2 && n % 100 !== 12 ? "nd" :
+      n % 10 === 3 && n % 100 !== 13 ? "rd" : "th"
+    );
   }
 
   var tbody = document.getElementById("fixturesBody");
   if (!tbody) return;
 
   fetch("fixtures_web.csv?v=" + Date.now(), { cache: "no-store" })
-    .then(function (r) {
-      if (!r.ok) throw new Error("fixtures_web.csv not found (" + r.status + ")");
-      return r.text();
-    })
-    .then(function (text) {
-      var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); });
+    .then(r => r.text())
+    .then(text => {
 
-      // Find the real header row (your CSV has title/blank rows first)
-      var headerLineIndex = -1;
-      for (var i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith("Date:")) { headerLineIndex = i; break; }
-      }
-      if (headerLineIndex < 0) throw new Error("Header row not found (Date:)");
+      var lines = text.split(/\r?\n/).map(l => l.trim());
+      var headerRow = lines.findIndex(l => l.startsWith("Date:"));
+      if (headerRow < 0) return;
 
-      var header = splitRow(lines[headerLineIndex]).map(clean);
-      function idx(name) { return header.indexOf(name); }
-
-      var iDate = idx("Date:");
-      var iDay = idx("Day");
-      var iHome = idx("Home Team");
-      var iAway = idx("Away Team");
-      var iHomeScore = idx("Home Score");
-      var iAwayScore = idx("Away Score");
-      var iHomePts = idx("Home Points");
-      var iAwayPts = idx("Away Points");
-      var iLoc = idx("Location");
-      var iAlley = idx("Alley");
-      var iComp = idx("Match Details");
-      var iUpdated = idx("UpdatedAt");
+      var header = splitRow(lines[headerRow]);
+      var idx = n => header.indexOf(n);
 
       tbody.innerHTML = "";
-      var latestUpdatedRaw = "";
+      var latestUpdated = null;
 
-      for (var r2 = headerLineIndex + 1; r2 < lines.length; r2++) {
-        var line = lines[r2];
-        if (!line) continue;
+      for (var i = headerRow + 1; i < lines.length; i++) {
+        var row = splitRow(lines[i]);
+        if (!row[0]) continue;
 
-        // stop at footer summary if present
-        if (line.toLowerCase().startsWith("league matches")) break;
-        if (line.toLowerCase().startsWith("fixtures and scores")) continue;
-
-        var row = splitRow(line).map(clean);
-        if (!row[iDate]) continue;
-
-        var homeTeam = row[iHome] || "";
-        var awayTeam = row[iAway] || "";
-
-        var hs = toHalfNum(row[iHomeScore]);
-        var as = toHalfNum(row[iAwayScore]);
-        var hp = toHalfNum(row[iHomePts]);
-        var ap = toHalfNum(row[iAwayPts]);
-
-        var scoreText = (Number.isFinite(hs) && Number.isFinite(as))
-          ? displayHalf(hs) + "–" + displayHalf(as)
-          : "";
-
-        var ptsText = (Number.isFinite(hp) && Number.isFinite(ap))
-          ? displayHalf(hp) + "–" + displayHalf(ap)
-          : "";
-
-        if (iUpdated !== -1 && row[iUpdated]) latestUpdatedRaw = row[iUpdated];
+        var hp = toHalfNum(row[idx("Home Points")]);
+        var ap = toHalfNum(row[idx("Away Points")]);
 
         var tr = document.createElement("tr");
-        var comp = row[iComp] || "";
-        if (/cup/i.test(comp)) tr.classList.add("cup-match");
 
-        // Store numeric values for stats/highlighting (so fractions display doesn't break totals)
-        tr.dataset.homeTeam = homeTeam;
-        tr.dataset.awayTeam = awayTeam;
-        tr.dataset.homePts = Number.isFinite(hp) ? String(hp) : "";
-        tr.dataset.awayPts = Number.isFinite(ap) ? String(ap) : "";
-        tr.dataset.competition = comp;
+        tr.dataset.home = row[idx("Home Team")];
+        tr.dataset.away = row[idx("Away Team")];
+        tr.dataset.homePts = Number.isFinite(hp) ? hp : "";
+        tr.dataset.awayPts = Number.isFinite(ap) ? ap : "";
+        tr.dataset.comp = row[idx("Match Details")];
+
+        if (/cup/i.test(tr.dataset.comp)) tr.classList.add("cup-match");
 
         tr.innerHTML =
-          "<td>" + (row[iDate] || "") + "</td>" +
-          "<td>" + (row[iDay] || "") + "</td>" +
-          "<td>" + homeTeam + " vs " + awayTeam + "</td>" +
-          "<td>" + scoreText + "</td>" +
-          "<td class='points'>" + ptsText + "</td>" +
-          "<td>" + (row[iLoc] || "") + "</td>" +
-          "<td>" + comp + "</td>" +
-          "<td>" + (row[iAlley] || "") + "</td>";
+          `<td>${row[idx("Date:")]}</td>
+           <td>${row[idx("Day")]}</td>
+           <td>${row[idx("Home Team")]} vs ${row[idx("Away Team")]}</td>
+           <td></td>
+           <td class="points">${
+             Number.isFinite(hp) && Number.isFinite(ap)
+               ? displayHalf(hp) + "–" + displayHalf(ap)
+               : ""
+           }</td>
+           <td>${row[idx("Location")]}</td>
+           <td>${row[idx("Match Details")]}</td>
+           <td>${row[idx("Alley")]}</td>`;
 
         tbody.appendChild(tr);
+
+        if (row[idx("UpdatedAt")]) latestUpdated = row[idx("UpdatedAt")];
       }
 
-      // ---------- STATS / HIGHLIGHTING ----------
-      var wins = 0, draws = 0, losses = 0, totalPoints = 0;
-Array.from(tbody.querySelectorAll("tr")).forEach(function (tr) {
-  var comp = (tr.dataset.competition || "").toLowerCase();
+      // STATS
+      var w = 0, d = 0, l = 0, pts = 0;
 
-  // Cup matches: no stats, but keep colour
-  if (comp.includes("cup")) return;
+      Array.from(tbody.rows).forEach(tr => {
+        if (tr.dataset.comp.toLowerCase().includes("cup")) return;
 
-  var homeTeam = tr.dataset.homeTeam || "";
-  var awayTeam = tr.dataset.awayTeam || "";
-var homePtsRaw = tr.dataset.homePts;
-var awayPtsRaw = tr.dataset.awayPts;
+        var hp = tr.dataset.homePts;
+        var ap = tr.dataset.awayPts;
+        if (hp === "" || ap === "") return;
 
-if (homePtsRaw === undefined || homePtsRaw === "" ||
-    awayPtsRaw === undefined || awayPtsRaw === "") {
-  // ✅ UNPLAYED — keep white, no stats
-  tr.classList.remove("_win", "_loss", "_draw");
-  return;
-}
+        var myPts =
+          /semington a/i.test(tr.dataset.home) ? Number(hp) :
+          /semington a/i.test(tr.dataset.away) ? Number(ap) : NaN;
 
-var homePts = Number(homePtsRaw);
-var awayPts = Number(awayPtsRaw);
+        if (!Number.isFinite(myPts)) return;
+        pts += myPts;
 
-if (!Number.isFinite(homePts) || !Number.isFinite(awayPts)) {
-  tr.classList.remove("_win", "_loss", "_draw");
-  return;
-}
+        if (myPts === 3.5) { d++; tr.classList.add("_draw"); }
+        else if (myPts > 3.5) { w++; tr.classList.add("_win"); }
+        else { l++; tr.classList.add("_loss"); }
+      });
 
+      winCount.textContent = w;
+      drawCount.textContent = d;
+      lossCount.textContent = l;
+      pointsTotal.textContent = pts.toFixed(1);
 
+      var date = parseUpdatedAt(latestUpdated) || new Date();
+      lastUpdated.textContent =
+        "Last updated: " +
+        date.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
+        ordinal(date.getDate()) + " " +
+        date.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) +
+        " " +
+        date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
-  // ✅ UNPLAYED MATCHES:
-  // - no points
-  // - no W/D/L
-  // - stay white
-  if (!Number.isFinite(homePts) || !Number.isFinite(awayPts)) {
-    tr.classList.remove("_win", "_loss", "_draw");
-    return;
-  }
+    });
 
-  var myPts = NaN;
-  if (/semington a/i.test(homeTeam)) myPts = homePts;
-  else if (/semington a/i.test(awayTeam)) myPts = awayPts;
-  else return;
-
-  totalPoints += myPts;
-
-  tr.classList.remove("_win", "_loss", "_draw");
-
-  if (myPts === 3.5) {
-    draws++;
-    tr.classList.add("_draw");
-  }
-  else if (myPts > 3.5) {
-    wins++;
-    tr.classList.add("_win");
-  }
-  else {
-    losses++;
-    tr.classList.add("_loss");
-  }
-});
-     
-
-      document.getElementById("winCount").textContent = wins;
-      document.getElementById("drawCount").textContent = draws;
-      document.getElementById("lossCount").textContent = losses;
-      document.getElementById("pointsTotal").textContent = totalPoints.toFixed(1);
-
-      
-// ---------- LAST UPDATED ----------
-var d = parseUpdatedAt(latestUpdatedRaw);
-
-// Safe fallback
-if (!d || isNaN(d.getTime())) {
-  d = new Date();
-}
-
-// Add ordinal suffix (st / nd / rd / th)
-function ordinal(n) {
-  return n + (
-    n % 10 === 1 && n % 100 !== 11 ? "st" :
-    n % 10 === 2 && n % 100 !== 12 ? "nd" :
-    n % 10 === 3 && n % 100 !== 13 ? "rd" : "th"
-  );
-}
-
-// Build: Sun 19th April 2026 11:04
-var formatted =
-  d.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
-  ordinal(d.getDate()) + " " +
-  d.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) + " " +
-  d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-
-document.getElementById("lastUpdated").textContent =
-  "Last updated: " + formatted;
-
-   
+})();
 </script>
-  
 
 
         </body>
