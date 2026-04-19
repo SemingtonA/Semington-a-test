@@ -117,15 +117,17 @@ main {
     
 /* ===== WHITE BOX AROUND TABLE ===== */
 .content-box {
-  background: #fff;
-  width: 100%;               /* ✅ full width */
-  margin: 0;                 /* ✅ no centering gap */
-  padding: 16px;             /* ✅ space inside box */
+  background: #ffffff;
+  width: 100%;
+  margin: 0;
+  padding: 16px;
+
+  /* 👇 this is what your eye is missing */
+  border: 1px solid #cfcfcf;
   border-radius: 8px;
-  border: 1px solid #ddd;
-  overflow-x: hidden;        /* ✅ no bottom scrollbar */
+
+  overflow-x: hidden;
 }
-``
 
 /* ===== TABLE ===== */
 
