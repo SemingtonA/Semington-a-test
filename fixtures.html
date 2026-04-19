@@ -289,7 +289,7 @@
       // Find real header row (your file has title/blank rows before it) [1](https://onedrive.live.com/?id=7cbb65b0-5a33-44ef-8292-44bee12a8f9e&cid=c205089414b2510e&web=1)
       var headerLineIndex = -1;
       for (var i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith("Date:")) { headerLineIndex = i; break; }
+      if (lines[i].toLowerCase().startsWith("date")) {  headerLineIndex = i; break; }
       }
       if (headerLineIndex < 0) throw new Error("Header row not found (Date:)");
 
