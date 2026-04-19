@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Team Contributions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f5f0e6;
+    }
+
+    .nav-buttons {
+      width: 100%;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .nav-buttons a {
+      display: inline-block;
+      margin: 6px;
+      padding: 10px 18px;
+      background: #000;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .nav-buttons a:hover {
+      background: #163aa3;
+    }
+
+    .content-box {
+      background: #fff;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+
+    h2 { margin: 0; }
+
+    #lastUpdated {
+      font-size: 12px;
+      color: #555;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f0f0f0;
+      text-align: left;
+    }
+
+    td.center { text-align: center; }
+    td.num { text-align: left; white-space: nowrap; }
+  </style>
+</head>
+
+<body>
+
+<script>
+const pw = prompt("Admin access – enter password:");
+if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
+  document.body.innerHTML =
+    "<h2 style='text-align:center;margin-top:50px'>Access denied</h2>";
+}
+</script>
+
+<div class="nav-buttons">
+  <a href="index.html">Home</a>
+  <a href="fixtures.html">Fixtures &amp; Results</a>
+  <a href="match-results.html">Match Results</a>
+  <a href="tocatch.html">To Catch</a>
+  <a href="gallery.html">Gallery</a>
+  <a href="rules.html">Rules</a>
+  <a href="teamcontributions.html">Team Contributions</a>
+</div>
+
+<div class="content-box">
+  <div class="header-row">
+    <h2>Accounts</h2>
+    <div id="lastUpdated">Last updated: —</div>
+  </div>
+
+  <table>
+    <colgroup>
+      <col>
+      <col style="width:80px">
+      <col style="width:80px">
+      <col style="width:80px">
+      <col style="width:80px">
+      <col style="width:80px">
+      <col style="width:80px">
+      <col style="width:80px">
+    </colgroup>
+
+    <thead>
+      <tr>
+        <th>Team Player</th>
+        <th class="center">League Games</th>
+        <th class="center">Cup Games</th>
+        <th>League Fees</th>
+        <th>Duck Fines</th>
+        <th>Low Score Fines</th>
+        <th>Total Fines</th>
+        <th>Net Owed</th>
+      </tr>
+    </thead>
+
+    <tbody id="accountsBody"></tbody>
+  </table>
+</div>
+
+<script>
+fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
+  .then(r => {
+    if (!r.ok) throw new Error("csv_export.csv not found");
+    return r.text();
+  })
+  .then(text => {
+    const rows = text.trim().split(/\r?\n/).map(r => r.split(","));
+    const header = rows.shift();
+
+    const idx = n => header.indexOf(n);
+
+    const iPlayer   = idx("Semington A Player Name");
+    const iDucks    = idx("Ducks");
+    const iDetails  = idx("Match Details");
+    const iMatchId  = idx("Match ID");
+    const iUpdated  = idx("UpdatedAt");
+    const iLowFines = idx("Fines");   // ✅ column K (numeric only)
+
+    const players = {};
+    const seen = {};
+
+    let totalLeagueFees = 0;
+    let totalDuckFines  = 0;
+    let totalLowFines   = 0;
+    let totalOwed       = 0;
+    let latest          = "";
+
+    rows.forEach(r => {
+      const name = r[iPlayer];
+      if (!name) return;
+
+      if (r[iUpdated]) latest = r[iUpdated];
+
+      const key = name + r[iMatchId];
+      if (seen[key]) return;
+      seen[key] = true;
+
+      players[name] ||= { lg:0, cup:0, fees:0, duck:0, low:0 };
+
+      if (/league/i.test(r[iDetails])) {
+        players[name].lg++;
+        players[name].fees += 4;
+
+        if (+r[iDucks] > 0) {
+          players[name].duck += (+r[iDucks]) * 0.5;
+        }
+        console.log("Raw fines value:", r[iLowFines]);
+        const lowFine = (parseInt(String(r[iLowFines] || "0").trim(), 10)) * 0.2;
+
+      } else if (/cup/i.test(r[iDetails])) {
+        players[name].cup++;
+      }
+    });
+
+    const body = document.getElementById("accountsBody");
+    body.innerHTML = "";
+
+    Object.keys(players).sort().forEach(n => {
+      const p = players[n];
+      const fines = p.duck + p.low;
+      const owed  = p.fees + fines;
+
+      totalLeagueFees += p.fees;
+      totalDuckFines  += p.duck;
+      totalLowFines   += p.low;
+      totalOwed       += owed;
+
+      body.insertAdjacentHTML("beforeend", `
+        <tr>
+          <td>${n}</td>
+          <td class="center">${p.lg}</td>
+          <td class="center">${p.cup}</td>
+          <td class="num">£${p.fees.toFixed(2)}</td>
+          <td class="num">£${p.duck.toFixed(2)}</td>
+          <td class="num">£${p.low.toFixed(2)}</td>
+          <td class="num">£${fines.toFixed(2)}</td>
+          <td class="num"><strong>£${owed.toFixed(2)}</strong></td>
+        </tr>
+      `);
+    });
+
+    body.insertAdjacentHTML("beforeend", `
+      <tr style="font-weight:bold; background:#f0f0f0;">
+        <td>Total</td>
+        <td></td>
+        <td></td>
+        <td class="num">£${totalLeagueFees.toFixed(2)}</td>
+        <td class="num">£${totalDuckFines.toFixed(2)}</td>
+        <td class="num">£${totalLowFines.toFixed(2)}</td>
+        <td class="num">£${(totalDuckFines + totalLowFines).toFixed(2)}</td>
+        <td class="num"><strong>£${totalOwed.toFixed(2)}</strong></td>
+      </tr>
+    `);
+
+    document.getElementById("lastUpdated").textContent =
+      latest ? "Last updated: " + latest : "Last updated: —";
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("lastUpdated").textContent =
+      "Last updated: ERROR loading CSV";
+  });
+</script>
+
+</body>
+</html>
