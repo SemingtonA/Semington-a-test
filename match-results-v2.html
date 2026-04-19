@@ -479,9 +479,16 @@ return "<tr>" +
 
   // ✅ CH// Load CSV
       // Load CSV
+  status.textContent = "Starting CSV fetch…";
 fetch("csv_export.csv", { cache: "no-store" })
-  .then(r => r.text())
-  .then(text => {
+.then(r => {
+  if (!r.ok) {
+    status.textContent = "CSV NOT FOUND (" + r.status + ")";
+    throw new Error("CSV fetch failed");
+  }
+  status.textContent = "CSV loaded";
+  return r.text();
+})
 
     // Parse CSV
     const grid = parseCSV(text);
