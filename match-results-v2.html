@@ -496,7 +496,7 @@ fetch("csv_export.csv", { cache: "no-store" })
     const grid = parseCSV(text);
 
     // Find header row (Match ID)
-    let headerIndex = -1;
+    let headerIndex = 0;
     for (let i = 0; i < grid.length; i++) {
       for (let j = 0; j < grid[i].length; j++) {
       if (
