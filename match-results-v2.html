@@ -509,7 +509,10 @@ return "<tr>" +
         }
         if (!raw) return;
 
-        const d = new Date(raw);
+       const m = raw.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+       const d = m
+     ? new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]), Number(m[4]), Number(m[5]))
+     : new Date(NaN);
         const textOut = isNaN(d.getTime())
           ? raw
           : d.toLocaleString("en-GB", {
