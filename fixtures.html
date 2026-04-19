@@ -445,15 +445,28 @@ if (!Number.isFinite(homePts) || !Number.isFinite(awayPts)) {
       document.getElementById("pointsTotal").textContent = totalPoints.toFixed(1);
 
       // ---------- LAST UPDATED ----------
-     var d = parseUpdatedAt(latestUpdatedRaw) || new Date();
+var d = parseUpdatedAt(latestUpdatedRaw) || new Date();
+
+function ordinal(n) {
+  return n + (n % 10 == 1 && n % 100 != 11 ? "st" :
+              n % 10 == 2 && n % 100 != 12 ? "nd" :
+              n % 10 == 3 && n % 100 != 13 ? "rd" : "th");
+}
 
 var formatted =
   d.toLocaleDateString("en-GB", {
     weekday: "short",
-    day: "numeric",
-    month: "numeric",
+    month: "long",
     year: "numeric"
-  }) +
+  }).replace(
+    /^\w+/,
+    d.toLocaleDateString("en-GB", { weekday: "short" })
+  );
+
+formatted =
+  d.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
+  ordinal(d.getDate()) + " " +
+  d.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) +
   " " +
   d.toLocaleTimeString("en-GB", {
     hour: "2-digit",
@@ -463,14 +476,7 @@ var formatted =
 document.getElementById("lastUpdated").textContent =
   "Last updated: " + formatted;
 
-    })
-    .catch(function (e) {
-      console.error(e);
-      var lu = document.getElementById("lastUpdated");
-      if (lu) lu.textContent = "Last updated: (error loading fixtures)";
-    });
-
-})();
+   
 </script>
   
 
