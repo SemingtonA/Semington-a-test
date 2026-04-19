@@ -515,6 +515,7 @@ fetch("csv_export.csv", { cache: "no-store" })
     // Extract headers + rows
     const headers = grid[headerIndex].map(clean);
     const rows = grid.slice(headerIndex + 1);
+      status.textContent = rows.length;
 
     // Convert each CSV row into a usable object
     const objects = rows.map(cols => {
