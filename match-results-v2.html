@@ -499,10 +499,13 @@ fetch("csv_export.csv", { cache: "no-store" })
     let headerIndex = -1;
     for (let i = 0; i < grid.length; i++) {
       for (let j = 0; j < grid[i].length; j++) {
-        if (clean(grid[i][j]) === "matchid") { headerIndex = i; break; }
-      }
-      if (headerIndex !== -1) break;
-    }
+      if (
+      clean(cell)
+  .toLowerCase()
+  .replace(/\s+/g, "") === "matchid"
+  headerIndex = i;
+  break;
+}
 
     if (headerIndex === -1) {
       console.error("Header row not found");
