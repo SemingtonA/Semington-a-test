@@ -256,55 +256,50 @@ tr.cup-match td { background: #e6f2ff; }
   </div>
 </header>
 
+<!-- ===== MAIN ===== -->
 <main>
-<div class="page-container">
-
-  <div class="fixtures-header">
-    <h2>Fixtures</h2>
-    <div id="lastUpdated" class="last-updated">Last updated: —</div>
-  </div>
 
   <div class="content-box">
+
+    <div class="fixtures-header">
+      <h2>Fixtures</h2>
+      <div id="lastUpdated" class="last-updated">
+        Last updated: —
+      </div>
+    </div>
+
     <table>
-      ...
+      <colgroup>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col class="points">
+        <col>
+        <col>
+        <col>
+      </colgroup>
+
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Day</th>
+          <th>Fixture</th>
+          <th>Scores</th>
+          <th class="points">Points</th>
+          <th>Venue</th>
+          <th>Competition</th>
+          <th>Alley</th>
+        </tr>
+      </thead>
+
+      <tbody id="fixturesBody">
+        <!-- rows injected by JS -->
+      </tbody>
     </table>
+
   </div>
 
-</div>
-
-   
-  <table>
-
-  <colgroup>
-    <col>
-    <col>
-    <col>
-    <col>
-    <col class="points">
-    <col>
-    <col>
-    <col>
-  </colgroup>
-
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>Day</th>
-      <th>Fixture</th>
-      <th>Scores</th>
-      <th class="points">Points</th>
-      <th>Venue</th>
-      <th>Competition</th>
-      <th>Alley</th>
-    </tr>
-  </thead>
-
-  <tbody id="fixturesBody">
-    <!-- rows injected by JS -->
-  </tbody>
-
-</table> 
-  </div>
 </main>
 
 <footer>
