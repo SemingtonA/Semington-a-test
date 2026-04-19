@@ -513,7 +513,7 @@ fetch("csv_export.csv", { cache: "no-store" })
     }
 
     // Extract headers + rows
-    const headers = grid[headerIndex].map(clean);
+    headers = grid[headerIndex].map(h => clean(h).toLowerCase());
     const rows = grid.slice(headerIndex + 1);
       status.textContent = rows.length;
 
