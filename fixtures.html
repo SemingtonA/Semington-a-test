@@ -373,9 +373,25 @@ Array.from(tbody.querySelectorAll("tr")).forEach(function (tr) {
 
   var homeTeam = tr.dataset.homeTeam || "";
   var awayTeam = tr.dataset.awayTeam || "";
+var homePtsRaw = tr.dataset.homePts;
+var awayPtsRaw = tr.dataset.awayPts;
 
-  var homePts = Number(tr.dataset.homePts);
-  var awayPts = Number(tr.dataset.awayPts);
+if (homePtsRaw === undefined || homePtsRaw === "" ||
+    awayPtsRaw === undefined || awayPtsRaw === "") {
+  // ✅ UNPLAYED — keep white, no stats
+  tr.classList.remove("_win", "_loss", "_draw");
+  return;
+}
+
+var homePts = Number(homePtsRaw);
+var awayPts = Number(awayPtsRaw);
+
+if (!Number.isFinite(homePts) || !Number.isFinite(awayPts)) {
+  tr.classList.remove("_win", "_loss", "_draw");
+  return;
+}
+
+
 
   // ✅ UNPLAYED MATCHES:
   // - no points
