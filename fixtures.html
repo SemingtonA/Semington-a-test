@@ -427,11 +427,19 @@ tr.cup-match td { background: #e6f2ff; }
 
         if (/cup/i.test(tr.dataset.comp)) tr.classList.add("cup-match");
 
+        var homeScore = row[3].trim();
+        var awayScore = row[7].trim();
+
+        var scoreText = "";
+        if (homeScore && awayScore) {
+        scoreText = homeScore + "–" + awayScore;
+        }
+
         tr.innerHTML =
           `<td>${row[idx("Date:")]}</td>
            <td>${row[idx("Day")]}</td>
            <td>${row[idx("Home Team")]} vs ${row[idx("Away Team")]}</td>
-           <td></td>
+           <td>" + scoreText + "</td>
            <td class="points">${
              Number.isFinite(hp) && Number.isFinite(ap)
                ? displayHalf(hp) + "–" + displayHalf(ap)
