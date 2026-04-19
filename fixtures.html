@@ -103,23 +103,25 @@
   color: #555;
   white-space: nowrap;
 }
-main {
+
+    main {
   flex: 1;
-  padding: 20px 0;   /* top & bottom only — NO left/right padding */
+  padding: 20px 0;      /* vertical space only */
 }
-    .content-box {
+
+.content-box {
   background: #fff;
   width: 100%;
-  padding: 0;              /* ✅ zero side padding */
-  margin: 0;               /* ✅ no centering gutter */
+  margin: 0;
+  padding: 0;           /* ✅ NO LEFT GUTTER */
   border-radius: 8px;
   overflow-x: auto;
 }
 
-    table {
+table {
   width: 100%;
   border-collapse: collapse;
-  margin: 0;               /* ✅ now actually applied */
+  margin: 0;            /* ✅ FIXED: removes browser default margin */
 }
     th, td { padding: 8px; border-bottom: 1px solid #ddd; font-size: 14px; }
     th { background: #f0f0f0; text-align: left; }
@@ -278,7 +280,7 @@ main {
     return String(n);
   }
 
-  // UpdatedAt accepts: "Sun/19/04/2026 11:04" or "19/04/2026" or "19/04/2026 11:04"
+  // UpdatedAt accepts: "Sun April 2026 11:04" or "19/04/2026" or "19/04/2026 11:04"
   function parseUpdatedAt(v) {
     if (!v) return null;
     var m = String(v).match(/(\d{2})\/(\d{2})\/(\d{4})/);
@@ -444,34 +446,30 @@ if (!Number.isFinite(homePts) || !Number.isFinite(awayPts)) {
       document.getElementById("lossCount").textContent = losses;
       document.getElementById("pointsTotal").textContent = totalPoints.toFixed(1);
 
-      // ---------- LAST UPDATED ----------
-var d = parseUpdatedAt(latestUpdatedRaw) || new Date();
+      
+// ---------- LAST UPDATED ----------
+var d = parseUpdatedAt(latestUpdatedRaw);
 
-function ordinal(n) {
-  return n + (n % 10 == 1 && n % 100 != 11 ? "st" :
-              n % 10 == 2 && n % 100 != 12 ? "nd" :
-              n % 10 == 3 && n % 100 != 13 ? "rd" : "th");
+// Safe fallback
+if (!d || isNaN(d.getTime())) {
+  d = new Date();
 }
 
-var formatted =
-  d.toLocaleDateString("en-GB", {
-    weekday: "short",
-    month: "long",
-    year: "numeric"
-  }).replace(
-    /^\w+/,
-    d.toLocaleDateString("en-GB", { weekday: "short" })
+// Add ordinal suffix (st / nd / rd / th)
+function ordinal(n) {
+  return n + (
+    n % 10 === 1 && n % 100 !== 11 ? "st" :
+    n % 10 === 2 && n % 100 !== 12 ? "nd" :
+    n % 10 === 3 && n % 100 !== 13 ? "rd" : "th"
   );
+}
 
-formatted =
+// Build: Sun 19th April 2026 11:04
+var formatted =
   d.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
   ordinal(d.getDate()) + " " +
-  d.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) +
-  " " +
-  d.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  d.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) + " " +
+  d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
 document.getElementById("lastUpdated").textContent =
   "Last updated: " + formatted;
