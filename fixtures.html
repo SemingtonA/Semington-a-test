@@ -231,50 +231,68 @@
     <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
   </div>
 </footer>
-<script>
-(function () {
 
-  function clean(v) { return v == null ? "" : String(v).trim(); }
+  <script>
+(function () {
+  function clean(v) { return (v == null) ? "" : String(v).trim(); }
   function splitRow(line) { return line.split(","); }
 
-function toHalfNum(s) {
-  if (!s) return NaN;
-  s = String(s)
-    .replace(/\u00A0/g, "")   // remove non‑breaking spaces
-    .replace(/\s+/g, "")      // remove normal spaces
-    .replace("½", ".5");
-  s = s.replace(/(\d+)1\/2/g, "$1.5");
-  return Number(s);
-}
+  // Parse numbers including: 6.5, 0.5, "6 1/2", "1/2", "6½", "½", with Excel NBSPs
+  function toHalfNum(s) {
+    if (s == null) return NaN;
+    s = String(s).replace(/[\u00A0\s]+/g, "").trim(); // remove spaces + NBSP
+    if (!s) return NaN;
 
+    // unicode half
+    if (s === "½") return 0.5;
+    var mh = s.match(/^(\d+)½$/);
+    if (mh) return Number(mh[1]) + 0.5;
+
+    // ascii half
+    if (s === "1/2") return 0.5;
+    var m = s.match(/^(\d+)1\/2$/);
+    if (m) return Number(m[1]) + 0.5;
+
+    var n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  // Display 0.5 as ½ and x.5 as x½ (for UI only)
+  function displayHalf(n) {
+    if (!Number.isFinite(n)) return "";
+    if (n === 0.5) return "½";
+    if (n % 1 === 0.5) return Math.floor(n) + "½";
+    return String(n);
+  }
+
+  // UpdatedAt accepts: "Sun/19/04/2026 11:04" or "19/04/2026" or "19/04/2026 11:04"
   function parseUpdatedAt(v) {
     if (!v) return null;
-    // accepts: Sun/19/04/2026 11:04
-    var m = v.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    var m = String(v).match(/(\d{2})\/(\d{2})\/(\d{4})/);
     if (!m) return null;
-    return new Date(m[3], m[2] - 1, m[1]);
+    return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
   }
 
   var tbody = document.getElementById("fixturesBody");
   if (!tbody) return;
 
   fetch("fixtures_web.csv?v=" + Date.now(), { cache: "no-store" })
-    .then(r => r.text())
-    .then(text => {
+    .then(function (r) {
+      if (!r.ok) throw new Error("fixtures_web.csv not found (" + r.status + ")");
+      return r.text();
+    })
+    .then(function (text) {
+      var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); });
 
-      var lines = text.split(/\r?\n/).map(l => l.trim());
-      var headerLine = -1;
-
+      // Find the real header row (your CSV has title/blank rows first)
+      var headerLineIndex = -1;
       for (var i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith("Date:")) {
-          headerLine = i;
-          break;
-        }
+        if (lines[i].startsWith("Date:")) { headerLineIndex = i; break; }
       }
-      if (headerLine === -1) return;
+      if (headerLineIndex < 0) throw new Error("Header row not found (Date:)");
 
-      var header = splitRow(lines[headerLine]).map(clean);
-      var idx = name => header.indexOf(name);
+      var header = splitRow(lines[headerLineIndex]).map(clean);
+      function idx(name) { return header.indexOf(name); }
 
       var iDate = idx("Date:");
       var iDay = idx("Day");
@@ -289,78 +307,84 @@ function toHalfNum(s) {
       var iComp = idx("Match Details");
       var iUpdated = idx("UpdatedAt");
 
-      var latestUpdated = null;
-
       tbody.innerHTML = "";
+      var latestUpdatedRaw = "";
 
-      for (var r = headerLine + 1; r < lines.length; r++) {
-        if (!lines[r]) continue;
+      for (var r2 = headerLineIndex + 1; r2 < lines.length; r2++) {
+        var line = lines[r2];
+        if (!line) continue;
 
-        var row = splitRow(lines[r]).map(clean);
+        // stop at footer summary if present
+        if (line.toLowerCase().startsWith("league matches")) break;
+        if (line.toLowerCase().startsWith("fixtures and scores")) continue;
+
+        var row = splitRow(line).map(clean);
         if (!row[iDate]) continue;
+
+        var homeTeam = row[iHome] || "";
+        var awayTeam = row[iAway] || "";
 
         var hs = toHalfNum(row[iHomeScore]);
         var as = toHalfNum(row[iAwayScore]);
         var hp = toHalfNum(row[iHomePts]);
         var ap = toHalfNum(row[iAwayPts]);
 
-        function displayHalf(n) {
-        if (!Number.isFinite(n)) return "";
-        if (n === 0.5) return "½";
-        if (n % 1 === 0.5) return Math.floor(n) + "½";
-        return String(n);
-        }
         var scoreText = (Number.isFinite(hs) && Number.isFinite(as))
-        ? displayHalf(hs) + "–" + displayHalf(as)
-        : "";
+          ? displayHalf(hs) + "–" + displayHalf(as)
+          : "";
 
         var ptsText = (Number.isFinite(hp) && Number.isFinite(ap))
-       ? displayHalf(hp) + "–" + displayHalf(ap)
-       : "";
+          ? displayHalf(hp) + "–" + displayHalf(ap)
+          : "";
 
-        if (row[iUpdated]) latestUpdated = row[iUpdated];
+        if (iUpdated !== -1 && row[iUpdated]) latestUpdatedRaw = row[iUpdated];
 
         var tr = document.createElement("tr");
-        if (/cup/i.test(row[iComp])) tr.classList.add("cup-match");
+        var comp = row[iComp] || "";
+        if (/cup/i.test(comp)) tr.classList.add("cup-match");
+
+        // Store numeric values for stats/highlighting (so fractions display doesn't break totals)
+        tr.dataset.homeTeam = homeTeam;
+        tr.dataset.awayTeam = awayTeam;
+        tr.dataset.homePts = Number.isFinite(hp) ? String(hp) : "";
+        tr.dataset.awayPts = Number.isFinite(ap) ? String(ap) : "";
+        tr.dataset.competition = comp;
 
         tr.innerHTML =
-          "<td>" + row[iDate] + "</td>" +
-          "<td>" + row[iDay] + "</td>" +
-          "<td>" + row[iHome] + " vs " + row[iAway] + "</td>" +
+          "<td>" + (row[iDate] || "") + "</td>" +
+          "<td>" + (row[iDay] || "") + "</td>" +
+          "<td>" + homeTeam + " vs " + awayTeam + "</td>" +
           "<td>" + scoreText + "</td>" +
           "<td class='points'>" + ptsText + "</td>" +
-          "<td>" + row[iLoc] + "</td>" +
-          "<td>" + row[iComp] + "</td>" +
-          "<td>" + row[iAlley] + "</td>";
+          "<td>" + (row[iLoc] || "") + "</td>" +
+          "<td>" + comp + "</td>" +
+          "<td>" + (row[iAlley] || "") + "</td>";
 
         tbody.appendChild(tr);
       }
 
-      // ---------- STATS ----------
+      // ---------- STATS / HIGHLIGHTING ----------
       var wins = 0, draws = 0, losses = 0, totalPoints = 0;
 
-      Array.from(tbody.querySelectorAll("tr")).forEach(tr => {
-        var tds = tr.querySelectorAll("td");
-        if (!tds.length) return;
+      Array.from(tbody.querySelectorAll("tr")).forEach(function (tr) {
+        var comp = (tr.dataset.competition || "").toLowerCase();
+        if (comp.includes("cup")) return; // cup excluded from totals
 
-        var comp = tds[6].textContent.toLowerCase();
-        if (comp.includes("cup")) return;
+        var homeTeam = tr.dataset.homeTeam || "";
+        var awayTeam = tr.dataset.awayTeam || "";
 
-        var pts = tds[4].textContent.split("–");
-        if (pts.length !== 2) return;
+        var homePts = Number(tr.dataset.homePts);
+        var awayPts = Number(tr.dataset.awayPts);
+        if (!Number.isFinite(homePts) || !Number.isFinite(awayPts)) return; // unplayed / missing
 
-        var homePts = Number(pts[0]);
-        var awayPts = Number(pts[1]);
-
-        var fixture = tds[2].textContent;
-        var myPts =
-          /semington a/i.test(fixture.split(" vs ")[0]) ? homePts :
-          /semington a/i.test(fixture.split(" vs ")[1]) ? awayPts : null;
-
-        if (!Number.isFinite(myPts)) return;
+        var myPts = NaN;
+        if (/semington a/i.test(homeTeam)) myPts = homePts;
+        else if (/semington a/i.test(awayTeam)) myPts = awayPts;
+        else return;
 
         totalPoints += myPts;
 
+        tr.classList.remove("_win", "_loss", "_draw");
         if (myPts === 3.5) { draws++; tr.classList.add("_draw"); }
         else if (myPts > 3.5) { wins++; tr.classList.add("_win"); }
         else { losses++; tr.classList.add("_loss"); }
@@ -372,11 +396,16 @@ function toHalfNum(s) {
       document.getElementById("pointsTotal").textContent = totalPoints.toFixed(1);
 
       // ---------- LAST UPDATED ----------
-      var d = parseUpdatedAt(latestUpdated) || new Date();
+      var d = parseUpdatedAt(latestUpdatedRaw) || new Date();
       document.getElementById("lastUpdated").textContent =
         "Last updated: " +
         d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
+    })
+    .catch(function (e) {
+      console.error(e);
+      var lu = document.getElementById("lastUpdated");
+      if (lu) lu.textContent = "Last updated: (error loading fixtures)";
     });
 
 })();
