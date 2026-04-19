@@ -496,37 +496,45 @@ return "<tr>" +
       function get(o, name) { return (o[name] || "").trim(); }
 
       // ✅ NEW: show timestamp using UpdatedAt (from your CSV)
-      (function showLastUpdated() {
-        if (!lastUpdatedEl) return;
-        const idx = headers.indexOf("UpdatedAt");
-        if (idx === -1) return;
+           (function showLastUpdated() {
+  if (!lastUpdatedEl) return;
 
-        // find LAST row with a value in UpdatedAt
-           let raw = "";
-          for (let i = 0; i < rows.length; i++) {
-          if (rows[i] && rows[i][idx]) {
-          raw = String(rows[i][idx]).trim();
+  const col = headers.indexOf("UpdatedAt");
+  if (col === -1) return;
+
+  let latestDate = null;
+
+  for (let i = 0; i < rows.length; i++) {
+    const raw = rows[i] && rows[i][col] ? String(rows[i][col]).trim() : "";
+    if (!raw) continue;
+
+    // expect dd/mm/yyyy hh:mm
+    const m = raw.match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/);
+    if (!m) continue;
+
+    const d = new Date(
+      Number(m[3]),
+      Number(m[2]) - 1,
+      Number(m[1]),
+      m[4] ? Number(m[4]) : 0,
+      m[5] ? Number(m[5]) : 0
+    );
+
+    if (!latestDate || d > latestDate) {
+      latestDate = d;
+    }
   }
-}
-if (!raw) return;
 
-       const m = raw.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
-       const d = m
-     ? new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]), Number(m[4]), Number(m[5]))
-     : new Date(NaN);
-        const textOut = isNaN(d.getTime())
-          ? raw
-          : d.toLocaleString("en-GB", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit"
-            });
+  if (!latestDate) return;
 
-        lastUpdatedEl.textContent = "Last updated: " + textOut;
-      })();
+  lastUpdatedEl.textContent =
+    "Last updated: " +
+    latestDate.toLocaleDateString("en-GB", { weekday: "long" }) + " " +
+    latestDate.getDate() + " " +
+    latestDate.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) +
+    " " +
+    latestDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+})();
 
       // normalize data rows
       const data = [];
