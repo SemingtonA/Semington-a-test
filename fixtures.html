@@ -88,8 +88,13 @@
   gap: 12px;
 }
 
-.fixtures-header h2 {
-  margin: 0;
+.fixtures-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 16px;                 /* ✅ white box at the top */
+  border-bottom: 1px solid #ddd;
 }
 
 .last-updated {
@@ -102,10 +107,10 @@ main {
   padding: 20px 0;   /* top & bottom only — NO left/right padding */
 }
 
-.content-box {
+    .content-box {
   background: #fff;
   margin: 0 auto;
-  padding: 50;                /* ⬅ remove left gutter */
+  padding: 50;                 /* ✅ NO side padding */
   border-radius: 8px;
   overflow-x: auto;
 }
@@ -435,10 +440,23 @@ if (!Number.isFinite(homePts) || !Number.isFinite(awayPts)) {
       document.getElementById("pointsTotal").textContent = totalPoints.toFixed(1);
 
       // ---------- LAST UPDATED ----------
-      var d = parseUpdatedAt(latestUpdatedRaw) || new Date();
-      document.getElementById("lastUpdated").textContent =
-        "Last updated: " +
-        d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+     var d = parseUpdatedAt(latestUpdatedRaw) || new Date();
+
+var formatted =
+  d.toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "numeric",
+    year: "numeric"
+  }) +
+  " " +
+  d.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+document.getElementById("lastUpdated").textContent =
+  "Last updated: " + formatted;
 
     })
     .catch(function (e) {
