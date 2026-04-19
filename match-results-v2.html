@@ -517,6 +517,8 @@ const objects = rows.map(cols => {
     updated:   get(obj, "updatedat")              // UpdatedAt
   };
 });
+     // 🔥 IMPORTANT: use the mapped objects for all further processing
+const matchRows = objects;
 
 
       function get(o, name) { return (o[name] || "").trim(); }
