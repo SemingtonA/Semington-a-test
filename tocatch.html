@@ -540,7 +540,7 @@
       });
 
   });
-   // ✅ To Catch: determine Last Updated directly from CSV
+     // ✅ To Catch: determine Last Updated directly from CSV (self contained)
 fetch("csv_export.csv", { cache: "no-store" })
   .then(r => r.text())
   .then(text => {
@@ -556,9 +556,7 @@ fetch("csv_export.csv", { cache: "no-store" })
     for (let i = 1; i < lines.length; i++) {
       const cols = lines[i].split(",");
       const d = new Date(cols[idx]);
-      if (!isNaN(d) && (!latest || d > latest)) {
-        latest = d;
-      }
+      if (!isNaN(d) && (!latest || d > latest)) latest = d;
     }
 
     if (!latest) return;
@@ -573,8 +571,8 @@ fetch("csv_export.csv", { cache: "no-store" })
         hour: "2-digit",
         minute: "2-digit"
       });
-  });
-
+  })
+  .catch(() => {});
     
   </script>
 
