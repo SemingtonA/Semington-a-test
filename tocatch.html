@@ -349,13 +349,13 @@
 
         /* ---------- Last updated ---------- */
        // Show latest UpdatedAt (same logic as match-results)
-(function showLastUpdated() {
+         (function showLastUpdated() {
   const el = document.getElementById("last-updated");
-  if (!el || !data || !data.length) return;
+  if (!el || !rows || !rows.length) return;
 
   let latest = null;
 
-  data.forEach(row => {
+  rows.forEach(row => {
     const d = new Date(row.updated);
     if (!isNaN(d) && (!latest || d > latest)) {
       latest = d;
