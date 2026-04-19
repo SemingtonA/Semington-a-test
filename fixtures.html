@@ -100,11 +100,16 @@ main {
 
 /* ===== WHITE BOX AROUND TABLE ===== */
 .content-box {
-  background: #fff;
+  background: #ffffff;
   width: 100%;
   margin: 0;
-  padding: 16px;           /* ✅ THIS is what restores the white box */
+  padding: 16px;
   border-radius: 8px;
+
+  /* ✅ THIS makes the white box visible */
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
   overflow-x: auto;
 }
 
