@@ -207,16 +207,48 @@ tr.cup-match td { background: #e6f2ff; }
 
     .footer-logo img { width: 60px; }
 
-    @media (max-width: 900px) {
-      .header-top { flex-direction: column; text-align: center; }
-      header h1 { font-size: 32px; margin-top: 10px; }
-      .logo img { width: 150px; }
-      th, td { font-size: 12px; }
-    }
-    @media (max-width: 900px) {
-  .fixtures-header {
+/* ===== MEDIA: MOBILE (portrait + landscape) ===== */
+@media (max-width: 900px) {
+
+  /* Header layout */
+  .header-top {
     flex-direction: column;
-    align-items: flex-start;
+    text-align: center;
+  }
+
+  header h1 {
+    font-size: 32px;
+    margin-top: 10px;
+  }
+
+  .logo img {
+    width: 150px;
+    margin-bottom: 10px;
+  }
+
+  /* Table text size */
+  th, td {
+    font-size: 12px;
+  }
+
+  /* ✅ Horizontal scrolling ONLY inside the table */
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ✅ Force table wider than screen so scroll appears */
+  table {
+    min-width: 900px;
+  }
+
+  /* ✅ Prevent page-level horizontal scroll */
+  body {
+    overflow-x: hidden;
+  }
+
+  .footer-logo img {
+    width: 48px;
   }
 }
   </style>
@@ -256,20 +288,16 @@ tr.cup-match td { background: #e6f2ff; }
 
 <!-- ===== MAIN ===== -->
 <main>
+<div class="content-box">
 
-  <div class="content-box">
-
-    <div class="fixtures-header">
-      <h2>Fixtures</h2>
-      <div id="lastUpdated" class="last-updated">
-        Last updated: —
-       
-  <div class="table-scroll">
-    <table>...</table>
- 
-      </div>
+  <div class="fixtures-header">
+    <h2>Fixtures</h2>
+    <div id="lastUpdated" class="last-updated">
+      Last updated: —
     </div>
+  </div>
 
+  <div class="table-scroll">
     <table>
       <colgroup>
         <col>
@@ -299,8 +327,10 @@ tr.cup-match td { background: #e6f2ff; }
         <!-- rows injected by JS -->
       </tbody>
     </table>
-
   </div>
+
+</div>
+  
 
 </main>
 
