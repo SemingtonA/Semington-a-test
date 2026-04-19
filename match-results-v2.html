@@ -496,8 +496,10 @@ return "<tr>" +
       function get(o, name) { return (o[name] || "").trim(); }
 
       // ✅ NEW: show timestamp using UpdatedAt (from your CSV)
-           (function showLastUpdated() {
-  if (!lastUpdatedEl) return;
+        (function showLastUpdated() {
+  lastUpdatedEl.textContent = "Last updated: THIS IS A TEST";
+})();
+
 
   const col = headers.indexOf("UpdatedAt");
   if (col === -1) return;
@@ -508,7 +510,7 @@ return "<tr>" +
     const raw = rows[i] && rows[i][col] ? String(rows[i][col]).trim() : "";
     if (!raw) continue;
 
-    // expect dd/mm/yyyy hh:mm
+    // expect dddd/dd/mm/yyyy hh:mm
     const m = raw.match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/);
     if (!m) continue;
 
