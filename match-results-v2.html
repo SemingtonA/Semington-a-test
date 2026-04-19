@@ -548,12 +548,15 @@ fetch("csv_export.csv", { cache: "no-store" })
     // buildLeagueSnapshots(matchRows);
     // renderMatches(matchRows);
 
-  });
+// Build match ID list
+const matchIds = Object.keys(matchRows).sort();
 
-    // renderMatches(matchRows);
-    // etc.
+// Call your UI functions
+buildLeagueSnapshots(matchIds, matchRows);
+renderMatches(matchIds, matchRows);
 
-  });
+}); // <-- only one closing brace
+
 ANGED: now loads csv_export.csv instead of match_results.csv
          
 
