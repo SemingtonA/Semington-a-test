@@ -107,6 +107,14 @@ main {
   white-space: nowrap;
 }
 
+/* ===== PAGE CONTAINER ===== */
+.page-container {
+  max-width: 1100px;      /* control overall width */
+  margin: 0 auto;         /* center on page */
+  padding: 0 16px;        /* small breathing room on mobile */
+  box-sizing: border-box;
+}
+    
 /* ===== WHITE BOX AROUND TABLE ===== */
 .content-box {
   background: #fff;
@@ -252,18 +260,20 @@ tr.cup-match td { background: #e6f2ff; }
 </header>
 
 <main>
- <div class="fixtures-header">
-  <h2>Fixtures</h2>
-  <div id="lastUpdated" class="last-updated">
-    Last updated: —
-  </div>
-</div>
+<div class="page-container">
 
-<div class="content-box">
-  <table>
-    ...
-  </table>
-</div> 
+  <div class="fixtures-header">
+    <h2>Fixtures</h2>
+    <div id="lastUpdated" class="last-updated">Last updated: —</div>
+  </div>
+
+  <div class="content-box">
+    <table>
+      ...
+    </table>
+  </div>
+
+</div>
 
    
   <table>
