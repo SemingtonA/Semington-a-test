@@ -435,15 +435,13 @@ tr.cup-match td { background: #e6f2ff; }
         scoreText = homeScore + "–" + awayScore;
         }
 
-        const homeScore = (parts[3] || "").trim();
-const awayScore = (parts[7] || "").trim();
-const score = (homeScore && awayScore) ? homeScore + "–" + awayScore : "";
+
 
         tr.innerHTML =
           `<td>${row[idx("Date:")]}</td>
            <td>${row[idx("Day")]}</td>
            <td>${row[idx("Home Team")]} vs ${row[idx("Away Team")]}</td>
-           <td>" + scoreText + "</td>
+           <td>" + score + "</td>
            <td class="points">${
              Number.isFinite(hp) && Number.isFinite(ap)
                ? displayHalf(hp) + "–" + displayHalf(ap)
