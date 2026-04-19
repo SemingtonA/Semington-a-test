@@ -226,14 +226,14 @@
 
   <!-- TEST links (relative). For MAIN site, you can later change to /semington-a/... -->
 
-<div class="nav-buttons">
-      <a href="index.html">Home</a>
-      <a href="fixtures.html">Fixtures & Results</a>
-      <a href="match-results-v2.html">Match Results</a>
-      <a href="tocatch.html">To Catch</a>
-      <a href="gallery.html">Gallery</a>
-      <a href="rules.html">Rules</a>
-    </div>
+  <div class="nav-buttons">
+    <a href="/semington-a/index.html">Home</a>
+    <a href="/semington-a/fixtures.html">Fixtures & Results</a>
+    <a href="/semington-a/match-results.html">Match Results</a>
+    <a href="/semington-a/tocatch.html">To Catch</a>
+    <a href="/semington-a/gallery.html">Gallery</a>
+    <a href="/semington-a/rules.html">Rules</a>
+  </div>
 
 </header>
 
@@ -278,67 +278,6 @@
 </footer>
 
 <script>
-// 🟣 SCRIPT: Stable Last Updated helper (site-wide)
-function parseUpdatedAt(raw) {
-  if (!raw) return null;
-  raw = String(raw).trim();
-
-  // Remove weekday (e.g. "Sunday/")
-  const slash = raw.indexOf("/");
-  if (slash > 0 && /^[A-Za-z]+$/.test(raw.slice(0, slash))) {
-    raw = raw.slice(slash + 1);
-  }
-
-  // Expect dd/mm/yyyy hh:mm
-  const m = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
-  if (!m) return null;
-
-  return new Date(m[3], m[2] - 1, m[1], m[4], m[5]);
-}
-
-function setLastUpdatedFromCSV(csvText, elementId) {
-  const el = document.getElementById(elementId);
-  if (!el) return;
-
-  const lines = csvText.replace(/^\uFEFF/, "").trim().split(/\r?\n/);
-  const headers = lines[0].split(",").map(h => h.trim());
-  const idx = headers.indexOf("UpdatedAt");
-  if (idx === -1) return;
-
-  let latest = null;
-
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(",");
-    const d = parseUpdatedAt(cols[idx]);
-    if (d && (!latest || d > latest)) latest = d;
-  }
-
-  el.textContent = latest
-    ? "Last updated: " + latest.toLocaleString("en-GB", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      })
-    : "Last updated: Unknown";
-}
-
-
-function setLastUpdatedFromRawValues(values, elementId) {
-  const el = document.getElementById(elementId);
-  if (!el) return;
-
-  let latest = null;
-  for (const v of values) {
-    const d = parseUpdatedAt(v);
-    if (d && (!latest || d > latest)) latest = d;
-  }
-
-  el.textContent = latest ? ("Last updated: " + formatUK(latest)) : "Last updated: Unknown";
-}
-  
 (function () {
   const tbody  = document.getElementById("tableBody");
   const select = document.getElementById("matchSelect");
@@ -535,8 +474,8 @@ return "<tr>" +
   status.textContent = "Loading match results…";
 
   // ✅ CHANGED: now loads csv_export.csv instead of match_results.csv
-      fetch("/semington-a/csv_export.csv", { cache: "no-store" })
-      .then(r => {
+  fetch("csv_export.csv", { cache: "no-store" })
+    .then(r => {
       if (!r.ok) throw new Error("csv_export.csv not found");
       return r.text();
     })
@@ -558,43 +497,11 @@ return "<tr>" +
 
       function get(o, name) { return (o[name] || "").trim(); }
 
-      fetch("/semington-a/csv_export.csv", { cache: "no-store" })
-  .then(r => {
-    if (!r.ok) throw new Error("CSV load failed (HTTP " + r.status + ")");
-    return r.text();
-  })
-  .then(text => {
-    // your existing parsing/rendering code continues here
-  })
-  .catch(e => {
-    const s = document.getElementById("status");
-    if (s) s.textContent = e.message;
-    console.error(e);
-  });
-
-
       // ✅ NEW: show timestamp using UpdatedAt (from your CSV)
       (function showLastUpdated() {
-  let latest = null;
-
-  data.forEach(row => {
-    const d = new Date(row.updated);
-    if (!isNaN(d) && (!latest || d > latest)) {
-      latest = d;
-    }
-  });
-
-  lastUpdatedEl.textContent = latest
-    ? "Last updated: " + latest.toLocaleString("en-GB", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      })
-    : "Last updated: Unknown";
-})();
+        if (!lastUpdatedEl) return;
+        const idx = headers.indexOf("UpdatedAt");
+        if (idx === -1) return;
 
         // find first row with a value in UpdatedAt
         let raw = "";
