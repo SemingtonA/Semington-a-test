@@ -514,14 +514,15 @@ return "<tr>" +
         const d = new Date(raw);
         const textOut = isNaN(d.getTime())
           ? raw
-         el.textContent = latest.toLocaleString("en-GB", {
-         weekday: "long",
-         day: "numeric",
-         month: "long",
-         year: "numeric",
-         hour: "2-digit",
-         minute: "2-digit"
-      });
+         document.getElementById("last-updated").textContent =
+  latest.toLocaleString("en-GB", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 
         lastUpdatedEl.textContent = "Last updated: " + textOut;
       })();
