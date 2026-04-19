@@ -237,12 +237,15 @@
   function clean(v) { return v == null ? "" : String(v).trim(); }
   function splitRow(line) { return line.split(","); }
 
-  function toHalfNum(s) {
-    if (!s) return NaN;
-    s = String(s).replace(/\s+/g, "").replace("½", ".5");
-    s = s.replace(/(\d+)1\/2/g, "$1.5");
-    return Number(s);
-  }
+function toHalfNum(s) {
+  if (!s) return NaN;
+  s = String(s)
+    .replace(/\u00A0/g, "")   // remove non‑breaking spaces
+    .replace(/\s+/g, "")      // remove normal spaces
+    .replace("½", ".5");
+  s = s.replace(/(\d+)1\/2/g, "$1.5");
+  return Number(s);
+}
 
   function parseUpdatedAt(v) {
     if (!v) return null;
