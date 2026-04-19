@@ -304,8 +304,19 @@ function toHalfNum(s) {
         var hp = toHalfNum(row[iHomePts]);
         var ap = toHalfNum(row[iAwayPts]);
 
-        var scoreText = (Number.isFinite(hs) && Number.isFinite(as)) ? hs + "–" + as : "";
-        var ptsText = (Number.isFinite(hp) && Number.isFinite(ap)) ? hp + "–" + ap : "";
+        function displayHalf(n) {
+        if (!Number.isFinite(n)) return "";
+        if (n === 0.5) return "½";
+        if (n % 1 === 0.5) return Math.floor(n) + "½";
+        return String(n);
+        }
+        var scoreText = (Number.isFinite(hs) && Number.isFinite(as))
+        ? displayHalf(hs) + "–" + displayHalf(as)
+        : "";
+
+        var ptsText = (Number.isFinite(hp) && Number.isFinite(ap))
+       ? displayHalf(hp) + "–" + displayHalf(ap)
+       : "";
 
         if (row[iUpdated]) latestUpdated = row[iUpdated];
 
