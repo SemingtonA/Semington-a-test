@@ -365,30 +365,50 @@
 
       // ---------- STATS / HIGHLIGHTING ----------
       var wins = 0, draws = 0, losses = 0, totalPoints = 0;
+Array.from(tbody.querySelectorAll("tr")).forEach(function (tr) {
+  var comp = (tr.dataset.competition || "").toLowerCase();
 
-      Array.from(tbody.querySelectorAll("tr")).forEach(function (tr) {
-        var comp = (tr.dataset.competition || "").toLowerCase();
-        if (comp.includes("cup")) return; // cup excluded from totals
+  // Cup matches: no stats, but keep colour
+  if (comp.includes("cup")) return;
 
-        var homeTeam = tr.dataset.homeTeam || "";
-        var awayTeam = tr.dataset.awayTeam || "";
+  var homeTeam = tr.dataset.homeTeam || "";
+  var awayTeam = tr.dataset.awayTeam || "";
 
-        var homePts = Number(tr.dataset.homePts);
-        var awayPts = Number(tr.dataset.awayPts);
-        if (!Number.isFinite(homePts) || !Number.isFinite(awayPts)) return; // unplayed / missing
+  var homePts = Number(tr.dataset.homePts);
+  var awayPts = Number(tr.dataset.awayPts);
 
-        var myPts = NaN;
-        if (/semington a/i.test(homeTeam)) myPts = homePts;
-        else if (/semington a/i.test(awayTeam)) myPts = awayPts;
-        else return;
+  // ✅ UNPLAYED MATCHES:
+  // - no points
+  // - no W/D/L
+  // - stay white
+  if (!Number.isFinite(homePts) || !Number.isFinite(awayPts)) {
+    tr.classList.remove("_win", "_loss", "_draw");
+    return;
+  }
 
-        totalPoints += myPts;
+  var myPts = NaN;
+  if (/semington a/i.test(homeTeam)) myPts = homePts;
+  else if (/semington a/i.test(awayTeam)) myPts = awayPts;
+  else return;
 
-        tr.classList.remove("_win", "_loss", "_draw");
-        if (myPts === 3.5) { draws++; tr.classList.add("_draw"); }
-        else if (myPts > 3.5) { wins++; tr.classList.add("_win"); }
-        else { losses++; tr.classList.add("_loss"); }
-      });
+  totalPoints += myPts;
+
+  tr.classList.remove("_win", "_loss", "_draw");
+
+  if (myPts === 3.5) {
+    draws++;
+    tr.classList.add("_draw");
+  }
+  else if (myPts > 3.5) {
+    wins++;
+    tr.classList.add("_win");
+  }
+  else {
+    losses++;
+    tr.classList.add("_loss");
+  }
+});
+     
 
       document.getElementById("winCount").textContent = wins;
       document.getElementById("drawCount").textContent = draws;
