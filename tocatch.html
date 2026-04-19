@@ -188,7 +188,7 @@
     <!-- LAST UPDATED DISPLAY -->
     <!-- Reads UpdatedAt / Updated At from csv_export.csv -->
     <!-- ====================== -->
-    <div id="lastUpdated"
+      <div id="last-updated">Last updated: —</div>
          style="text-align:center; font-size:12px; margin:0 0 12px; color:#555;">
       Last updated: —
     </div>
@@ -348,31 +348,31 @@
         }
 
         /* ---------- Last updated ---------- */
-        if (lastEl && iUpdated !== -1) {
-          var latest = "";
-          for (var r = 1; r < grid.length; r++) {
-            var v = trim(grid[r][iUpdated]);
-            if (v && v > latest) latest = v;
-          }
-        if (latest) {
-  var datePart = latest.split(" ")[0];   // "04/12/2026"
-  var parts = datePart.split("/");       // ["04","12","2026"]
+       // Show latest UpdatedAt (same logic as match-results)
+(function showLastUpdated() {
+  const el = document.getElementById("last-updated");
+  if (!el || !data || !data.length) return;
 
-  var d = new Date(
-    Number(parts[2]),        // year
-    Number(parts[1]) - 1,    // month (0-based)
-    Number(parts[0])         // day
-  );
+  let latest = null;
 
-  lastEl.textContent =
-    "Last updated: " +
-    d.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
-}
-        }
+  data.forEach(row => {
+    const d = new Date(row.updated);
+    if (!isNaN(d) && (!latest || d > latest)) {
+      latest = d;
+    }
+  });
+
+  el.textContent = latest
+    ? "Last updated: " + latest.toLocaleString("en-GB", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    : "Last updated: Unknown";
+})();
 
         /* ---------- Build match map (league-like only; cup excluded) ---------- */
         var matchMap = {};   // matchId -> array of {player, score}
