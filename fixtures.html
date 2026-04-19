@@ -210,6 +210,13 @@ tr.cup-match td { background: #e6f2ff; }
 /* ===== MEDIA: MOBILE (portrait + landscape) ===== */
 @media (max-width: 900px) {
 
+  /* MOBILE: Stack header and add gap */
+.fixtures-header {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;              /* ✅ space between Fixtures & Last updated */
+}
+
   /* Header layout */
   .header-top {
     flex-direction: column;
