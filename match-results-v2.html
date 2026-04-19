@@ -245,6 +245,8 @@
     <!-- ✅ NEW: timestamp line -->
     <div id="last-updated">Last updated: —</div>
   </div>
+  
+    <div id="matches"></div>
 
   <div class="table-wrap">
     <table>
@@ -543,10 +545,30 @@ fetch("csv_export.csv", { cache: "no-store" })
     });
 
     // Show timestamp
-    (function showLastUpdated() {
-      lastUpdatedEl.textContent = "Last updated: " + (data[0]?.updated || "Unknown");
-    })();
+// ✅ v2 PATCH: show TRUE latest UpdatedAt value
+       // ✅ v2 PATCH: use the latest UpdatedAt value, not row[0]
+(function showLastUpdated() {
+  if (!data || !data.length) return;
 
+  let latest = null;
+
+  data.forEach(r => {
+    const d = new Date(r.updated);
+    if (!isNaN(d) && (!latest || d > latest)) latest = d;
+  });
+
+  lastUpdatedEl.textContent = latest
+    ? "Last updated: " + latest.toLocaleString("en-GB", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    : "Last updated: Unknown";
+})();
+    
     // Build match ID list
     const matchIds = Object.keys(matchRows).sort();
 
