@@ -93,7 +93,8 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
-  padding: 16px;                 /* ✅ white box at the top */
+  padding: 16px;           /* ✅ white box only at the top */
+  background: #fff;
   border-bottom: 1px solid #ddd;
 }
 
@@ -115,7 +116,11 @@ main {
   overflow-x: auto;
 }
 
-    table { width: 100%; border-collapse: collapse; margin 0; }
+    table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;               /* ✅ now actually applied */
+}
     th, td { padding: 8px; border-bottom: 1px solid #ddd; font-size: 14px; }
     th { background: #f0f0f0; text-align: left; }
     th.points,
