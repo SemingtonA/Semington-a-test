@@ -106,11 +106,10 @@ main {
   flex: 1;
   padding: 20px 0;   /* top & bottom only — NO left/right padding */
 }
-
-    .content-box {
+.content-box {
   background: #fff;
   margin: 0 auto;
-  padding: 50;                 /* ✅ NO side padding */
+  padding: 50;      /* ❌ INVALID – browser ignores this unpredictably */
   border-radius: 8px;
   overflow-x: auto;
 }
