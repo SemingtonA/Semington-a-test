@@ -476,7 +476,7 @@ return "<tr>" +
   status.textContent = "Loading match results…";
 
   // ✅ CH// Load CSV
-// Load CSV
+      // Load CSV
 fetch("csv_export.csv", { cache: "no-store" })
   .then(r => r.text())
   .then(text => {
@@ -526,6 +526,36 @@ fetch("csv_export.csv", { cache: "no-store" })
         updated:   get(obj, "updatedat")
       };
     });
+
+    // Use mapped objects for all further processing
+    const data = objects;
+
+    // Group by match ID
+    const matchRows = {};
+    const byPlayer  = {};
+
+    data.forEach(rr => {
+      if (!matchRows[rr.id]) matchRows[rr.id] = [];
+      matchRows[rr.id].push(rr);
+
+      if (!byPlayer[rr.id]) byPlayer[rr.id] = {};
+      byPlayer[rr.id][rr.player] = rr;
+    });
+
+    // Show timestamp
+    (function showLastUpdated() {
+      lastUpdatedEl.textContent = "Last updated: " + (data[0]?.updated || "Unknown");
+    })();
+
+    // Build match ID list
+    const matchIds = Object.keys(matchRows).sort();
+
+    // Call your UI functions
+    buildLeagueSnapshots(matchIds, matchRows);
+    renderMatches(matchIds, matchRows);
+
+  }); // <-- ONLY ONE closing brace here
+
 
     // Use mapped objects for all further processing
     const data = objects;
