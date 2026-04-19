@@ -501,13 +501,14 @@ return "<tr>" +
         const idx = headers.indexOf("UpdatedAt");
         if (idx === -1) return;
 
-        // find first row with a value in UpdatedAt
-        let raw = "";
-        for (let i = 0; i < rows.length; i++) {
-          raw = (rows[i] && rows[i][idx]) ? String(rows[i][idx]).trim() : "";
-          if (raw) break;
-        }
-        if (!raw) return;
+        // find LAST row with a value in UpdatedAt
+           let raw = "";
+          for (let i = 0; i < rows.length; i++) {
+          if (rows[i] && rows[i][idx]) {
+          raw = String(rows[i][idx]).trim();
+  }
+}
+if (!raw) return;
 
        const m = raw.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
        const d = m
