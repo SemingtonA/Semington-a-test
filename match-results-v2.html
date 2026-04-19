@@ -304,7 +304,11 @@
     return t ? ("£" + t.replace(/\.0+$/, "")) : "";
   }
 
-  function isLeague(details) { return /league/i.test(details || ""); }
+  function isLeague(details) {
+  if (!details) return false;
+  return details.trim().toLowerCase().includes("league");
+}
+
 
   // dd/mm/yyyy at start of Match ID
   function dateFromMatchId(id) {
