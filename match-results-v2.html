@@ -493,6 +493,32 @@ return "<tr>" +
       const headers = grid[headerIndex].map(clean);
       const rows = grid.slice(headerIndex + 1);
 
+      // Convert each CSV row into a usable object
+const objects = rows.map(cols => {
+  const obj = {};
+  for (let i = 0; i < headers.length; i++) {
+    obj[headers[i]] = cols[i] || "";
+  }
+
+  return {
+    date:    get(obj, "matchdate"),               // Match Date:
+    season:  get(obj, "season"),                  // Season
+    id:      get(obj, "matchid"),                 // Match ID
+    details: get(obj, "matchdetails"),            // Match Details
+    venue:   get(obj, "homeoraway"),              // Home or Away
+    player:  get(obj, "semingtonaplayername"),    // Semington A Player Name
+    score:   get(obj, "totalscore"),              // Total Score
+    ducks:   get(obj, "ducks"),                   // Ducks
+    tops:    get(obj, "topscore"),                // Top Score
+    legs:    get(obj, "legswon"),                 // Legs Won
+    spares:  get(obj, "spares"),                  // Spares
+    oppPlayer: get(obj, "oppositionplayername"),  // Opposition Player Name
+    oppScore:  get(obj, "oppositiontotalscore"),  // Opposition Total Score
+    updated:   get(obj, "updatedat")              // UpdatedAt
+  };
+});
+
+
       function get(o, name) { return (o[name] || "").trim(); }
 
       // ✅ NEW: show timestamp using UpdatedAt (from your CSV)
