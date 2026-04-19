@@ -80,10 +80,10 @@
     .result-box.total { border: 2px solid #000; }
 
     /* ===== MAIN ===== */
-/* ===== PAGE LAYOUT ===== */
+    /* ===== PAGE LAYOUT ===== */
 main {
   flex: 1;
-  padding: 20px 0;        /* vertical spacing only */
+  padding: 20px 0;         /* vertical spacing only */
 }
 
 /* ===== HEADER ABOVE TABLE ===== */
@@ -94,37 +94,36 @@ main {
   padding: 12px 16px;
 }
 
-/* ===== TABLE WHITE BOX (CARD) ===== */
+/* ===== WHITE BOX AROUND TABLE ===== */
 .content-box {
   background: #fff;
   width: 100%;
-  margin: 0;              /* ✅ no centering gutter */
-  padding: 12px 16px;     /* ✅ space INSIDE the box */
+  margin: 0;
+  padding: 16px;           /* ✅ THIS is what restores the white box */
   border-radius: 8px;
   overflow-x: auto;
 }
 
-/* ===== TABLE ITSELF ===== */
+/* ===== TABLE ===== */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin: 0;              /* ✅ removes default browser gutter */
+  margin: 0;               /* no browser default gap */
 }
 
-/* ===== CELLS ===== */
+/* ===== THIS IS THE PADDING INSIDE THE TABLE ===== */
 th,
 td {
   padding: 8px;
   border-bottom: 1px solid #ddd;
   font-size: 14px;
-  text-align: left;
 }
 
 th {
   background: #f0f0f0;
+  text-align: left;
 }
 
-/* Points column */
 th.points,
 td.points {
   text-align: center;
@@ -132,15 +131,11 @@ td.points {
 }
 
 /* ===== ROW COLOURS ===== */
-tr._win td   { background: #e8f8f1; }
-tr._loss td  { background: #fdecea; }
-tr._draw td  { background: #fff8e1; }
-tr.cup-match td { background: #e6f2ff; }
-
-th {
-  background: #f0f0f0;
-  text-align: left;
-}
+tr._win td       { background: #e8f8f1; }
+tr._loss td      { background: #fdecea; }
+tr._draw td      { background: #fff8e1; }
+tr.cup-match td  { background: #e6f2ff; }
+``
 
 th.points,
 td.points {
