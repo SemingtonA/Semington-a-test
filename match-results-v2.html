@@ -225,14 +225,16 @@
   </div>
 
   <!-- TEST links (relative). For MAIN site, you can later change to /semington-a/... -->
-  <div class="nav-buttons">
-    <a href="index.html">Home</a>
-    <a href="fixtures.html">Fixtures &amp; Results</a>
-    <a href="match-results-v2.html">Match Results</a>
-    <a href="tocatch.html">To Catch</a>
-    <a href="gallery.html">Gallery</a>
-    <a href="rules.html">Rules</a>
-  </div>
+
+<div class="nav-buttons">
+      <a href="index.html">Home</a>
+      <a href="fixtures.html">Fixtures & Results</a>
+      <a href="match-results-v2.html">Match Results</a>
+      <a href="tocatch.html">To Catch</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="rules.html">Rules</a>
+    </div>
+
 </header>
 
 <main>
@@ -245,8 +247,6 @@
     <!-- ✅ NEW: timestamp line -->
     <div id="last-updated">Last updated: —</div>
   </div>
-  
-    <div id="matches"></div>
 
   <div class="table-wrap">
     <table>
@@ -278,8 +278,6 @@
 </footer>
 
 <script>
-  alert("JS is running");
-
 (function () {
   const tbody  = document.getElementById("tableBody");
   const select = document.getElementById("matchSelect");
@@ -308,11 +306,7 @@
     return t ? ("£" + t.replace(/\.0+$/, "")) : "";
   }
 
-  function isLeague(details) {
-  if (!details) return false;
-  return details.trim().toLowerCase().includes("league");
-}
-
+  function isLeague(details) { return /league/i.test(details || ""); }
 
   // dd/mm/yyyy at start of Match ID
   function dateFromMatchId(id) {
@@ -479,155 +473,145 @@ return "<tr>" +
 
   status.textContent = "Loading match results…";
 
-  // ✅ CH// Load CSV
-      // Load CSV
-  status.textContent = "Starting CSV fetch…";
-fetch("csv_export.csv", { cache: "no-store" })
-.then(r => {
-  if (!r.ok) {
-    status.textContent = "CSV NOT FOUND (" + r.status + ")";
-    throw new Error("CSV fetch failed");
-  }
-  status.textContent = "CSV loaded";
-  return r.text();
-})
+  // ✅ CHANGED: now loads csv_export.csv instead of match_results.csv
+  fetch("csv_export.csv", { cache: "no-store" })
+    .then(r => {
+      if (!r.ok) throw new Error("csv_export.csv not found");
+      return r.text();
+    })
+    .then(text => {
+      const grid = parseCSV(text);
 
-    // Parse CSV
-    const grid = parseCSV(text);
+      // find header row containing "Match ID"
+      let headerIndex = -1;
+      for (let i = 0; i < grid.length; i++) {
+        for (let j = 0; j < grid[i].length; j++) {
+          if (clean(grid[i][j]) === "Match ID") { headerIndex = i; break; }
+        }
+        if (headerIndex !== -1) break;
+      }
+      if (headerIndex === -1) throw new Error('Header row not found (expected "Match ID")');
 
-    // Find header row (Match ID)
-    let headerIndex = 0;
-    for (let i = 0; i < grid.length; i++) {
-      for (let j = 0; j < grid[i].length; j++) {
-      if (
-      clean(cell)
-  .toLowerCase()
-  .replace(/\s+/g, "") === "matchid"
-  headerIndex = i;
-  break;
+      const headers = grid[headerIndex].map(clean);
+      const rows = grid.slice(headerIndex + 1);
+
+      function get(o, name) { return (o[name] || "").trim(); }
+
+      // ✅ NEW: show timestamp using UpdatedAt (from your CSV)
+      (function showLastUpdated() {
+        if (!lastUpdatedEl) return;
+        const idx = headers.indexOf("UpdatedAt");
+        if (idx === -1) return;
+
+        // find first row with a value in UpdatedAt
+        let raw = "";
+        for (let i = 0; i < rows.length; i++) {
+          raw = (rows[i] && rows[i][idx]) ? String(rows[i][idx]).trim() : "";
+          if (raw) break;
+        }
+        if (!raw) return;
+
+        const d = new Date(raw);
+        const textOut = isNaN(d.getTime())
+          ? raw
+          : d.toLocaleString("en-GB", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit"
+            });
+
+        lastUpdatedEl.textContent = "Last updated: " + textOut;
+      })();
+
+      // normalize data rows
+      const data = [];
+      for (let i = 0; i < rows.length; i++) {
+        const o = {};
+        for (let j = 0; j < headers.length; j++) o[headers[j]] = (rows[i][j] || "").trim();
+
+        // ✅ supports BOTH old and new header names for player
+        const playerName =
+          get(o, "Team Player") ||
+          get(o, "Semington A Player Name") ||
+          get(o, "Player Name");
+
+        const scoreNum = Number(get(o, "Total Score"));
+
+        if (
+        !get(o, "Match ID") ||
+        !playerName ||
+        !Number.isFinite(scoreNum) ||
+         scoreNum <= 0
+) {
+  continue;
 }
+       
 
-    if (headerIndex === -1) {
-      console.error("Header row not found");
-      return;
-    }
-
-    // Extract headers + rows
-    headers = grid[headerIndex].map(h => clean(h).toLowerCase().replace(/\s+/g,""));
-    const rows = grid.slice(headerIndex + 1);
-      status.textContent = rows.length;
-
-    // Convert each CSV row into a usable object
-    const objects = rows.map(cols => {
-      const obj = {};
-      for (let i = 0; i < headers.length; i++) {
-        obj[headers[i]] = cols[i] || "";
+        data.push({
+          matchId:  get(o, "Match ID"),
+          details:  get(o, "Match Details"),
+          homeAway: get(o, "Home or Away"),
+          player:   playerName,
+          score:    get(o, "Total Score"),
+          ducks:    get(o, "Ducks"),
+          spares:   get(o, "Spares"),
+          legsWon:  get(o, "Legs Won"),
+          top:      get(o, "Top Score"),
+          avg:      get(o, "League Averages") || get(o, "League Avg")
+        });
       }
 
-      return {
-        id:        get(obj, "matchid"),
-        date:      get(obj, "matchdate"),
-        season:    get(obj, "season"),
-        details:   get(obj, "matchdetails"),
-        venue:     get(obj, "homeoraway"),
-        player:    get(obj, "semingtonaplayername"),
-        score:     get(obj, "totalscore"),
-        ducks:     get(obj, "ducks"),
-        tops:      get(obj, "topscore"),
-        legs:      get(obj, "legswon"),
-        spares:    get(obj, "spares"),
-        oppPlayer: get(obj, "oppositionplayername"),
-        oppScore:  get(obj, "oppositiontotalscore"),
-        updated:   get(obj, "updatedat")
-      };
-    });
-
-    // Use mapped objects for all further processing
-    const data = objects;
-
-    // Group by match ID
-    const matchRows = {};
-    const byPlayer  = {};
-
-    data.forEach(rr => {
-      if (!matchRows[rr.id]) matchRows[rr.id] = [];
-      matchRows[rr.id].push(rr);
-
-      if (!byPlayer[rr.id]) byPlayer[rr.id] = {};
-      byPlayer[rr.id][rr.player] = rr;
-    });
-
-    // Show timestamp
-// ✅ v2 PATCH: show TRUE latest UpdatedAt value
-       // ✅ v2 PATCH: use the latest UpdatedAt value, not row[0]
-(function showLastUpdated() {
-  if (!data || !data.length) return;
-
-  let latest = null;
-
-  data.forEach(r => {
-    const d = new Date(r.updated);
-    if (!isNaN(d) && (!latest || d > latest)) latest = d;
+      // roster for absent expansion
+      // roster for absent expansion (real players only)
+const rosterMap = {};
+data.forEach(r => {
+  if (
+    r.player &&
+    r.player !== "Away" &&
+    r.player !== "A N Other" &&
+    r.player !== "0"
+  ) {
+    rosterMap[r.player] = true;
+    }
   });
 
-  lastUpdatedEl.textContent = latest
-    ? "Last updated: " + latest.toLocaleString("en-GB", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      })
-    : "Last updated: Unknown";
-})();
-    
-    // Build match ID list
-    const matchIds = Object.keys(matchRows).sort();
+const roster = Object.keys(rosterMap).sort((a, b) => a.localeCompare(b));
 
-    // Call your UI functions
-    buildLeagueSnapshots(matchIds, matchRows);
-    renderMatches(matchIds, matchRows);
+      // group by match
+      const matchRows = {};
+      const byPlayer  = {};
+      data.forEach(rr => {
+        if (!matchRows[rr.matchId]) matchRows[rr.matchId] = [];
+        matchRows[rr.matchId].push(rr);
+        if (!byPlayer[rr.matchId]) byPlayer[rr.matchId] = {};
+        byPlayer[rr.matchId][rr.player] = rr;
+      });
 
-  }); // <-- ONLY ONE closing brace here
+      // match IDs newest first
+      const matchIds = Object.keys(matchRows);
+      matchIds.sort((a, b) => {
+        const da = dateFromMatchId(a);
+        const db = dateFromMatchId(b);
+        if (!da && !db) return 0;
+        if (!da) return 1;
+        if (!db) return -1;
+        return db - da;
+      });
 
+      // dropdown (newest first)
+      while (select.options.length > 1) select.remove(1);
+      matchIds.forEach(id => {
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = id;
+        select.appendChild(opt);
+      });
 
-    // Use mapped objects for all further processing
-    const data = objects;
-
-    // Group by match ID
-    const matchRows = {};
-    const byPlayer  = {};
-
-    data.forEach(rr => {
-      if (!matchRows[rr.id]) matchRows[rr.id] = [];
-      matchRows[rr.id].push(rr);
-
-      if (!byPlayer[rr.id]) byPlayer[rr.id] = {};
-      byPlayer[rr.id][rr.player] = rr;
-    });
-
-    // Show timestamp
-    (function showLastUpdated() {
-      lastUpdatedEl.textContent = "Last updated: " + (data[0]?.updated || "Unknown");
-    })();
-
-    // ⬇️ Your UI code MUST start here
-    // Example:
-    // buildLeagueSnapshots(matchRows);
-    // renderMatches(matchRows);
-
-// Build match ID list
-const matchIds = Object.keys(matchRows).sort();
-
-// Call your UI functions
-buildLeagueSnapshots(matchIds, matchRows);
-renderMatches(matchIds, matchRows);
-
-}); // <-- only one closing brace
-
-ANGED: now loads csv_export.csv instead of match_results.csv
-         
+      // snapshots for avg (incl Away players)
+      const snapshots = buildLeagueSnapshots(matchIds, matchRows);
 
       function applyHighlights(list) {
         // Highest Total Score per match
