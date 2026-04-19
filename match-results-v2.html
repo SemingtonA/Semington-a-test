@@ -624,10 +624,10 @@ const roster = Object.keys(rosterMap).sort((a, b) => a.localeCompare(b));
       const matchRows = {};
       const byPlayer  = {};
       data.forEach(rr => {
-        if (!matchRows[rr.matchId]) matchRows[rr.matchId] = [];
-        matchRows[rr.matchId].push(rr);
-        if (!byPlayer[rr.matchId]) byPlayer[rr.matchId] = {};
-        byPlayer[rr.matchId][rr.player] = rr;
+        if (!matchRows[rr.Id]) matchRows[rr.matchId] = [];
+        matchRows[rr.Id].push(rr);
+        if (!byPlayer[rr.Id]) byPlayer[rr.matchId] = {};
+        byPlayer[rr.Id][rr.player] = rr;
       });
 
       // Match IDs newest first
