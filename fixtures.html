@@ -436,21 +436,23 @@ tr.cup-match td { background: #e6f2ff; }
         }
 
 
-
-        tr.innerHTML =
-          `<td>${row[idx("Date:")]}</td>
-           <td>${row[idx("Day")]}</td>
-           <td>${row[idx("Home Team")]} vs ${row[idx("Away Team")]}</td>
-           <td>" + scoreText + "</td>
-           <td class="points">${
-             Number.isFinite(hp) && Number.isFinite(ap)
-               ? displayHalf(hp) + "–" + displayHalf(ap)
-               : ""
-           }</td>
-           <td>${row[idx("Location")]}</td>
-           <td>${row[idx("Match Details")]}</td>
-           <td>${row[idx("Alley")]}</td>`;
-
+tr.innerHTML = `
+  <td>${row[idx("Date:")]}</td>
+  <td>${row[idx("Day")]}</td>
+  <td>${row[idx("Home Team")]} vs ${row[idx("Away Team")]}</td>
+  <td>${scoreText}</td>
+  <td class="points">
+    ${
+      Number.isFinite(hp) && Number.isFinite(ap)
+        ? displayHalf(hp) + "–" + displayHalf(ap)
+        : ""
+    }
+  </td>
+  <td>${row[idx("Location")]}</td>
+  <td>${row[idx("Match Details")]}</td>
+  <td>${row[idx("Alley")]}</td>
+`;
+     
         tbody.appendChild(tr);
 
         if (row[idx("UpdatedAt")]) latestUpdated = row[idx("UpdatedAt")];
