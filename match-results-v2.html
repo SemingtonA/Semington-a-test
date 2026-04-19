@@ -472,6 +472,7 @@ return "<tr>" +
   status.textContent = "Loading match results…";
 
   // ✅ CH// Load CSV
+// Load CSV
 fetch("csv_export.csv", { cache: "no-store" })
   .then(r => r.text())
   .then(text => {
@@ -542,8 +543,13 @@ fetch("csv_export.csv", { cache: "no-store" })
       lastUpdatedEl.textContent = "Last updated: " + (data[0]?.updated || "Unknown");
     })();
 
-    // ⬇️ Your UI code continues from here
+    // ⬇️ Your UI code MUST start here
+    // Example:
     // buildLeagueSnapshots(matchRows);
+    // renderMatches(matchRows);
+
+  });
+
     // renderMatches(matchRows);
     // etc.
 
