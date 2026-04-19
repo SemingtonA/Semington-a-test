@@ -630,7 +630,7 @@ const roster = Object.keys(rosterMap).sort((a, b) => a.localeCompare(b));
         byPlayer[rr.matchId][rr.player] = rr;
       });
 
-      // match IDs newest first
+      // Match IDs newest first
       const matchIds = Object.keys(matchRows);
       matchIds.sort((a, b) => {
         const da = dateFromMatchId(a);
