@@ -118,22 +118,17 @@ main {
 /* ===== WHITE BOX AROUND TABLE ===== */
 .content-box {
   background: #fff;
-  max-width: 1100px;     /* ✅ constrain table width */
-  width: 100%;
-  margin: 0 auto;        /* ✅ center the white box */
-  padding: 16px;         /* ✅ space INSIDE the box */
+  width: 100%;               /* ✅ full width */
+  margin: 0;                 /* ✅ no centering gap */
+  padding: 16px;             /* ✅ space inside box */
   border-radius: 8px;
-  border: 1px solid #ddd;/* ✅ makes box visible */
-  overflow-x: hidden;    /* ✅ NO bottom scrollbar */
+  border: 1px solid #ddd;
+  overflow-x: hidden;        /* ✅ no bottom scrollbar */
 }
+``
 
 /* ===== TABLE ===== */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0;
-  table-layout: fixed;   /* ✅ prevents overflow */
-}
+
 
 /* ===== TABLE CELLS ===== */
 th,
