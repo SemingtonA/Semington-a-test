@@ -540,6 +540,42 @@
       });
 
   });
+   // ✅ To Catch: determine Last Updated directly from CSV
+fetch("csv_export.csv", { cache: "no-store" })
+  .then(r => r.text())
+  .then(text => {
+    const lines = text.replace(/^\uFEFF/, "").trim().split(/\r?\n/);
+    if (lines.length < 2) return;
+
+    const headers = lines[0].split(",").map(h => h.trim());
+    const idx = headers.indexOf("UpdatedAt");
+    if (idx === -1) return;
+
+    let latest = null;
+
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(",");
+      const d = new Date(cols[idx]);
+      if (!isNaN(d) && (!latest || d > latest)) {
+        latest = d;
+      }
+    }
+
+    if (!latest) return;
+
+    document.getElementById("last-updated").textContent =
+      "Last updated: " +
+      latest.toLocaleString("en-GB", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+  });
+
+    
   </script>
 
 </body>
