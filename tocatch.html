@@ -239,58 +239,12 @@
   <!-- Data source: csv_export.csv -->
   <!-- ====================== -->
   <script>
-   // ===== Stable UpdatedAt parsing (NO Date(string) guessing) =====
-function parseUpdatedAt(raw) {
-  if (!raw) return null;
-  raw = String(raw).trim();
+ 
 
-  // Handles:
-  // "Sunday/19/04/2026 11:06" or "Sun/19/04/2026 11:06"
-  // Also tolerates "19/04/2026 11:06" (no weekday)
-  let s = raw;
 
-  // If weekday present, remove it (everything up to first slash)
-  const firstSlash = s.indexOf("/");
-  if (firstSlash > 0) {
-    const prefix = s.slice(0, firstSlash);
-    // If prefix is letters (weekday), drop it
-    if (/^[A-Za-z]+$/.test(prefix)) s = s.slice(firstSlash + 1);
-  }
-
-  // Now expect "dd/mm/yyyy hh:mm"
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
-  if (!m) return null;
-
-  const dd = Number(m[1]), mm = Number(m[2]), yyyy = Number(m[3]);
-  const hh = Number(m[4]), min = Number(m[5]);
-
-  const d = new Date(yyyy, mm - 1, dd, hh, min, 0, 0);
-  return isNaN(d.getTime()) ? null : d;
 }
 
-function formatUK(d) {
-  return d.toLocaleString("en-GB", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-}
 
-function setLastUpdatedFromRawValues(values, elementId) {
-  const el = document.getElementById(elementId);
-  if (!el) return;
-
-  let latest = null;
-  for (const v of values) {
-    const d = parseUpdatedAt(v);
-    if (d && (!latest || d > latest)) latest = d;
-  }
-
-  el.textContent = latest ? ("Last updated: " + formatUK(latest)) : "Last updated: Unknown";
-} 
   document.addEventListener("DOMContentLoaded", function () {
 
     /* ---------- helpers ---------- */
@@ -399,33 +353,7 @@ function setLastUpdatedFromRawValues(values, elementId) {
           throw new Error("csv_export.csv missing required columns for To Catch");
         }
 
-        /* ---------- Last updated ---------- */
-       // Show latest UpdatedAt (same logic as match-results)
-         (function showLastUpdated() {
-  const el = document.getElementById("last-updated");
-  if (!el || !rows || !rows.length) return;
-
-  let latest = null;
-
-  rows.forEach(row => {
-    const d = new Date(row.updated);
-    if (!isNaN(d) && (!latest || d > latest)) {
-      latest = d;
-    }
-  });
-
-  el.textContent = latest
-    ? "Last updated: " + latest.toLocaleString("en-GB", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      })
-    : "Last updated: Unknown";
-})();
-
+       
         /* ---------- Build match map (league-like only; cup excluded) ---------- */
         var matchMap = {};   // matchId -> array of {player, score}
         var matchDateMap = {}; // matchId -> date object for sorting
@@ -592,39 +520,7 @@ function setLastUpdatedFromRawValues(values, elementId) {
       });
 
   });
-     // ✅ To Catch: determine Last Updated directly from CSV (self contained)
-fetch("csv_export.csv", { cache: "no-store" })
-  .then(r => r.text())
-  .then(text => {
-    const lines = text.replace(/^\uFEFF/, "").trim().split(/\r?\n/);
-    if (lines.length < 2) return;
 
-    const headers = lines[0].split(",").map(h => h.trim());
-    const idx = headers.indexOf("UpdatedAt");
-    if (idx === -1) return;
-
-    let latest = null;
-
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(",");
-      const d = new Date(cols[idx]);
-      if (!isNaN(d) && (!latest || d > latest)) latest = d;
-    }
-
-    if (!latest) return;
-
-    document.getElementById("last-updated").textContent =
-      "Last updated: " +
-      latest.toLocaleString("en-GB", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-  })
-  .catch(() => {});
     
   </script>
 
