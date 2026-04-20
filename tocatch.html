@@ -347,7 +347,7 @@
         var iUpdated   = idx("UpdatedAt");
         if (iUpdated === -1) iUpdated = idx("Updated At"); // both appear in your exports [1](https://outlook.live.com/owa/?ItemID=AQMkADAwATE0OTQwLTUyMgBkLTJkOWEtMDACLTAwCgBGAAADFvyS4gBJBkKZOuA2Qf%2fEowcAes2SqILv1UGRPAwF7jIkigAAAgEMAAAAes2SqILv1UGRPAwF7jIkigAI2JP%2fOQAAAA%3d%3d&exvsurl=1&viewmodel=ReadMessageItem)[2](https://outlook.live.com/owa/?ItemID=AQMkADAwATE0OTQwLTUyMgBkLTJkOWEtMDACLTAwCgBGAAADFvyS4gBJBkKZOuA2Qf%2fEowcAes2SqILv1UGRPAwF7jIkigAAAgEMAAAAes2SqILv1UGRPAwF7jIkigAI0v3ZWgAAAA%3d%3d&exvsurl=1&viewmodel=ReadMessageItem)
 
-        /* ---------- Last updated (same logic as Match Results) ---------- */
+      /* ---------- Last updated (shared logic) ---------- */
 (function showLastUpdated() {
   const el = document.getElementById("last-updated");
   if (!el || iUpdated === -1) return;
@@ -382,6 +382,7 @@
       })
     : "Last updated: Unknown";
 })();
+
         
         if (iMatchId === -1 || iDetails === -1 || iPlayer === -1 || iScore === -1) {
           throw new Error("csv_export.csv missing required columns for To Catch");
