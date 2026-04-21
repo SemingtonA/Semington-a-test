@@ -310,7 +310,7 @@
     }
 
     function updateLastUpdated(grid) {
-    console.log("UPDATE FUNCTION RAN");
+    
   
   if (!grid || grid.length < 2) return;
 
@@ -391,32 +391,9 @@
           throw new Error("csv_export.csv missing required columns for To Catch");
         }
 
-        /* ---------- Last updated ---------- */
-        if (lastEl && iUpdated !== -1) {
-          var latest = "";
-          for (var r = 1; r < grid.length; r++) {
-            var v = trim(grid[r][iUpdated]);
-            if (v && v > latest) latest = v;
-          }
-        if (latest) {
-  var datePart = latest.split(" ")[0];   // "04/12/2026"
-  var parts = datePart.split("/");       // ["04","12","2026"]
+     
 
-  var d = new Date(
-    Number(parts[2]),        // year
-    Number(parts[1]) - 1,    // month (0-based)
-    Number(parts[0])         // day
-  );
-
-  lastEl.textContent =
-    "Last updated: " +
-    d.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
-}
-        }
+  
 
         /* ---------- Build match map (league-like only; cup excluded) ---------- */
         var matchMap = {};   // matchId -> array of {player, score}
