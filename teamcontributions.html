@@ -252,7 +252,6 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     let totalLeagueFees = 0;
     let totalDuckFines  = 0;
     let totalLowFines   = 0;
-    let totalOwed       = 0;
     let latest          = "";
 
     const LOW_SCORE_LIMIT = 5;
@@ -366,8 +365,7 @@ Object.keys(players).forEach(name => {
   totalLeagueFees += p.leagueFees;
   totalDuckFines  += p.duckFines;
   totalLowFines   += p.lowScoreFines;
-  totalOwed       += p.netOwed;
-});
+ });
 
 // RENDERING
 const body = document.getElementById("accountsBody");
@@ -386,8 +384,7 @@ Object.keys(players).sort().forEach(name => {
       <td>£${p.duckFines}</td>
       <td>£${p.lowScoreFines}</td>
       <td>£${p.totalFines}</td>
-      <td>£${p.netOwed}</td>
-    </tr>
+      </tr>
   `;
 });
 
