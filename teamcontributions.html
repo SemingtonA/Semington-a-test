@@ -326,7 +326,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
         }
 
         // league fees
-        p.leagueFees = p.leagueGames * 1;
+        p.leagueFees = p.leagueGames * 4;
 
         // duck fines (ghost rows still count against reassigned player)
         const ducks = Number(r[iDucks] || 0);
