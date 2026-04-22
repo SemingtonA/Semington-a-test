@@ -7,144 +7,97 @@
 <style>
     body {
         font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        margin: 0;
+        margin: 20px;
+    }
+
+    /* NAV BUTTONS */
+    .nav-buttons ul {
+        list-style: none;
         padding: 0;
-    }
-
-    /* ===== PAGE HEADER ===== */
-    header {
-        background: #163aa3;
-        color: white;
-        padding: 20px;
-        text-align: center;
-    }
-
-    header h1 {
-        margin: 0;
-        font-size: 48px;
-        font-weight: bold;
-    }
-
-    /* ===== SEASON DROPDOWN BAR ===== */
-    .season-bar {
-        background: #163aa3;
-        padding: 12px 20px;
-        color: white;
-        font-size: 18px;
+        margin: 0 0 15px 0;
         display: flex;
-        align-items: center;
-        gap: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
-    .season-bar label {
+    .nav-buttons li {
+        margin: 0;
+    }
+
+    .nav-buttons a {
+        display: inline-block;
+        padding: 8px 14px;
+        background: black;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 15px;
+    }
+
+    .nav-buttons a.active {
+        background: #444;
+    }
+
+    .season-bar {
+        margin-bottom: 15px;
+        font-size: 18px;
         font-weight: bold;
     }
 
     .season-dropdown {
         font-size: 16px;
-        padding: 4px 6px;
-        border-radius: 4px;
-        border: none;
-        width: auto; /* AUTO-WIDTH DROPDOWN */
+        padding: 4px 8px;
     }
 
-    /* ===== TABLE STYLING ===== */
     table {
-        width: 95%;
-        margin: 20px auto;
+        width: 100%;
         border-collapse: collapse;
-        background: white;
-        box-shadow: 0 0 6px rgba(0,0,0,0.2);
+        margin-top: 15px;
     }
 
     th, td {
-        padding: 10px;
         border: 1px solid #ccc;
+        padding: 6px 8px;
         text-align: center;
     }
 
     th {
-        background: #163aa3;
-        color: white;
-        font-size: 16px;
+        background: #f0f0f0;
     }
 
-    /* Highlighting rows */
-    .highlight {
-        background: #e8f0ff;
-        font-weight: bold;
-    }
-
-    /* Totals row */
     .totals-row {
-        background: #d9e6ff;
+        background: #e8f4ff;
         font-weight: bold;
+    }
+
+    #lastUpdated {
+        margin-top: 10px;
+        font-style: italic;
     }
 </style>
 </head>
 
 <body>
 
-<header>
-    <h1>Team Contributions</h1>
-</header>
+<h2>Team Contributions</h2>
+<div id="lastUpdated"></div>
 
-    <!-- ===== NAVIGATION BUTTONS ===== -->
-<div class="nav-buttons" style="text-align:center; margin-top:15px;">
-    <nav>
-        <ul style="list-style:none; padding:0; margin:0; display:flex; justify-content:center; gap:10px;">
-             <div class="nav-buttons">
-  
-<div class="nav-buttons">
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="fixtures.html">Fixtures &amp; Results</a></li>
-            <li><a href="match-results.html">Match Results</a></li>
-            <li><a href="tocatch.html">To Catch</a></li>
-            <li><a href="gallery.html">Gallery</a></li>
-            <li><a href="rules.html">Rules</a></li>
-            <li><a href="teamcontributions.html">Team Contributions</a></li>
-        </ul>
-    </nav>
-</div>
+<!-- ===== NAVIGATION BUTTONS ===== -->
+<nav class="nav-buttons">
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="fixtures.html">Fixtures</a></li>
+        <li><a href="results.html">Results</a></li>
+        <li><a href="averages.html">Averages</a></li>
+        <li><a href="rules.html">Rules</a></li>
+        <li><a href="tocatch.html">To Catch</a></li>
+        <li><a href="teamcontributions.html" class="active">Team Contributions</a></li>
+    </ul>
+</nav>
 
-<style>
-.nav-buttons ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    padding: 0;
-    margin: 15px 0;
-    list-style: none;
-}
-
-.nav-buttons li {
-    margin: 0;
-}
-
-.nav-buttons a {
-    display: inline-block;
-    padding: 10px 18px;
-    background: #000;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
-    font-weight: bold;
-}
-
-.nav-buttons a:hover {
-    background: #163aa3;
-}
-</style>
-
-
-
-<!-- ===== SEASON DROPDOWN BAR (AUTO-WIDTH) ===== -->
+<!-- ===== SEASON DROPDOWN BAR ===== -->
 <div class="season-bar">
-    <label for="seasonSelect">Season:</label>
+    Season:
     <select id="seasonSelect" class="season-dropdown"></select>
 </div>
 
@@ -156,51 +109,47 @@
 let csvData = [];
 let seasons = [];
 
-// ===============================
-// LOAD CSV
-// ===============================
+/* ===============================
+   LOAD CSV
+================================ */
 fetch("csv_export.csv")
     .then(r => r.text())
     .then(text => {
         csvData = parseCSV(text);
-        console.log("ROWS LOADED:", csvData.length);
-        console.log(csvData[0]);
         extractSeasons();
         populateSeasonDropdown();
         applySeasonFilter();
     });
 
-// ===============================
-// PARSE CSV
-// ===============================
+/* ===============================
+   PARSE CSV (SAFE)
+================================ */
+function parseCSV(text) {
+    text = text.replace(/\r/g, ""); // Fix CRLF
 
-    function parseCSV(text) {
     const rows = [];
     const lines = text.trim().split("\n");
 
-    // Extract headers safely
-    const headers = lines[0].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+    const headers = lines[0]
+        .match(/(".*?"|[^",]+)(?=,|$)/g)
         .map(h => h.replace(/^"|"$/g, "").trim());
 
-    // Extract each row safely
     for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+        const values = lines[i]
+            .match(/(".*?"|[^",]+)(?=,|$)/g)
             ?.map(v => v.replace(/^"|"$/g, "").trim()) || [];
 
         let row = {};
-        headers.forEach((h, idx) => {
-            row[h] = values[idx] || "";
-        });
-
+        headers.forEach((h, idx) => row[h] = values[idx] || "");
         rows.push(row);
     }
 
     return rows;
 }
 
-// ===============================
-// NORMALISE ROW (MATCHES YOUR CSV)
-// ===============================
+/* ===============================
+   NORMALISE ROW
+================================ */
 function normaliseRow(r) {
 
     const matchDetails = (r["Match Details"] || "").toLowerCase();
@@ -220,11 +169,9 @@ function normaliseRow(r) {
     };
 }
 
-
-    
-// ===============================
-// SEASON HANDLING
-// ===============================
+/* ===============================
+   SEASON HANDLING
+================================ */
 function extractSeasons() {
     const set = new Set();
     csvData.forEach(r => {
@@ -248,9 +195,9 @@ function populateSeasonDropdown() {
     dd.addEventListener("change", applySeasonFilter);
 }
 
-// ===============================
-// LAST UPDATED
-// ===============================
+/* ===============================
+   LAST UPDATED
+================================ */
 function ordinal(n) {
     const s = ["th", "st", "nd", "rd"];
     const v = n % 100;
@@ -281,9 +228,9 @@ function updateLastUpdated(rows) {
         latest.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
-// ===============================
-// APPLY SEASON FILTER (FINAL VERSION)
-// ===============================
+/* ===============================
+   APPLY SEASON FILTER
+================================ */
 function applySeasonFilter() {
     const season = document.getElementById("seasonSelect").value;
 
@@ -295,9 +242,9 @@ function applySeasonFilter() {
     buildContributionsTable(filtered);
 }
 
-// ===============================
-// CALCULATIONS
-// ===============================
+/* ===============================
+   CALCULATIONS
+================================ */
 function calculatePlayerTotals(rows) {
 
     let legsWon = 0, spares = 0, topScore = 0;
@@ -306,12 +253,10 @@ function calculatePlayerTotals(rows) {
 
     rows.forEach(r => {
 
-        // Earnings
         legsWon += r.legsWon * 2.00;
         spares += r.spares * 1.80;
         if (r.topScore > 0) topScore += 3.00;
 
-        // League-only fines
         if (r.matchType === "league") {
 
             if (r.ducks > 0) {
@@ -326,12 +271,10 @@ function calculatePlayerTotals(rows) {
             leagueFees += 4.00;
         }
 
-        // Cup fees
         if (r.matchType === "cup") {
             cupFees += 2.00;
         }
 
-        // Leg fees (all matches)
         legFees += 1.00;
     });
 
@@ -346,9 +289,9 @@ function calculatePlayerTotals(rows) {
     };
 }
 
-// ===============================
-// BUILD TABLE
-// ===============================
+/* ===============================
+   BUILD TABLE
+================================ */
 function buildContributionsTable(rows) {
 
     const players = {};
@@ -425,108 +368,6 @@ function buildContributionsTable(rows) {
 }
 
 </script>
-
-
-
-// =====================================
-// BUILD CONTRIBUTIONS TABLE (MAIN VIEW)
-// =====================================
-function buildContributionsTable(rows) {
-
-    // Group rows by player
-    const players = {};
-    rows.forEach(r => {
-        const name = r["Player"];
-        if (!players[name]) players[name] = [];
-        players[name].push(r);
-    });
-
-    // Start building table HTML
-    let html = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Player</th>
-                    <th>Legs Won (£)</th>
-                    <th>Spares (£)</th>
-                    <th>Top Score (£)</th>
-                    <th>Duck Fines (£)</th>
-                    <th>Leg Fines (£)</th>
-                    <th>League Fees (£)</th>
-                    <th>Cup Fees (£)</th>
-                    <th>Leg Fees (£)</th>
-                    <th>Net Owed (£)</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    // Totals accumulator
-    let totals = {
-        legsWon: 0,
-        spares: 0,
-        topScore: 0,
-        duckFines: 0,
-        legFines: 0,
-        leagueFees: 0,
-        cupFees: 0,
-        legFees: 0,
-        netOwed: 0
-    };
-
-    // Build each player row
-    for (const player in players) {
-        const data = calculatePlayerTotals(players[player]);
-
-        html += `
-            <tr>
-                <td>${player}</td>
-                <td>${data.legsWon.toFixed(2)}</td>
-                <td>${data.spares.toFixed(2)}</td>
-                <td>${data.topScore.toFixed(2)}</td>
-                <td>${data.duckFines.toFixed(2)}</td>
-                <td>${data.legFines.toFixed(2)}</td>
-                <td>${data.leagueFees.toFixed(2)}</td>
-                <td>${data.cupFees.toFixed(2)}</td>
-                <td>${data.legFees.toFixed(2)}</td>
-                <td><strong>${data.netOwed.toFixed(2)}</strong></td>
-            </tr>
-        `;
-
-        // Add to totals
-        totals.legsWon += data.legsWon;
-        totals.spares += data.spares;
-        totals.topScore += data.topScore;
-        totals.duckFines += data.duckFines;
-        totals.legFines += data.legFines;
-        totals.leagueFees += data.leagueFees;
-        totals.cupFees += data.cupFees;
-        totals.legFees += data.legFees;
-        totals.netOwed += data.netOwed;
-    }
-
-    // Add totals row
-    html += `
-        <tr class="totals-row">
-            <td><strong>Totals</strong></td>
-            <td>${totals.legsWon.toFixed(2)}</td>
-            <td>${totals.spares.toFixed(2)}</td>
-            <td>${totals.topScore.toFixed(2)}</td>
-            <td>${totals.duckFines.toFixed(2)}</td>
-            <td>${totals.legFines.toFixed(2)}</td>
-            <td>${totals.leagueFees.toFixed(2)}</td>
-            <td>${totals.cupFees.toFixed(2)}</td>
-            <td>${totals.legFees.toFixed(2)}</td>
-            <td><strong>${totals.netOwed.toFixed(2)}</strong></td>
-        </tr>
-    `;
-
-    html += `</tbody></table>`;
-
-    document.getElementById("tableContainer").innerHTML = html;
-}
-</script>
- 
 
 </body>
 </html>
