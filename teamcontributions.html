@@ -381,6 +381,20 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
         </tr>
       `;
     });
+    // ADD TOTALS ROW
+body.innerHTML += `
+  <tr style="font-weight:bold; background:#ffe08a;">
+    <td>TOTALS</td>
+    <td class="center">-</td>
+    <td class="center">-</td>
+    <td>£${totalLeagueFees}</td>
+    <td>£${totalDuckFines}</td>
+    <td>£${totalLowFines}</td>
+    <td>£${totalDuckFines + totalLowFines}</td>
+    <td>£${totalOwed}</td>
+  </tr>
+`;
+
 
   });
 </script>
