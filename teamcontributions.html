@@ -364,7 +364,8 @@ Object.keys(players).forEach(name => {
   const p = players[name];
   totalLeagueFees += p.leagueFees;
   totalDuckFines  += p.duckFines;
-  totalLowFines   += p.lowScoreFines;
+  totalOwed += p.netOwed;
+
  });
 
 // RENDERING
@@ -383,7 +384,7 @@ Object.keys(players).sort().forEach(name => {
       <td>£${p.leagueFees}</td>
       <td>£${p.duckFines}</td>
       <td>£${p.lowScoreFines}</td>
-      <td>£${p.totalFines}</td>
+      <td>£${p.totalOwed}</td>
       </tr>
   `;
 });
@@ -397,8 +398,7 @@ body.innerHTML += `
     <td>£${totalLeagueFees}</td>
     <td>£${totalDuckFines}</td>
     <td>£${totalLowFines}</td>
-    <td>£${totalDuckFines + totalLowFines}</td>
-    <td>£${totalLeagueFees + (totalDuckFines + totalLowFines)}</td>
+    <td>£${totalLeagueFees + totalDuckFines + totalLowFines}</td>
   </tr>
 `;
 });
