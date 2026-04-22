@@ -183,7 +183,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
   })
   .then(text => {
 
-    // ⭐ BULLETPROOF CSV PARSER (handles unquoted commas)
+    // BULLETPROOF CSV PARSER
     function parseCSVLine(line) {
       const result = [];
       let current = "";
@@ -208,11 +208,10 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
 
     const rows = text.trim().split(/\r?\n/).map(parseCSVLine);
 
-    // ⭐ YOU WERE MISSING THESE TWO LINES
     const header = rows.shift();
     const idx = n => header.indexOf(n);
 
-    // ⭐ EXACT HEADER NAMES FROM YOUR CSV
+    // COLUMN INDEXES
     const iPlayer   = idx("Semington A Player Name");
     const iDucks    = idx("Ducks");
     const iDetails  = idx("Match Details");
@@ -225,6 +224,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     const iLeg4 = idx("Leg 4:");
     const iLeg5 = idx("Leg 5:");
     const iLeg6 = idx("Leg 6:");
+    const iTotal = idx("Total Score"); // used for lowest player in match
 
     console.log("HEADER CHECK:", {
       iPlayer,
@@ -237,19 +237,18 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
       iLeg3,
       iLeg4,
       iLeg5,
-      iLeg6
+      iLeg6,
+      iTotal
     });
 
     const players = {};
     const invalidPlayers = new Set([
-  "O",
-  "0",
-  "A N Other",
-  "A  N Other",
-  "A N Others 4 and Under"
-]);
-
-    const seen = {};
+      "O",
+      "0",
+      "A N Other",
+      "A  N Other",
+      "A N Others 4 and Under"
+    ]);
 
     let totalLeagueFees = 0;
     let totalDuckFines  = 0;
@@ -259,94 +258,110 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
 
     const LOW_SCORE_LIMIT = 5;
 
-    // Group rows by match ID
-const matches = {};
+    // GROUP ROWS BY MATCH
+    const matches = {};
 
-rows.forEach(r => {
-  const matchId = r[iMatchId];
-  if (!matchId) return;
+    rows.forEach(r => {
+      const matchId = r[iMatchId];
+      if (!matchId) return;
 
-  if (!matches[matchId]) matches[matchId] = [];
-  matches[matchId].push(r);
-});
-
-Object.values(matches).forEach(matchRows => {
-
-  // Find real players in this match
-  const realPlayers = matchRows.filter(r => !invalidPlayers.has(r[iPlayer]));
-
-  // Find lowest scoring real player
-  let lowestPlayerRow = null;
-  let lowestScore = Infinity;
-
-  realPlayers.forEach(r => {
-    const total = Number(r[idx("Total Score")] || 0);
-    if (total < lowestScore) {
-      lowestScore = total;
-      lowestPlayerRow = r;
-    }
-  });
-
-  // Now process each row
-  matchRows.forEach(r => {
-    let player = r[iPlayer];
-
-    // If invalid player, reassign to lowest real player
-    if (invalidPlayers.has(player)) {
-      if (lowestPlayerRow) {
-        player = lowestPlayerRow[iPlayer];
-      } else {
-        return; // no valid players in match
-      }
-    }
-
-    // Now your existing logic continues here
-    if (!players[player]) {
-      players[player] = {
-        leagueGames: 0,
-        cupGames: 0,
-        leagueFees: 0,
-        duckFines: 0,
-        lowScoreFines: 0,
-        totalFines: 0,
-        netOwed: 0
-      };
-    }
-
-    const p = players[player];
-
-    const details = r[iDetails] || "";
-    if (details.includes("League")) p.leagueGames++;
-    if (details.includes("Cup"))    p.cupGames++;
-
-    p.leagueFees = p.leagueGames * 1;
-
-    const ducks = Number(r[iDucks] || 0);
-    p.duckFines += ducks;
-
-    const legs = [
-      Number(r[iLeg1] || 0),
-      Number(r[iLeg2] || 0),
-      Number(r[iLeg3] || 0),
-      Number(r[iLeg4] || 0),
-      Number(r[iLeg5] || 0),
-      Number(r[iLeg6] || 0)
-    ];
-
-    legs.forEach(l => {
-      if (l > 0 && l < LOW_SCORE_LIMIT) {
-        p.lowScoreFines++;
-      }
+      if (!matches[matchId]) matches[matchId] = [];
+      matches[matchId].push(r);
     });
 
-    p.totalFines = p.duckFines + p.lowScoreFines;
-    p.netOwed = p.leagueFees + p.totalFines;
-  });
-});
+    // PROCESS EACH MATCH
+    Object.values(matches).forEach(matchRows => {
 
-   
+      // real players in this match
+      const realPlayers = matchRows.filter(r => !invalidPlayers.has(r[iPlayer]));
 
-    // ⭐ RENDERING
+      // lowest scoring real player (by Total Score)
+      let lowestPlayerRow = null;
+      let lowestScore = Infinity;
+
+      realPlayers.forEach(r => {
+        const total = Number(r[iTotal] || 0);
+        if (total < lowestScore) {
+          lowestScore = total;
+          lowestPlayerRow = r;
+        }
+      });
+
+      // process each row in this match
+      matchRows.forEach(r => {
+
+        const originalPlayer = r[iPlayer];
+        let player = originalPlayer;
+
+        // reassign ghost players to lowest real player
+        if (invalidPlayers.has(originalPlayer)) {
+          if (lowestPlayerRow) {
+            player = lowestPlayerRow[iPlayer];
+          } else {
+            return; // no valid players in this match
+          }
+        }
+
+        if (!player) return;
+
+        if (!players[player]) {
+          players[player] = {
+            leagueGames: 0,
+            cupGames: 0,
+            leagueFees: 0,
+            duckFines: 0,
+            lowScoreFines: 0,
+            totalFines: 0,
+            netOwed: 0
+          };
+        }
+
+        const p = players[player];
+        const details = r[iDetails] || "";
+
+        // ONLY REAL PLAYERS EARN LEAGUE/CUP GAMES
+        if (!invalidPlayers.has(originalPlayer)) {
+          if (details.includes("League")) p.leagueGames++;
+          if (details.includes("Cup"))    p.cupGames++;
+        }
+
+        // league fees
+        p.leagueFees = p.leagueGames * 1;
+
+        // duck fines (ghost rows still count against reassigned player)
+        const ducks = Number(r[iDucks] || 0);
+        p.duckFines += ducks;
+
+        // low score fines
+        const legs = [
+          Number(r[iLeg1] || 0),
+          Number(r[iLeg2] || 0),
+          Number(r[iLeg3] || 0),
+          Number(r[iLeg4] || 0),
+          Number(r[iLeg5] || 0),
+          Number(r[iLeg6] || 0)
+        ];
+
+        legs.forEach(l => {
+          if (l > 0 && l < LOW_SCORE_LIMIT) {
+            p.lowScoreFines++;
+          }
+        });
+
+        p.totalFines = p.duckFines + p.lowScoreFines;
+        p.netOwed = p.leagueFees + p.totalFines;
+
+        totalLeagueFees += p.leagueFees;
+        totalDuckFines  += p.duckFines;
+        totalLowFines   += p.lowScoreFines;
+        totalOwed       += p.netOwed;
+
+        const updated = r[iUpdated];
+        if (updated && updated > latest) latest = updated;
+      });
+    });
+
+    // RENDERING
     const body = document.getElementById("accountsBody");
     body.innerHTML = "";
 
@@ -369,6 +384,7 @@ Object.values(matches).forEach(matchRows => {
 
   });
 </script>
+
 
 
 
