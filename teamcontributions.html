@@ -165,9 +165,11 @@ function normaliseRow(r) {
         topScore: parseInt(r["Top Score"] || 0),
         ducks: parseInt(r["Ducks"] || 0),
         matchID: r["Match ID"] || "",
-        updated: r["UpdatedAt"] || ""
+        updated: r["UpdatedAt"] || "",              // FIXED
+        oppositionPlayer: r["Opposition Player Name"] || ""   // FIXED
     };
 }
+
 
 /* ===============================
    SEASON HANDLING
@@ -296,7 +298,7 @@ function buildContributionsTable(rows) {
 
     const players = {};
 
-   rows.forEach(r => {
+rows.forEach(r => {
     const name = r.player?.trim();
 
     // Skip empty names
@@ -307,8 +309,8 @@ function buildContributionsTable(rows) {
     if (name === "AN Other") return;
     if (name === "Anon") return;
 
-    // Only include Semington A players
-    if (!name.startsWith("Semington")) return;
+    // Skip opposition rows
+    if (r.oppositionPlayer && r.oppositionPlayer.length > 0) return;
 
     if (!players[name]) players[name] = [];
     players[name].push(r);
