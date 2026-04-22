@@ -391,7 +391,19 @@ Object.keys(players).forEach(name => {
         </tr>
       `;
     });
-    
+    body.innerHTML += `
+    <tr>
+      <td>${name}</td>
+      <td class="center">${p.leagueGames}</td>
+      <td class="center">${p.cupGames}</td>
+      <td>£${p.leagueFees}</td>
+      <td>£${p.duckFines}</td>
+      <td>£${p.lowScoreFines}</td>
+      <td>£${p.totalFines}</td>
+      <td>£${p.netOwed}</td>
+    </tr>
+  `;
+});
 
   });
 // ADD TOTALS ROW
