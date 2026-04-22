@@ -170,9 +170,6 @@ function normaliseRow(r) {
     };
 }
 
-
-
-
 /* ===============================
    SEASON HANDLING
 ================================ */
@@ -292,13 +289,17 @@ function calculatePlayerTotals(rows) {
         netOwed
     };
 }
+    
+    function showValue(v) {
+    return (v === 0 || v === "0" || v === 0.00) ? "" : v;
+}
 
 /* ===============================
    BUILD TABLE
 ================================ */
 function buildContributionsTable(rows) {
-
-    const players = {};
+    
+const players = {};
 
 rows.forEach(r => {
     const name = r.player?.trim();
@@ -314,10 +315,10 @@ rows.forEach(r => {
     // Skip opposition rows
     if (r.oppositionPlayer && r.oppositionPlayer.length > 0) return;
 
+    // KEEP players even if their stats are 0
     if (!players[name]) players[name] = [];
     players[name].push(r);
 });
-
 
     let html = `
         <table>
@@ -365,21 +366,22 @@ rows.forEach(r => {
 
         Object.keys(totals).forEach(k => totals[k] += data[k]);
     }
+html += `
+    <tr class="totals-row">
+        <td><strong>Totals</strong></td>
+        <td>${showValue(totals.legsWon.toFixed(2))}</td>
+        <td>${showValue(totals.spares.toFixed(2))}</td>
+        <td>${showValue(totals.topScore.toFixed(2))}</td>
+        <td>${showValue(totals.duckFines.toFixed(2))}</td>
+        <td>${showValue(totals.legFines.toFixed(2))}</td>
+        <td>${showValue(totals.leagueFees.toFixed(2))}</td>
+        <td>${showValue(totals.cupFees.toFixed(2))}</td>
+        <td>${showValue(totals.legFees.toFixed(2))}</td>
+        <td><strong>${showValue(totals.netOwed.toFixed(2))}</strong></td>
+    </tr>
+`;
 
-    html += `
-        <tr class="totals-row">
-            <td><strong>Totals</strong></td>
-            <td>${totals.legsWon.toFixed(2)}</td>
-            <td>${totals.spares.toFixed(2)}</td>
-            <td>${totals.topScore.toFixed(2)}</td>
-            <td>${totals.duckFines.toFixed(2)}</td>
-            <td>${totals.legFines.toFixed(2)}</td>
-            <td>${totals.leagueFees.toFixed(2)}</td>
-            <td>${totals.cupFees.toFixed(2)}</td>
-            <td>${totals.legFees.toFixed(2)}</td>
-            <td><strong>${totals.netOwed.toFixed(2)}</strong></td>
-        </tr>
-    `;
+   
 
     html += `</tbody></table>`;
     document.getElementById("tableContainer").innerHTML = html;
