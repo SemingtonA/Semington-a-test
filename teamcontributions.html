@@ -378,7 +378,22 @@ body.innerHTML = "";
 Object.keys(players).sort().forEach(name => {
   const p = players[name];
 
- body.innerHTML += `
+  body.innerHTML += `
+    <tr>
+      <td>${name}</td>
+      <td class="center">${p.leagueGames}</td>
+      <td class="center">${p.cupGames}</td>
+      <td>£${p.leagueFees}</td>
+      <td>£${p.duckFines}</td>
+      <td>£${p.lowScoreFines}</td>
+      <td>£${p.totalFines}</td>
+      <td>£${p.netOwed}</td>
+    </tr>
+  `;
+});
+
+// SINGLE totals row (only once, after the loop)
+body.innerHTML += `
   <tr style="font-weight:bold; background:#f2f2f2;">
     <td>TOTALS</td>
     <td class="center">-</td>
@@ -390,24 +405,7 @@ Object.keys(players).sort().forEach(name => {
     <td>£${totalLeagueFees + (totalDuckFines + totalLowFines)}</td>
   </tr>
 `;
-});
 
-// ADD TOTALS ROW (INSIDE the .then block)
-body.innerHTML += `
-  <tr style="font-weight:bold; background:#f2f2f2;">
-    <td>TOTALS</td>
-    <td class="center">-</td>
-    <td class="center">-</td>
-    <td>£${totalLeagueFees}</td>
-    <td>£${totalDuckFines}</td>
-    <td>£${totalLowFines}</td>
-    <td>£${totalDuckFines + totalLowFines}</td>
-    <td>£${totalOwed}</td>
-  </tr>
-`;
-
-}); // ← closes .then(text => { ... })
-</script>
 
  
 </body>
