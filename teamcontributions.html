@@ -351,16 +351,26 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
         p.totalFines = p.duckFines + p.lowScoreFines;
         p.netOwed = p.leagueFees + p.totalFines;
 
-        totalLeagueFees += p.leagueFees;
-        totalDuckFines  += p.duckFines;
-        totalLowFines   += p.lowScoreFines;
-        totalOwed       += p.netOwed;
-
+    
         const updated = r[iUpdated];
         if (updated && updated > latest) latest = updated;
       });
     });
 
+       totalLeagueFees = 0;
+totalDuckFines  = 0;
+totalLowFines   = 0;
+totalOwed       = 0;
+
+Object.keys(players).forEach(name => {
+  const p = players[name];
+  totalLeagueFees += p.leagueFees;
+  totalDuckFines  += p.duckFines;
+  totalLowFines   += p.lowScoreFines;
+  totalOwed       += p.netOwed;
+});
+
+    
     // RENDERING
     const body = document.getElementById("accountsBody");
     body.innerHTML = "";
@@ -381,9 +391,9 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
         </tr>
       `;
     });
-    // ADD TOTALS ROW
-body.innerHTML += `
-  <tr style="font-weight:bold; background:#ffe08a;">
+         // ADD TOTALS ROW
+    body.innerHTML += `
+  <tr style="font-weight:bold;">
     <td>TOTALS</td>
     <td class="center">-</td>
     <td class="center">-</td>
@@ -395,13 +405,8 @@ body.innerHTML += `
   </tr>
 `;
 
-
   });
 </script>
-
-
-
-
 
 </body>
 </html>
