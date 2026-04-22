@@ -216,6 +216,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     const iDetails  = idx("Match Details");
     const iMatchId  = idx("Match ID");
     const iUpdated  = idx("UpdatedAt");
+    const iLeagueCup = idx("League/Cup");
 
     const iLeg1 = idx("Leg 1:");
     const iLeg2 = idx("Leg 2:");
@@ -223,22 +224,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     const iLeg4 = idx("Leg 4:");
     const iLeg5 = idx("Leg 5:");
     const iLeg6 = idx("Leg 6:");
-    const iTotal = idx("Total Score"); // used for lowest player in match
-
-    console.log("HEADER CHECK:", {
-      iPlayer,
-      iDucks,
-      iDetails,
-      iMatchId,
-      iUpdated,
-      iLeg1,
-      iLeg2,
-      iLeg3,
-      iLeg4,
-      iLeg5,
-      iLeg6,
-      iTotal
-    });
+    const iTotal = idx("Total Score");
 
     const players = {};
     const invalidPlayers = new Set([
@@ -250,11 +236,18 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     ]);
 
     let totalLeagueFees = 0;
+    let totalCupFees    = 0;
     let totalDuckFines  = 0;
     let totalLowFines   = 0;
-    let latest          = "";
 
     const LOW_SCORE_LIMIT = 5;
+
+    // CUP FEE TABLE (easy to expand next season)
+    const cupFeeByDate = {
+      "19/09/2025": 2.00,
+      "02/01/2026": 2.50,
+      "30/01/2026": 2.00
+    };
 
     // GROUP ROWS BY MATCH
     const matches = {};
@@ -273,7 +266,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
       // real players in this match
       const realPlayers = matchRows.filter(r => !invalidPlayers.has(r[iPlayer]));
 
-      // lowest scoring real player (by Total Score)
+      // lowest scoring real player
       let lowestPlayerRow = null;
       let lowestScore = Infinity;
 
@@ -285,18 +278,18 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
         }
       });
 
-      // process each row in this match
+      // process each row
       matchRows.forEach(r => {
 
         const originalPlayer = r[iPlayer];
         let player = originalPlayer;
 
-        // reassign ghost players to lowest real player
+        // reassign ghost players
         if (invalidPlayers.has(originalPlayer)) {
           if (lowestPlayerRow) {
             player = lowestPlayerRow[iPlayer];
           } else {
-            return; // no valid players in this match
+            return;
           }
         }
 
@@ -307,30 +300,39 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
             leagueGames: 0,
             cupGames: 0,
             leagueFees: 0,
+            cupFees: 0,
             duckFines: 0,
             lowScoreFines: 0,
-            totalFines: 0,
             netOwed: 0
           };
         }
 
         const p = players[player];
         const details = r[iDetails] || "";
+        const leagueCup = r[iLeagueCup] || "";
+        const matchId = r[iMatchId] || "";
 
         // ONLY REAL PLAYERS EARN LEAGUE/CUP GAMES
         if (!invalidPlayers.has(originalPlayer)) {
-          if (details.includes("League")) p.leagueGames++;
-          if (details.includes("Cup"))    p.cupGames++;
+          if (leagueCup === "League") p.leagueGames++;
+          if (leagueCup === "Cup")    p.cupGames++;
         }
 
-        // league fees
+        // LEAGUE FEES (£4 per match)
         p.leagueFees = p.leagueGames * 4;
 
-        // duck fines (ghost rows still count against reassigned player)
+        // CUP FEES (based on Match ID date)
+        if (leagueCup === "Cup") {
+          const datePart = matchId.split(" ")[0]; // extract DD/MM/YYYY
+          const fee = cupFeeByDate[datePart] || 0;
+          p.cupFees += fee;
+        }
+
+        // DUCK FINES
         const ducks = Number(r[iDucks] || 0);
         p.duckFines += ducks;
 
-        // low score fines
+        // LOW SCORE FINES
         const legs = [
           Number(r[iLeg1] || 0),
           Number(r[iLeg2] || 0),
@@ -346,63 +348,59 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
           }
         });
 
-        p.totalFines = p.duckFines + p.lowScoreFines;
-        p.netOwed = p.leagueFees + p.totalFines;
+        // NET OWED
+        p.netOwed = p.leagueFees + p.cupFees + p.duckFines + p.lowScoreFines;
 
-    
-        const updated = r[iUpdated];
-        if (updated && updated > latest) latest = updated;
       });
     });
 
-       totalLeagueFees = 0;
-totalDuckFines  = 0;
-totalLowFines   = 0;
-totalOwed       = 0;
+    // TOTALS
+    Object.keys(players).forEach(name => {
+      const p = players[name];
+      totalLeagueFees += p.leagueFees;
+      totalCupFees    += p.cupFees;
+      totalDuckFines  += p.duckFines;
+      totalLowFines   += p.lowScoreFines;
+    });
 
-Object.keys(players).forEach(name => {
-  const p = players[name];
-  totalLeagueFees += p.leagueFees;
-  totalDuckFines  += p.duckFines;
-  totalOwed += p.netOwed;
+    // RENDERING
+    const body = document.getElementById("accountsBody");
+    body.innerHTML = "";
 
- });
+    Object.keys(players).sort().forEach(name => {
+      const p = players[name];
 
-// RENDERING
-const body = document.getElementById("accountsBody");
-body.innerHTML = "";
+      body.innerHTML += `
+        <tr>
+          <td>${name}</td>
+          <td class="center">${p.leagueGames}</td>
+          <td class="center">${p.cupGames}</td>
+          <td>£${p.leagueFees}</td>
+          <td>£${p.cupFees.toFixed(2)}</td>
+          <td>£${p.duckFines}</td>
+          <td>£${p.lowScoreFines}</td>
+          <td>£${p.netOwed}</td>
+        </tr>
+      `;
+    });
 
-// Player rows
-Object.keys(players).sort().forEach(name => {
-  const p = players[name];
-
-  body.innerHTML += `
-    <tr>
-      <td>${name}</td>
-      <td class="center">${p.leagueGames}</td>
-      <td class="center">${p.cupGames}</td>
-      <td>£${p.leagueFees}</td>
-      <td>£${p.duckFines}</td>
-      <td>£${p.lowScoreFines}</td>
-      <td>£${p.totalOwed}</td>
+    // TOTALS ROW
+    body.innerHTML += `
+      <tr style="font-weight:bold; background:#f2f2f2;">
+        <td>TOTALS</td>
+        <td class="center">-</td>
+        <td class="center">-</td>
+        <td>£${totalLeagueFees}</td>
+        <td>£${totalCupFees.toFixed(2)}</td>
+        <td>£${totalDuckFines}</td>
+        <td>£${totalLowFines}</td>
+        <td>£${totalLeagueFees + totalCupFees + totalDuckFines + totalLowFines}</td>
       </tr>
-  `;
-});
+    `;
 
-// SINGLE totals row (only once, after the loop)
-body.innerHTML += `
-  <tr style="font-weight:bold; background:#f2f2f2;">
-    <td>TOTALS</td>
-    <td class="center">-</td>
-    <td class="center">-</td>
-    <td>£${totalLeagueFees}</td>
-    <td>£${totalDuckFines}</td>
-    <td>£${totalLowFines}</td>
-    <td>£${totalLeagueFees + totalDuckFines + totalLowFines}</td>
-  </tr>
-`;
-});
+  });
 </script>
+
 
 </body>
 </html>
