@@ -291,7 +291,26 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     });
 
     // Rendering happens below (unchanged)
-  });
+const body = document.getElementById("accountsBody");
+body.innerHTML = "";
+
+Object.keys(players).sort().forEach(name => {
+  const p = players[name];
+
+  body.innerHTML += `
+    <tr>
+      <td>${name}</td>
+      <td class="center">${p.leagueGames}</td>
+      <td class="center">${p.cupGames}</td>
+      <td>£${p.leagueFees}</td>
+      <td>£${p.duckFines}</td>
+      <td>£${p.lowScoreFines}</td>
+      <td>£${p.totalFines}</td>
+      <td>£${p.netOwed}</td>
+    </tr>
+  `;
+});
+
 </script>
 
 
