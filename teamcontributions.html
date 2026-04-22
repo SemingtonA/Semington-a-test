@@ -171,16 +171,29 @@ fetch("csv_export.csv")
 // ===============================
 // PARSE CSV
 // ===============================
-function parseCSV(text) {
-    const lines = text.trim().split("\n");
-    const headers = lines[0].split(",").map(h => h.trim());
 
-    return lines.slice(1).map(line => {
-        const values = line.split(",");
+    function parseCSV(text) {
+    const rows = [];
+    const lines = text.trim().split("\n");
+
+    // Extract headers safely
+    const headers = lines[0].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+        .map(h => h.replace(/^"|"$/g, "").trim());
+
+    // Extract each row safely
+    for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+            ?.map(v => v.replace(/^"|"$/g, "").trim()) || [];
+
         let row = {};
-        headers.forEach((h, i) => row[h] = values[i] ? values[i].trim() : "");
-        return row;
-    });
+        headers.forEach((h, idx) => {
+            row[h] = values[idx] || "";
+        });
+
+        rows.push(row);
+    }
+
+    return rows;
 }
 
 // ===============================
