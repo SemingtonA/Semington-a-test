@@ -152,95 +152,261 @@
 <div id="tableContainer"></div>
 
 <script>
-// ===============================
-// LOAD CSV AND INITIALISE PAGE
-// ===============================
 
+// ===============================
+// LOAD CSV
+// ===============================
 let csvData = [];
 let seasons = [];
 
-// Load CSV file
 fetch("playerdata.csv")
-    .then(response => response.text())
+    .then(r => r.text())
     .then(text => {
         csvData = parseCSV(text);
         extractSeasons();
         populateSeasonDropdown();
-        applySeasonFilter(); // Auto-load most recent season
+        applySeasonFilter();
     });
 
 // ===============================
-// PARSE CSV INTO ARRAY OF OBJECTS
+// PARSE CSV
 // ===============================
 function parseCSV(text) {
     const lines = text.trim().split("\n");
-    const headers = lines[0].split(",");
+    const headers = lines[0].split(",").map(h => h.trim());
 
     return lines.slice(1).map(line => {
         const values = line.split(",");
         let row = {};
-        headers.forEach((h, i) => row[h.trim()] = values[i]?.trim());
+        headers.forEach((h, i) => row[h] = values[i] ? values[i].trim() : "");
         return row;
     });
 }
 
 // ===============================
-// EXTRACT UNIQUE SEASONS
+// NORMALISE ROW (MATCH YOUR CSV)
+// ===============================
+function normaliseRow(r) {
+    return {
+        player: r["Semington A Player Name"],
+        season: r["Season"],
+        matchType: r["Match Details"].toLowerCase().includes("cup") ? "cup" : "league",
+        division: r["Division"].toLowerCase().includes("prem") ? "premier" : "div1",
+        legsWon: parseInt(r["Legs Won"] || 0),
+        spares: parseInt(r["Spares"] || 0),
+        topScore: parseInt(r["Top Score"] || 0),
+        ducks: parseInt(r["Ducks"] || 0),
+        matchID: r["Match ID"],
+        updated: r["UpdatedAt"]
+    };
+}
+
+// ===============================
+// SEASONS
 // ===============================
 function extractSeasons() {
-    const seasonSet = new Set();
-
-    csvData.forEach(row => {
-        if (row["Season"] && row["Season"] !== "") {
-            seasonSet.add(row["Season"]);
-        }
+    const set = new Set();
+    csvData.forEach(r => {
+        if (r["Season"]) set.add(r["Season"]);
     });
-
-    seasons = Array.from(seasonSet);
-
-    // Sort seasons newest → oldest
-    seasons.sort((a, b) => {
-        const aYear = parseInt(a.split("-")[0]);
-        const bYear = parseInt(b.split("-")[0]);
-        return bYear - aYear;
+    seasons = Array.from(set).sort((a, b) => {
+        return parseInt(b.split("-")[0]) - parseInt(a.split("-")[0]);
     });
 }
 
-// ===============================
-// POPULATE SEASON DROPDOWN
-// ===============================
 function populateSeasonDropdown() {
-    const dropdown = document.getElementById("seasonSelect");
-    dropdown.innerHTML = "";
-
+    const dd = document.getElementById("seasonSelect");
+    dd.innerHTML = "";
     seasons.forEach(season => {
-        const option = document.createElement("option");
-        option.value = season;
-        option.textContent = season;
-        dropdown.appendChild(option);
+        const opt = document.createElement("option");
+        opt.value = season;
+        opt.textContent = season;
+        dd.appendChild(opt);
     });
+    if (seasons.length > 0) dd.value = seasons[0];
+    dd.addEventListener("change", applySeasonFilter);
+}
 
-    // Auto-select most recent season
-    if (seasons.length > 0) {
-        dropdown.value = seasons[0];
+// ===============================
+// LAST UPDATED
+// ===============================
+function ordinal(n) {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function updateLastUpdated(rows) {
+    const el = document.getElementById("lastUpdated");
+
+    const timestamps = rows
+        .map(r => r.updated)
+        .filter(t => t && t !== "")
+        .map(t => new Date(t));
+
+    if (!timestamps.length) {
+        el.textContent = "Last updated: No timestamp";
+        return;
     }
 
-    dropdown.addEventListener("change", applySeasonFilter);
+    const latest = new Date(Math.max(...timestamps));
+
+    el.textContent =
+        "Last updated: " +
+        latest.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
+        ordinal(latest.getDate()) + " " +
+        latest.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) +
+        " " +
+        latest.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
 // ===============================
-// FILTER DATA BY SELECTED SEASON
+// APPLY SEASON FILTER (FINAL VERSION)
 // ===============================
 function applySeasonFilter() {
-    const selectedSeason = document.getElementById("seasonSelect").value;
+    const season = document.getElementById("seasonSelect").value;
 
-    const filtered = csvData.filter(row => row["Season"] === selectedSeason);
+    const filtered = csvData
+        .map(normaliseRow)
+        .filter(r => r.season === season);
 
+    updateLastUpdated(filtered);
     buildContributionsTable(filtered);
 }
+
+// ===============================
+// CALCULATIONS
+// ===============================
+function calculatePlayerTotals(rows) {
+
+    let legsWon = 0, spares = 0, topScore = 0;
+    let duckFines = 0, legFines = 0;
+    let leagueFees = 0, cupFees = 0, legFees = 0;
+
+    rows.forEach(r => {
+
+        // Earnings
+        legsWon += r.legsWon * 2.00;
+        spares += r.spares * 1.80;
+        if (r.topScore > 0) topScore += 3.00;
+
+        // League-only fines
+        if (r.matchType === "league") {
+
+            if (r.ducks > 0) {
+                duckFines += (r.division === "premier") ? r.ducks * 0.50 : r.ducks * 2.00;
+            }
+
+            if (r.legsWon > 0) {
+                if (r.division === "premier" && r.legsWon < 5) legFines += 0.20;
+                if (r.division !== "premier" && r.legsWon < 6) legFines += 0.20;
+            }
+
+            leagueFees += 4.00;
+        }
+
+        // Cup fees
+        if (r.matchType === "cup") {
+            cupFees += 2.00; // All cup matches £2
+        }
+
+        // Leg fees (all matches)
+        legFees += 1.00;
+    });
+
+    const netOwed =
+        duckFines + legFines + leagueFees + cupFees + legFees + spares;
+
+    return {
+        legsWon, spares, topScore,
+        duckFines, legFines,
+        leagueFees, cupFees, legFees,
+        netOwed
+    };
+}
+
+// ===============================
+// BUILD TABLE
+// ===============================
+function buildContributionsTable(rows) {
+
+    const players = {};
+
+    rows.forEach(r => {
+        if (!players[r.player]) players[r.player] = [];
+        players[r.player].push(r);
+    });
+
+    let html = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Legs Won (£)</th>
+                    <th>Spares (£)</th>
+                    <th>Top Score (£)</th>
+                    <th>Duck Fines (£)</th>
+                    <th>Leg Fines (£)</th>
+                    <th>League Fees (£)</th>
+                    <th>Cup Fees (£)</th>
+                    <th>Leg Fees (£)</th>
+                    <th>Net Owed (£)</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    let totals = {
+        legsWon: 0, spares: 0, topScore: 0,
+        duckFines: 0, legFines: 0,
+        leagueFees: 0, cupFees: 0, legFees: 0,
+        netOwed: 0
+    };
+
+    for (const player in players) {
+        const data = calculatePlayerTotals(players[player]);
+
+        html += `
+            <tr>
+                <td>${player}</td>
+                <td>${data.legsWon.toFixed(2)}</td>
+                <td>${data.spares.toFixed(2)}</td>
+                <td>${data.topScore.toFixed(2)}</td>
+                <td>${data.duckFines.toFixed(2)}</td>
+                <td>${data.legFines.toFixed(2)}</td>
+                <td>${data.leagueFees.toFixed(2)}</td>
+                <td>${data.cupFees.toFixed(2)}</td>
+                <td>${data.legFees.toFixed(2)}</td>
+                <td><strong>${data.netOwed.toFixed(2)}</strong></td>
+            </tr>
+        `;
+
+        Object.keys(totals).forEach(k => totals[k] += data[k]);
+    }
+
+    html += `
+        <tr class="totals-row">
+            <td><strong>Totals</strong></td>
+            <td>${totals.legsWon.toFixed(2)}</td>
+            <td>${totals.spares.toFixed(2)}</td>
+            <td>${totals.topScore.toFixed(2)}</td>
+            <td>${totals.duckFines.toFixed(2)}</td>
+            <td>${totals.legFines.toFixed(2)}</td>
+            <td>${totals.leagueFees.toFixed(2)}</td>
+            <td>${totals.cupFees.toFixed(2)}</td>
+            <td>${totals.legFees.toFixed(2)}</td>
+            <td><strong>${totals.netOwed.toFixed(2)}</strong></td>
+        </tr>
+    `;
+
+    html += `</tbody></table>`;
+    document.getElementById("tableContainer").innerHTML = html;
+}
+
 </script>
 
- <script>
+
+
 // =====================================
 // BUILD CONTRIBUTIONS TABLE (MAIN VIEW)
 // =====================================
