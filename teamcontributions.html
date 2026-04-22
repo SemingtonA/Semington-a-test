@@ -12,13 +12,11 @@
   th { background: #eee; }
   .center { text-align: center; }
 
-  /* Winner highlight */
+  /* Winner cell */
   .winner { background: #66FF33 !important; font-weight: bold; }
 
-  /* Earned money highlight */
+  /* Earned money cell */
   .earned { background: #7CFC00 !important; }
-
-  /* No earnings = blank */
 
   #last-updated { margin-top: 10px; font-style: italic; }
 </style>
@@ -59,7 +57,7 @@ function fetchText(url){
 }
 
 // ---------------------------
-// Update Last Updated (same as ToCatch)
+// Update Last Updated
 // ---------------------------
 function updateLastUpdated(grid) {
   if (!grid || grid.length < 2) return;
@@ -133,7 +131,11 @@ fetchText("csv_export.csv?v=" + Date.now())
     const iPlayer    = idx("Semington A Player Name");
     const iDucks     = idx("Ducks");
     const iMatchId   = idx("Match ID");
-    const iLeagueCup = idx("League/Cup");
+
+    // More forgiving League/Cup header detection
+    const iLeagueCup = header.findIndex(h =>
+      h.replace(/\s+/g, "").toLowerCase() === "league/cup"
+    );
 
     const iLeg1 = idx("Leg 1:");
     const iLeg2 = idx("Leg 2:");
@@ -221,8 +223,8 @@ fetchText("csv_export.csv?v=" + Date.now())
         if (!players[originalPlayer]) players[originalPlayer] = newPlayer();
         const p = players[originalPlayer];
 
-        const leagueCup = r[iLeagueCup] || "";
-        const matchId = r[iMatchId] || "";
+        const leagueCup =
+          iLeagueCup === -1 ? "" : (r[iLeagueCup] || "");
 
         if (leagueCup === "League") p.leagueGames++;
         if (leagueCup === "Cup")    p.cupGames++;
@@ -230,7 +232,7 @@ fetchText("csv_export.csv?v=" + Date.now())
         p.leagueFees = p.leagueGames * 4;
 
         if (leagueCup === "Cup") {
-          const datePart = matchId.split(" ")[0];
+          const datePart = (r[iMatchId] || "").split(" ")[0];
           const fee = cupFeeByDate[datePart] || 0;
           p.cupFees += fee;
         }
@@ -273,12 +275,19 @@ fetchText("csv_export.csv?v=" + Date.now())
     Object.keys(players).sort().forEach(name => {
       const p = players[name];
 
-      let cls = "";
-      if (p.legsWon === maxLegsWon || p.topScores === maxTopScores) cls = "winner";
-      else if (p.legsWon > 0 || p.topScores > 0) cls = "earned";
+      const isLegWinner = maxLegsWon > 0 && p.legsWon === maxLegsWon;
+      const isTopWinner = maxTopScores > 0 && p.topScores === maxTopScores;
+
+      const legClass =
+        isLegWinner ? "winner" :
+        (p.legsWon > 0 ? "earned" : "");
+
+      const topClass =
+        isTopWinner ? "winner" :
+        (p.topScores > 0 ? "earned" : "");
 
       body.innerHTML += `
-        <tr class="${cls}">
+        <tr>
           <td>${name}</td>
           <td class="center">${p.leagueGames}</td>
           <td class="center">${p.cupGames}</td>
@@ -286,8 +295,10 @@ fetchText("csv_export.csv?v=" + Date.now())
           <td>£${p.cupFees.toFixed(2)}</td>
           <td>£${p.duckFines}</td>
           <td>£${p.lowScoreFines}</td>
-          <td>£${p.legsWon * 2}</td>
-          <td>£${p.topScores * 3}</td>
+
+          <td class="${legClass}">£${p.legsWon * 2}</td>
+          <td class="${topClass}">£${p.topScores * 3}</td>
+
           <td>£${p.netOwed}</td>
         </tr>
       `;
