@@ -1,221 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Team Contributions</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Team Contributions</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f5f0e6;
-    }
-
-     header h1 {
-     font-size: 100px;
-   }
-
-    .header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.logo img {
-  width: 300px;
-  height: auto;
-}
-
-    .nav-buttons ul {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.nav-buttons li {
-  margin: 5px;
-}
-
-.nav-buttons a {
-  display: inline-block;
-  padding: 10px 18px;
-  background: #000;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
-.nav-buttons a:hover {
-  background: #163aa3;
-}
-
-   
-    .content-box {
-      background: #fff;
-      max-width: 1200px;
-      margin: 20px auto;
-      padding: 20px;
-      border-radius: 8px;
-      overflow-x: auto;
-    }
-
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 10px;
-    }
-
-    h2 { margin: 0; }
-
-    #lastUpdated {
-      font-size: 12px;
-      color: #555;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-
-    th, td {
-      padding: 8px;
-      border-bottom: 1px solid #ddd;
-      font-size: 14px;
-    }
-
-    th {
-      background: #f0f0f0;
-      text-align: left;
-    }
-
-    td.center { text-align: center; }
-    td.num { text-align: left; white-space: nowrap; }
-
-     </style>
-
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; }
+  th { background: #eee; }
+  .center { text-align: center; }
+  .highlight { background: #7CFC00 !important; font-weight: bold; }
+  #last-updated { margin-top: 10px; font-style: italic; }
+</style>
 </head>
 
 <body>
 
-<header>
-  <div class="header-top">
-    <h1>Team Contributions</h1>
+<h2>Team Contributions</h2>
+<div id="last-updated">Last updated: —</div>
 
-    <div class="logo">
-      <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
-    </div>
-  </div>
-  
-<div class="nav-buttons">
-  <nav>
-    <ul>
-      <li><a href="index.html">Home</a></li>
-      <li><a href="fixtures.html">Fixtures &amp; Results</a></li>
-      <li><a href="match-results.html">Match Results</a></li>
-      <li><a href="tocatch.html">To Catch</a></li>
-      <li><a href="gallery.html">Gallery</a></li>
-      <li><a href="rules.html">Rules</a></li>
-      <li><a href="teamcontributions.html">Team Contributions</a></li>
-    </ul>
-  </nav>
-</div>
-
-
-
-
-</header>
-
-<main>
-
-  
-
-<body>
-
-<div class="content-box">
-  <div class="header-row">
-    <h2>Team Contributions</h2>
-    <div id="lastUpdated">Last updated: —</div>
-  </div>
-
-  <table>
-    <colgroup>
-      <col>
-      <col style="width:80px">
-      <col style="width:80px">
-      <col style="width:80px">
-      <col style="width:80px">
-      <col style="width:80px">
-      <col style="width:80px">
-      <col style="width:80px">
-    </colgroup>
-
-    <thead>
-      <tr>
-        <th>Team Player</th>
-        <th class="center">League Games</th>
-        <th class="center">Cup Games</th>
-        <th>League Fees</th>
-        <th>Duck Fines</th>
-        <th>Low Score Fines</th>
-        <th>Total Fines</th>
-        <th>Net Owed</th>
-      </tr>
-    </thead>
-
-    <tbody id="accountsBody"></tbody>
-  </table>
-</div>
+<table>
+  <thead>
+    <tr>
+      <th>Team Player</th>
+      <th class="center">League Games</th>
+      <th class="center">Cup Games</th>
+      <th>League Fees</th>
+      <th>Cup Fees</th>
+      <th>Duck Fines</th>
+      <th>Low Score Fines</th>
+      <th>Legs Won</th>
+      <th>Top Scores</th>
+      <th>Net Owed</th>
+    </tr>
+  </thead>
+  <tbody id="accountsBody"></tbody>
+</table>
 
 <script>
-fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
-  .then(r => {
-    if (!r.ok) throw new Error("csv_export.csv not found");
+// ---------------------------
+// Robust fetch helper
+// ---------------------------
+function fetchText(url){
+  return fetch(url, { cache:"no-store" }).then(r => {
+    if(!r.ok) throw new Error(url + " not found");
     return r.text();
-  })
-  .then(text => {
+  });
+}
 
-    // BULLETPROOF CSV PARSER
-    function parseCSVLine(line) {
-      const result = [];
-      let current = "";
-      let insideQuotes = false;
+// ---------------------------
+// Update Last Updated (same as ToCatch)
+// ---------------------------
+function updateLastUpdated(grid) {
+  if (!grid || grid.length < 2) return;
 
-      for (let i = 0; i < line.length; i++) {
-        const c = line[i];
+  const header = grid[0];
+  const idx = header.indexOf("UpdatedAt");
+  if (idx === -1) return;
 
-        if (c === '"') {
-          insideQuotes = !insideQuotes;
-        } else if (c === ',' && !insideQuotes) {
-          result.push(current.trim());
-          current = "";
-        } else {
-          current += c;
-        }
-      }
+  const raw = String(grid[1][idx] || "").trim();
+  if (!raw) return;
 
+  let s = raw;
+  const slash = s.indexOf("/");
+  if (slash > 0 && /^[A-Za-z]+$/.test(s.slice(0, slash))) {
+    s = s.slice(slash + 1);
+  }
+
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+  if (!m) return;
+
+  const date = new Date(m[3], m[2] - 1, m[1], m[4], m[5]);
+
+  const formatted = date.toLocaleString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+
+  document.getElementById("last-updated").textContent =
+    "Last updated: " + formatted;
+}
+
+// ---------------------------
+// CSV Parsing
+// ---------------------------
+function parseCSVLine(line) {
+  const result = [];
+  let current = "";
+  let insideQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+
+    if (c === '"') {
+      insideQuotes = !insideQuotes;
+    } else if (c === ',' && !insideQuotes) {
       result.push(current.trim());
-      return result;
+      current = "";
+    } else {
+      current += c;
     }
+  }
 
+  result.push(current.trim());
+  return result;
+}
+
+// ---------------------------
+// MAIN LOAD
+// ---------------------------
+fetchText("csv_export.csv?v=" + Date.now())
+  .then(text => {
     const rows = text.trim().split(/\r?\n/).map(parseCSVLine);
+
+    updateLastUpdated(rows);
 
     const header = rows.shift();
     const idx = n => header.indexOf(n);
 
-    // COLUMN INDEXES
-    const iPlayer   = idx("Semington A Player Name");
-    const iDucks    = idx("Ducks");
-    const iDetails  = idx("Match Details");
-    const iMatchId  = idx("Match ID");
-    const iUpdated  = idx("UpdatedAt");
+    const iPlayer    = idx("Semington A Player Name");
+    const iDucks     = idx("Ducks");
+    const iDetails   = idx("Match Details");
+    const iMatchId   = idx("Match ID");
+    const iUpdated   = idx("UpdatedAt");
     const iLeagueCup = idx("League/Cup");
 
     const iLeg1 = idx("Leg 1:");
@@ -228,111 +142,127 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
 
     const players = {};
     const invalidPlayers = new Set([
-      "O",
-      "0",
-      "A N Other",
-      "A  N Other",
-      "A N Others 4 and Under"
+      "O", "0", "A N Other", "A  N Other", "A N Others 4 and Under"
     ]);
 
     let totalLeagueFees = 0;
     let totalCupFees    = 0;
     let totalDuckFines  = 0;
     let totalLowFines   = 0;
+    let totalLegsWon    = 0;
+    let totalTopScores  = 0;
 
     const LOW_SCORE_LIMIT = 5;
 
-    // CUP FEE TABLE (easy to expand next season)
+    // Cup fee table
     const cupFeeByDate = {
       "19/09/2025": 2.00,
       "02/01/2026": 2.50,
       "30/01/2026": 2.00
     };
 
-    // GROUP ROWS BY MATCH
+    // Group rows by match
     const matches = {};
-
     rows.forEach(r => {
       const matchId = r[iMatchId];
       if (!matchId) return;
-
       if (!matches[matchId]) matches[matchId] = [];
       matches[matchId].push(r);
     });
 
-    // PROCESS EACH MATCH
+    // Process matches
     Object.values(matches).forEach(matchRows => {
-
-      // real players in this match
       const realPlayers = matchRows.filter(r => !invalidPlayers.has(r[iPlayer]));
 
-      // lowest scoring real player
-      let lowestPlayerRow = null;
-      let lowestScore = Infinity;
+      // Determine leg winners
+      for (let legIndex = 0; legIndex < 6; legIndex++) {
+        let highest = -1;
+        let winner = null;
+
+        realPlayers.forEach(r => {
+          const legScore = Number(r[iLeg1 + legIndex] || 0);
+          if (legScore > highest) {
+            highest = legScore;
+            winner = r[iPlayer];
+          }
+        });
+
+        if (winner) {
+          if (!players[winner]) {
+            players[winner] = {
+              leagueGames: 0, cupGames: 0,
+              leagueFees: 0, cupFees: 0,
+              duckFines: 0, lowScoreFines: 0,
+              legsWon: 0, topScores: 0,
+              netOwed: 0
+            };
+          }
+          players[winner].legsWon++;
+        }
+      }
+
+      // Determine top score winner
+      let topScore = -1;
+      let topPlayer = null;
 
       realPlayers.forEach(r => {
         const total = Number(r[iTotal] || 0);
-        if (total < lowestScore) {
-          lowestScore = total;
-          lowestPlayerRow = r;
+        if (total > topScore) {
+          topScore = total;
+          topPlayer = r[iPlayer];
         }
       });
 
-      // process each row
-      matchRows.forEach(r => {
+      if (topPlayer) {
+        if (!players[topPlayer]) {
+          players[topPlayer] = {
+            leagueGames: 0, cupGames: 0,
+            leagueFees: 0, cupFees: 0,
+            duckFines: 0, lowScoreFines: 0,
+            legsWon: 0, topScores: 0,
+            netOwed: 0
+          };
+        }
+        players[topPlayer].topScores++;
+      }
 
+      // Process each row
+      matchRows.forEach(r => {
         const originalPlayer = r[iPlayer];
         let player = originalPlayer;
 
-        // reassign ghost players
         if (invalidPlayers.has(originalPlayer)) {
-          if (lowestPlayerRow) {
-            player = lowestPlayerRow[iPlayer];
-          } else {
-            return;
-          }
+          return;
         }
-
-        if (!player) return;
 
         if (!players[player]) {
           players[player] = {
-            leagueGames: 0,
-            cupGames: 0,
-            leagueFees: 0,
-            cupFees: 0,
-            duckFines: 0,
-            lowScoreFines: 0,
+            leagueGames: 0, cupGames: 0,
+            leagueFees: 0, cupFees: 0,
+            duckFines: 0, lowScoreFines: 0,
+            legsWon: 0, topScores: 0,
             netOwed: 0
           };
         }
 
         const p = players[player];
-        const details = r[iDetails] || "";
         const leagueCup = r[iLeagueCup] || "";
         const matchId = r[iMatchId] || "";
 
-        // ONLY REAL PLAYERS EARN LEAGUE/CUP GAMES
-        if (!invalidPlayers.has(originalPlayer)) {
-          if (leagueCup === "League") p.leagueGames++;
-          if (leagueCup === "Cup")    p.cupGames++;
-        }
+        if (leagueCup === "League") p.leagueGames++;
+        if (leagueCup === "Cup")    p.cupGames++;
 
-        // LEAGUE FEES (£4 per match)
         p.leagueFees = p.leagueGames * 4;
 
-        // CUP FEES (based on Match ID date)
         if (leagueCup === "Cup") {
-          const datePart = matchId.split(" ")[0]; // extract DD/MM/YYYY
+          const datePart = matchId.split(" ")[0];
           const fee = cupFeeByDate[datePart] || 0;
           p.cupFees += fee;
         }
 
-        // DUCK FINES
         const ducks = Number(r[iDucks] || 0);
         p.duckFines += ducks;
 
-        // LOW SCORE FINES
         const legs = [
           Number(r[iLeg1] || 0),
           Number(r[iLeg2] || 0),
@@ -348,30 +278,47 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
           }
         });
 
-        // NET OWED
-        p.netOwed = p.leagueFees + p.cupFees + p.duckFines + p.lowScoreFines;
-
+        p.netOwed =
+          p.leagueFees +
+          p.cupFees +
+          p.duckFines +
+          p.lowScoreFines;
       });
     });
 
-    // TOTALS
-    Object.keys(players).forEach(name => {
-      const p = players[name];
+    // Determine max values for highlighting
+    let maxLegsWon = 0;
+    let maxTopScores = 0;
+
+    Object.values(players).forEach(p => {
+      if (p.legsWon > maxLegsWon) maxLegsWon = p.legsWon;
+      if (p.topScores > maxTopScores) maxTopScores = p.topScores;
+    });
+
+    // Totals
+    Object.values(players).forEach(p => {
       totalLeagueFees += p.leagueFees;
       totalCupFees    += p.cupFees;
       totalDuckFines  += p.duckFines;
       totalLowFines   += p.lowScoreFines;
+      totalLegsWon    += p.legsWon;
+      totalTopScores  += p.topScores;
     });
 
-    // RENDERING
+    // Render table
     const body = document.getElementById("accountsBody");
     body.innerHTML = "";
 
     Object.keys(players).sort().forEach(name => {
       const p = players[name];
 
+      const highlight =
+        (p.legsWon === maxLegsWon || p.topScores === maxTopScores)
+          ? 'class="highlight"'
+          : '';
+
       body.innerHTML += `
-        <tr>
+        <tr ${highlight}>
           <td>${name}</td>
           <td class="center">${p.leagueGames}</td>
           <td class="center">${p.cupGames}</td>
@@ -379,12 +326,14 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
           <td>£${p.cupFees.toFixed(2)}</td>
           <td>£${p.duckFines}</td>
           <td>£${p.lowScoreFines}</td>
+          <td>${p.legsWon}</td>
+          <td>${p.topScores}</td>
           <td>£${p.netOwed}</td>
         </tr>
       `;
     });
 
-    // TOTALS ROW
+    // Totals row
     body.innerHTML += `
       <tr style="font-weight:bold; background:#f2f2f2;">
         <td>TOTALS</td>
@@ -394,16 +343,17 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
         <td>£${totalCupFees.toFixed(2)}</td>
         <td>£${totalDuckFines}</td>
         <td>£${totalLowFines}</td>
+        <td>${totalLegsWon}</td>
+        <td>${totalTopScores}</td>
         <td>£${totalLeagueFees + totalCupFees + totalDuckFines + totalLowFines}</td>
       </tr>
     `;
-
   });
 </script>
 
-
 </body>
 </html>
+
 
 
  
