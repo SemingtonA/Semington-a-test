@@ -241,6 +241,14 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     });
 
     const players = {};
+    const invalidPlayers = new Set([
+  "O",
+  "0",
+  "A N Other",
+  "A  N Other",
+  "A N Others 4 and Under"
+]);
+
     const seen = {};
 
     let totalLeagueFees = 0;
