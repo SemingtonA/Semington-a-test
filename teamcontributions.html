@@ -159,7 +159,7 @@ let seasons = [];
 // ===============================
 // LOAD CSV
 // ===============================
-fetch("playerdata.csv")
+fetch("csv_export.csv")
     .then(r => r.text())
     .then(text => {
         csvData = parseCSV(text);
