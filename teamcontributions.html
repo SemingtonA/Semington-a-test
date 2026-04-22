@@ -296,10 +296,24 @@ function buildContributionsTable(rows) {
 
     const players = {};
 
-    rows.forEach(r => {
-        if (!players[r.player]) players[r.player] = [];
-        players[r.player].push(r);
-    });
+   rows.forEach(r => {
+    const name = r.player?.trim();
+
+    // Skip empty names
+    if (!name) return;
+
+    // Skip placeholder players
+    if (name === "A N Other") return;
+    if (name === "AN Other") return;
+    if (name === "Anon") return;
+
+    // Only include Semington A players
+    if (!name.startsWith("Semington")) return;
+
+    if (!players[name]) players[name] = [];
+    players[name].push(r);
+});
+
 
     let html = `
         <table>
