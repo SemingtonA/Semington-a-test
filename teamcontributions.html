@@ -11,7 +11,15 @@
   th, td { border: 1px solid #ccc; padding: 6px 8px; }
   th { background: #eee; }
   .center { text-align: center; }
-  .highlight { background: #7CFC00 !important; font-weight: bold; }
+
+  /* Winner highlight */
+  .winner { background: #66FF33 !important; font-weight: bold; }
+
+  /* Earned money highlight */
+  .earned { background: #7CFC00 !important; }
+
+  /* No earnings = blank */
+
   #last-updated { margin-top: 10px; font-style: italic; }
 </style>
 </head>
@@ -31,8 +39,8 @@
       <th>Cup Fees</th>
       <th>Duck Fines</th>
       <th>Low Score Fines</th>
-      <th>Legs Won</th>
-      <th>Top Scores</th>
+      <th>Legs Won (£)</th>
+      <th>Top Score (£)</th>
       <th>Net Owed</th>
     </tr>
   </thead>
@@ -99,14 +107,11 @@ function parseCSVLine(line) {
   for (let i = 0; i < line.length; i++) {
     const c = line[i];
 
-    if (c === '"') {
-      insideQuotes = !insideQuotes;
-    } else if (c === ',' && !insideQuotes) {
+    if (c === '"') insideQuotes = !insideQuotes;
+    else if (c === ',' && !insideQuotes) {
       result.push(current.trim());
       current = "";
-    } else {
-      current += c;
-    }
+    } else current += c;
   }
 
   result.push(current.trim());
@@ -127,9 +132,7 @@ fetchText("csv_export.csv?v=" + Date.now())
 
     const iPlayer    = idx("Semington A Player Name");
     const iDucks     = idx("Ducks");
-    const iDetails   = idx("Match Details");
     const iMatchId   = idx("Match ID");
-    const iUpdated   = idx("UpdatedAt");
     const iLeagueCup = idx("League/Cup");
 
     const iLeg1 = idx("Leg 1:");
@@ -142,26 +145,17 @@ fetchText("csv_export.csv?v=" + Date.now())
 
     const players = {};
     const invalidPlayers = new Set([
-      "O", "0", "A N Other", "A  N Other", "A N Others 4 and Under"
+      "O","0","A N Other","A  N Other","A N Others 4 and Under"
     ]);
-
-    let totalLeagueFees = 0;
-    let totalCupFees    = 0;
-    let totalDuckFines  = 0;
-    let totalLowFines   = 0;
-    let totalLegsWon    = 0;
-    let totalTopScores  = 0;
 
     const LOW_SCORE_LIMIT = 5;
 
-    // Cup fee table
     const cupFeeByDate = {
       "19/09/2025": 2.00,
       "02/01/2026": 2.50,
       "30/01/2026": 2.00
     };
 
-    // Group rows by match
     const matches = {};
     rows.forEach(r => {
       const matchId = r[iMatchId];
@@ -170,11 +164,20 @@ fetchText("csv_export.csv?v=" + Date.now())
       matches[matchId].push(r);
     });
 
-    // Process matches
+    function newPlayer() {
+      return {
+        leagueGames: 0, cupGames: 0,
+        leagueFees: 0, cupFees: 0,
+        duckFines: 0, lowScoreFines: 0,
+        legsWon: 0, topScores: 0,
+        netOwed: 0
+      };
+    }
+
     Object.values(matches).forEach(matchRows => {
       const realPlayers = matchRows.filter(r => !invalidPlayers.has(r[iPlayer]));
 
-      // Determine leg winners
+      // Legs Won
       for (let legIndex = 0; legIndex < 6; legIndex++) {
         let highest = -1;
         let winner = null;
@@ -188,20 +191,12 @@ fetchText("csv_export.csv?v=" + Date.now())
         });
 
         if (winner) {
-          if (!players[winner]) {
-            players[winner] = {
-              leagueGames: 0, cupGames: 0,
-              leagueFees: 0, cupFees: 0,
-              duckFines: 0, lowScoreFines: 0,
-              legsWon: 0, topScores: 0,
-              netOwed: 0
-            };
-          }
+          if (!players[winner]) players[winner] = newPlayer();
           players[winner].legsWon++;
         }
       }
 
-      // Determine top score winner
+      // Top Score
       let topScore = -1;
       let topPlayer = null;
 
@@ -214,38 +209,18 @@ fetchText("csv_export.csv?v=" + Date.now())
       });
 
       if (topPlayer) {
-        if (!players[topPlayer]) {
-          players[topPlayer] = {
-            leagueGames: 0, cupGames: 0,
-            leagueFees: 0, cupFees: 0,
-            duckFines: 0, lowScoreFines: 0,
-            legsWon: 0, topScores: 0,
-            netOwed: 0
-          };
-        }
+        if (!players[topPlayer]) players[topPlayer] = newPlayer();
         players[topPlayer].topScores++;
       }
 
-      // Process each row
+      // Per-player processing
       matchRows.forEach(r => {
         const originalPlayer = r[iPlayer];
-        let player = originalPlayer;
+        if (invalidPlayers.has(originalPlayer)) return;
 
-        if (invalidPlayers.has(originalPlayer)) {
-          return;
-        }
+        if (!players[originalPlayer]) players[originalPlayer] = newPlayer();
+        const p = players[originalPlayer];
 
-        if (!players[player]) {
-          players[player] = {
-            leagueGames: 0, cupGames: 0,
-            leagueFees: 0, cupFees: 0,
-            duckFines: 0, lowScoreFines: 0,
-            legsWon: 0, topScores: 0,
-            netOwed: 0
-          };
-        }
-
-        const p = players[player];
         const leagueCup = r[iLeagueCup] || "";
         const matchId = r[iMatchId] || "";
 
@@ -273,9 +248,7 @@ fetchText("csv_export.csv?v=" + Date.now())
         ];
 
         legs.forEach(l => {
-          if (l > 0 && l < LOW_SCORE_LIMIT) {
-            p.lowScoreFines++;
-          }
+          if (l > 0 && l < LOW_SCORE_LIMIT) p.lowScoreFines++;
         });
 
         p.netOwed =
@@ -286,7 +259,6 @@ fetchText("csv_export.csv?v=" + Date.now())
       });
     });
 
-    // Determine max values for highlighting
     let maxLegsWon = 0;
     let maxTopScores = 0;
 
@@ -295,30 +267,18 @@ fetchText("csv_export.csv?v=" + Date.now())
       if (p.topScores > maxTopScores) maxTopScores = p.topScores;
     });
 
-    // Totals
-    Object.values(players).forEach(p => {
-      totalLeagueFees += p.leagueFees;
-      totalCupFees    += p.cupFees;
-      totalDuckFines  += p.duckFines;
-      totalLowFines   += p.lowScoreFines;
-      totalLegsWon    += p.legsWon;
-      totalTopScores  += p.topScores;
-    });
-
-    // Render table
     const body = document.getElementById("accountsBody");
     body.innerHTML = "";
 
     Object.keys(players).sort().forEach(name => {
       const p = players[name];
 
-      const highlight =
-        (p.legsWon === maxLegsWon || p.topScores === maxTopScores)
-          ? 'class="highlight"'
-          : '';
+      let cls = "";
+      if (p.legsWon === maxLegsWon || p.topScores === maxTopScores) cls = "winner";
+      else if (p.legsWon > 0 || p.topScores > 0) cls = "earned";
 
       body.innerHTML += `
-        <tr ${highlight}>
+        <tr class="${cls}">
           <td>${name}</td>
           <td class="center">${p.leagueGames}</td>
           <td class="center">${p.cupGames}</td>
@@ -326,33 +286,18 @@ fetchText("csv_export.csv?v=" + Date.now())
           <td>£${p.cupFees.toFixed(2)}</td>
           <td>£${p.duckFines}</td>
           <td>£${p.lowScoreFines}</td>
-          <td>${p.legsWon}</td>
-          <td>${p.topScores}</td>
+          <td>£${p.legsWon * 2}</td>
+          <td>£${p.topScores * 3}</td>
           <td>£${p.netOwed}</td>
         </tr>
       `;
     });
-
-    // Totals row
-    body.innerHTML += `
-      <tr style="font-weight:bold; background:#f2f2f2;">
-        <td>TOTALS</td>
-        <td class="center">-</td>
-        <td class="center">-</td>
-        <td>£${totalLeagueFees}</td>
-        <td>£${totalCupFees.toFixed(2)}</td>
-        <td>£${totalDuckFines}</td>
-        <td>£${totalLowFines}</td>
-        <td>${totalLegsWon}</td>
-        <td>${totalTopScores}</td>
-        <td>£${totalLeagueFees + totalCupFees + totalDuckFines + totalLowFines}</td>
-      </tr>
-    `;
   });
 </script>
 
 </body>
 </html>
+
 
 
 
