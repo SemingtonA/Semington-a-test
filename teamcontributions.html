@@ -359,7 +359,7 @@ function buildContributionsTable(rows) {
 
 async function initTeamContributions() {
     // Adjust this path if your CSV is elsewhere
-    const csvUrl = "data/teamcontributions.csv";
+    const csvUrl = "csv_export.csv";
 
     const rawRows = await loadCSV(csvUrl);
     const rows = rawRows.map(normaliseRow);
