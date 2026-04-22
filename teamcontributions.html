@@ -183,7 +183,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
   })
   .then(text => {
 
-    // ⭐ SAFE CSV PARSER (fixes commas inside fields)
+    // ⭐ SAFE CSV PARSER (handles commas inside quotes)
     const rows = text.trim().split(/\r?\n/).map(r => {
       const parts = [];
       let current = "";
@@ -206,14 +206,14 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     const header = rows.shift();
     const idx = n => header.indexOf(n);
 
+    // ⭐ EXACT HEADER NAMES FROM YOUR CSV
     const iPlayer   = idx("Semington A Player Name");
     const iDucks    = idx("Ducks");
     const iDetails  = idx("Match Details");
     const iMatchId  = idx("Match ID");
     const iUpdated  = idx("UpdatedAt");
 
-    // ⭐ CORRECT LEG COLUMN NAMES
-    const iLeg1 = idx("Semington Leg 1:");
+    const iLeg1 = idx("Leg 1:");
     const iLeg2 = idx("Leg 2:");
     const iLeg3 = idx("Leg 3:");
     const iLeg4 = idx("Leg 4:");
@@ -293,6 +293,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     // Rendering happens below (unchanged)
   });
 </script>
+
 
 
 </body>
