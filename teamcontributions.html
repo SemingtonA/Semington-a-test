@@ -220,6 +220,21 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     const iLeg5 = idx("Leg 5:");
     const iLeg6 = idx("Leg 6:");
 
+    console.log("HEADER CHECK:", {
+  iPlayer,
+  iDucks,
+  iDetails,
+  iMatchId,
+  iUpdated,
+  iLeg1,
+  iLeg2,
+  iLeg3,
+  iLeg4,
+  iLeg5,
+  iLeg6
+});
+
+
     const players = {};
     const seen = {};
 
