@@ -182,9 +182,28 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     return r.text();
   })
   .then(text => {
-    const rows = text.trim().split(/\r?\n/).map(r => r.split(","));
-    const header = rows.shift();
 
+    // ⭐ SAFE CSV PARSER (fixes commas inside fields)
+    const rows = text.trim().split(/\r?\n/).map(r => {
+      const parts = [];
+      let current = "";
+      let insideQuotes = false;
+
+      for (let c of r) {
+        if (c === '"') {
+          insideQuotes = !insideQuotes;
+        } else if (c === ',' && !insideQuotes) {
+          parts.push(current);
+          current = "";
+        } else {
+          current += c;
+        }
+      }
+      parts.push(current);
+      return parts;
+    });
+
+    const header = rows.shift();
     const idx = n => header.indexOf(n);
 
     const iPlayer   = idx("Semington A Player Name");
@@ -193,8 +212,8 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     const iMatchId  = idx("Match ID");
     const iUpdated  = idx("UpdatedAt");
 
-    // ⭐ NEW: Leg score indexes
-    const iLeg1 = idx("Leg 1:");
+    // ⭐ CORRECT LEG COLUMN NAMES
+    const iLeg1 = idx("Semington Leg 1:");
     const iLeg2 = idx("Leg 2:");
     const iLeg3 = idx("Leg 3:");
     const iLeg4 = idx("Leg 4:");
@@ -210,7 +229,7 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
     let totalOwed       = 0;
     let latest          = "";
 
-    const LOW_SCORE_LIMIT = 5; // ⭐ Set your threshold here
+    const LOW_SCORE_LIMIT = 5;
 
     rows.forEach(r => {
       const player = r[iPlayer];
@@ -230,19 +249,19 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
 
       const p = players[player];
 
-      // Count league vs cup
+      // League / Cup
       const details = r[iDetails] || "";
       if (details.includes("League")) p.leagueGames++;
       if (details.includes("Cup"))    p.cupGames++;
 
-      // League fees (£1 per league game)
+      // League fees
       p.leagueFees = p.leagueGames * 1;
 
-      // Duck fines (£1 per duck)
+      // Duck fines
       const ducks = Number(r[iDucks] || 0);
-      p.duckFines += ducks * 1;
+      p.duckFines += ducks;
 
-      // ⭐ NEW: Low score fines
+      // ⭐ LOW SCORE FINES
       const legs = [
         Number(r[iLeg1] || 0),
         Number(r[iLeg2] || 0),
@@ -254,31 +273,27 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
 
       legs.forEach(l => {
         if (l > 0 && l < LOW_SCORE_LIMIT) {
-          p.lowScoreFines += 1;
+          p.lowScoreFines++;
         }
       });
 
-      // Total fines
+      // Totals
       p.totalFines = p.duckFines + p.lowScoreFines;
-
-      // Net owed
       p.netOwed = p.leagueFees + p.totalFines;
 
-      // Track totals
       totalLeagueFees += p.leagueFees;
       totalDuckFines  += p.duckFines;
       totalLowFines   += p.lowScoreFines;
       totalOwed       += p.netOwed;
 
-      // Latest update
       const updated = r[iUpdated];
       if (updated && updated > latest) latest = updated;
     });
 
     // Rendering happens below (unchanged)
   });
-
 </script>
+
 
 </body>
 </html>
