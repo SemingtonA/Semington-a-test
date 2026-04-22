@@ -259,61 +259,92 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
 
     const LOW_SCORE_LIMIT = 5;
 
-    rows.forEach(r => {
-      const player = r[iPlayer];
-      if (!player) return;
+    // Group rows by match ID
+const matches = {};
 
-      if (!players[player]) {
-        players[player] = {
-          leagueGames: 0,
-          cupGames: 0,
-          leagueFees: 0,
-          duckFines: 0,
-          lowScoreFines: 0,
-          totalFines: 0,
-          netOwed: 0
-        };
+rows.forEach(r => {
+  const matchId = r[iMatchId];
+  if (!matchId) return;
+
+  if (!matches[matchId]) matches[matchId] = [];
+  matches[matchId].push(r);
+});
+
+Object.values(matches).forEach(matchRows => {
+
+  // Find real players in this match
+  const realPlayers = matchRows.filter(r => !invalidPlayers.has(r[iPlayer]));
+
+  // Find lowest scoring real player
+  let lowestPlayerRow = null;
+  let lowestScore = Infinity;
+
+  realPlayers.forEach(r => {
+    const total = Number(r[idx("Total Score")] || 0);
+    if (total < lowestScore) {
+      lowestScore = total;
+      lowestPlayerRow = r;
+    }
+  });
+
+  // Now process each row
+  matchRows.forEach(r => {
+    let player = r[iPlayer];
+
+    // If invalid player, reassign to lowest real player
+    if (invalidPlayers.has(player)) {
+      if (lowestPlayerRow) {
+        player = lowestPlayerRow[iPlayer];
+      } else {
+        return; // no valid players in match
       }
+    }
 
-      const p = players[player];
+    // Now your existing logic continues here
+    if (!players[player]) {
+      players[player] = {
+        leagueGames: 0,
+        cupGames: 0,
+        leagueFees: 0,
+        duckFines: 0,
+        lowScoreFines: 0,
+        totalFines: 0,
+        netOwed: 0
+      };
+    }
 
-      // League / Cup
-      const details = r[iDetails] || "";
-      if (details.includes("League")) p.leagueGames++;
-      if (details.includes("Cup"))    p.cupGames++;
+    const p = players[player];
 
-      // League fees
-      p.leagueFees = p.leagueGames * 1;
+    const details = r[iDetails] || "";
+    if (details.includes("League")) p.leagueGames++;
+    if (details.includes("Cup"))    p.cupGames++;
 
-      // Duck fines
-      const ducks = Number(r[iDucks] || 0);
-      p.duckFines += ducks;
+    p.leagueFees = p.leagueGames * 1;
 
-      // ⭐ LOW SCORE FINES
-      const legs = [
-        Number(r[iLeg1] || 0),
-        Number(r[iLeg2] || 0),
-        Number(r[iLeg3] || 0),
-        Number(r[iLeg4] || 0),
-        Number(r[iLeg5] || 0),
-        Number(r[iLeg6] || 0)
-      ];
+    const ducks = Number(r[iDucks] || 0);
+    p.duckFines += ducks;
 
-      legs.forEach(l => {
-        if (l > 0 && l < LOW_SCORE_LIMIT) {
-          p.lowScoreFines++;
-        }
-      });
+    const legs = [
+      Number(r[iLeg1] || 0),
+      Number(r[iLeg2] || 0),
+      Number(r[iLeg3] || 0),
+      Number(r[iLeg4] || 0),
+      Number(r[iLeg5] || 0),
+      Number(r[iLeg6] || 0)
+    ];
 
-      // Totals
-      p.totalFines = p.duckFines + p.lowScoreFines;
-      p.netOwed = p.leagueFees + p.totalFines;
+    legs.forEach(l => {
+      if (l > 0 && l < LOW_SCORE_LIMIT) {
+        p.lowScoreFines++;
+      }
+    });
 
-      totalLeagueFees += p.leagueFees;
-      totalDuckFines  += p.duckFines;
-      totalLowFines   += p.lowScoreFines;
-      totalOwed       += p.netOwed;
+    p.totalFines = p.duckFines + p.lowScoreFines;
+    p.netOwed = p.leagueFees + p.totalFines;
+  });
+});
 
+   
       const updated = r[iUpdated];
       if (updated && updated > latest) latest = updated;
     });
