@@ -105,7 +105,7 @@ function updateLastUpdated(grid) {
     "Last updated: " + formatted;
 }
 
-// ---------- load rules from rules.html ----------
+// ---------- load cup rules from rules.html ----------
 function loadCupRules() {
   return fetchText("rules.html?v=" + Date.now())
     .then(html => {
@@ -133,29 +133,27 @@ Promise.all([
   const header = rows.shift();
   const idx = name => header.indexOf(name);
 
-  const iMatchDate   = idx("Match Date");
-  const iMatchId     = idx("Match ID");
-  const iMatchDetails= idx("Match Details");
-  const iHomeAway    = idx("Home or Away");
-  const iDivision    = idx("Division");
-  const iPlayer      = idx("Semington A Player Name");
-  const iLeg1        = idx("Leg 1");
-  const iLeg2        = idx("Leg 2");
-  const iLeg3        = idx("Leg 3");
-  const iLeg4        = idx("Leg 4");
-  const iLeg5        = idx("Leg 5");
-  const iLeg6        = idx("Leg 6");
-  const iTotal       = idx("Total Score");
-  const iDucks       = idx("Ducks");
-  const iTopScoreCol = idx("Top Score");
-  const iLegsWonCol  = idx("Legs Won");
-  const iSpares      = idx("Spares");
+  const iMatchDate    = idx("Match Date");
+  const iMatchId      = idx("Match ID");
+  const iMatchDetails = idx("Match Details");
+  const iHomeAway     = idx("Home or Away");
+  const iDivision     = idx("Division");
+  const iPlayer       = idx("Semington A Player Name");
+  const iLeg1         = idx("Leg 1:");
+  const iLeg2         = idx("Leg 2:");
+  const iLeg3         = idx("Leg 3:");
+  const iLeg4         = idx("Leg 4:");
+  const iLeg5         = idx("Leg 5:");
+  const iLeg6         = idx("Leg 6:");
+  const iTotal        = idx("Total Score");
+  const iDucks        = idx("Ducks");
+  const iSpares       = idx("Spares");
 
   const invalidPlayers = new Set([
     "O","0","A N Other","A  N Other","A N Others 4 and Under"
   ]);
 
-  // money rules (from your description)
+  // division-based money rules
   const divisionRules = {
     "Premier": {
       duckFine: 0.50,
@@ -232,6 +230,7 @@ Promise.all([
   const players = {};
   const matches = {};
 
+  // group rows by match
   rows.forEach(r => {
     const matchId = r[iMatchId];
     if (!matchId) return;
@@ -244,13 +243,17 @@ Promise.all([
 
     const realPlayers = matchRows.filter(r => !invalidPlayers.has(r[iPlayer]));
 
-    // legs won per match
+    // legs won per match (max 6 legs)
     for (let legIndex = 0; legIndex < 6; legIndex++) {
       let highest = -1;
       let winnerName = null;
 
       realPlayers.forEach(r => {
-        const legScore = Number(r[iLeg1 + legIndex] || 0);
+        const legScore = Number(
+          [iLeg1, iLeg2, iLeg3, iLeg4, iLeg5, iLeg6][legIndex] >= 0
+            ? r[[iLeg1, iLeg2, iLeg3, iLeg4, iLeg5, iLeg6][legIndex]] || 0
+            : 0
+        );
         if (legScore > highest) {
           highest = legScore;
           winnerName = r[iPlayer];
@@ -294,8 +297,10 @@ Promise.all([
       const spares = spareCounts[name];
       if (spares <= 0) return;
       if (!players[name]) players[name] = newPlayer();
+      // player earns £1.80 per spare
       players[name].spareContrib += spares * 1.80;
 
+      // every other teammate pays £0.20 per spare
       const others = namesInMatch.filter(n => n !== name);
       others.forEach(otherName => {
         if (!players[otherName]) players[otherName] = newPlayer();
@@ -318,6 +323,7 @@ Promise.all([
       const matchDate = r[iMatchDate] || "";
       const homeAway = r[iHomeAway] || "";
 
+      // league vs cup games and fees
       if (isCup) {
         p.cupGames++;
         const fee = getCupFee(matchDate, division, homeAway, matchDetails);
@@ -327,11 +333,16 @@ Promise.all([
         p.leagueFees = p.leagueGames * 4.00;
       }
 
+      // leg fee: £1 per match (league + cup)
       p.legFees += 1.00;
 
+      // duck fines: league only, same condition family as low scores
       const ducks = Number(r[iDucks] || 0);
-      p.duckFines += ducks * divRule.duckFine;
+      if (!isCup && ducks > 0) {
+        p.duckFines += ducks * divRule.duckFine;
+      }
 
+      // low score fines: league only, >0 and below threshold
       const legs = [
         Number(r[iLeg1] || 0),
         Number(r[iLeg2] || 0),
@@ -341,14 +352,17 @@ Promise.all([
         Number(r[iLeg6] || 0)
       ];
 
-      legs.forEach(l => {
-        if (l > 0 && l < divRule.lowScoreThreshold) {
-          p.lowScoreFines += divRule.lowScoreFine;
-        }
-      });
+      if (!isCup) {
+        legs.forEach(l => {
+          if (l > 0 && l < divRule.lowScoreThreshold) {
+            p.lowScoreFines += divRule.lowScoreFine;
+          }
+        });
+      }
     });
   });
 
+  // compute max legs/top money for highlighting
   let maxLegsWonMoney = 0;
   let maxTopScoreMoney = 0;
 
@@ -379,6 +393,7 @@ Promise.all([
       isTopWinner ? "winner" :
       (topMoney > 0 ? "earned" : "");
 
+    // net owed: all money columns except legs/top winnings
     p.netOwed =
       p.leagueFees +
       p.cupFees +
