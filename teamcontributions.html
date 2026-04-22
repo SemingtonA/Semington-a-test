@@ -125,27 +125,26 @@ fetch("csv_export.csv")
    PARSE CSV (SAFE)
 ================================ */
 function parseCSV(text) {
-    text = text.replace(/\r/g, ""); // Fix CRLF
 
-    const rows = [];
-    const lines = text.trim().split("\n");
+    // Split into lines
+    const lines = text.trim().split(/\r?\n/);
 
-    const headers = lines[0]
-        .match(/(".*?"|[^",]+)(?=,|$)/g)
-        .map(h => h.replace(/^"|"$/g, "").trim());
+    // Extract header row
+    const headers = lines[0].split(",");
 
-    for (let i = 1; i < lines.length; i++) {
-        const values = lines[i]
-            .match(/(".*?"|[^",]+)(?=,|$)/g)
-            ?.map(v => v.replace(/^"|"$/g, "").trim()) || [];
-
-        let row = {};
-        headers.forEach((h, idx) => row[h] = values[idx] || "");
-        rows.push(row);
-    }
+    // Convert each row into an object
+    const rows = lines.slice(1).map(line => {
+        const cols = line.split(",");
+        const obj = {};
+        headers.forEach((h, i) => {
+            obj[h.trim()] = (cols[i] || "").trim();
+        });
+        return obj;
+    });
 
     return rows;
 }
+
 
 /* ===============================
    NORMALISE ROW
