@@ -47,7 +47,7 @@
 
 <script>
 // ---------------------------
-// Robust fetch helper
+// Fetch helper
 // ---------------------------
 function fetchText(url){
   return fetch(url, { cache:"no-store" }).then(r => {
@@ -128,14 +128,10 @@ fetchText("csv_export.csv?v=" + Date.now())
     const header = rows.shift();
     const idx = n => header.indexOf(n);
 
-    const iPlayer    = idx("Semington A Player Name");
-    const iDucks     = idx("Ducks");
-    const iMatchId   = idx("Match ID");
-
-    // More forgiving League/Cup header detection
-    const iLeagueCup = header.findIndex(h =>
-      h.replace(/\s+/g, "").toLowerCase() === "league/cup"
-    );
+    const iPlayer       = idx("Semington A Player Name");
+    const iDucks        = idx("Ducks");
+    const iMatchId      = idx("Match ID");
+    const iMatchDetails = idx("Match Details");
 
     const iLeg1 = idx("Leg 1:");
     const iLeg2 = idx("Leg 2:");
@@ -223,18 +219,19 @@ fetchText("csv_export.csv?v=" + Date.now())
         if (!players[originalPlayer]) players[originalPlayer] = newPlayer();
         const p = players[originalPlayer];
 
-        const leagueCup =
-          iLeagueCup === -1 ? "" : (r[iLeagueCup] || "");
+        const matchDetails = r[iMatchDetails] || "";
+        const matchId = r[iMatchId] || "";
 
-        if (leagueCup === "League") p.leagueGames++;
-        if (leagueCup === "Cup")    p.cupGames++;
+        const isCup = /cup/i.test(matchDetails);
 
-        p.leagueFees = p.leagueGames * 4;
-
-        if (leagueCup === "Cup") {
-          const datePart = (r[iMatchId] || "").split(" ")[0];
+        if (isCup) {
+          p.cupGames++;
+          const datePart = matchId.split(" ")[0];
           const fee = cupFeeByDate[datePart] || 0;
           p.cupFees += fee;
+        } else {
+          p.leagueGames++;
+          p.leagueFees = p.leagueGames * 4;
         }
 
         const ducks = Number(r[iDucks] || 0);
@@ -296,8 +293,8 @@ fetchText("csv_export.csv?v=" + Date.now())
           <td>£${p.duckFines}</td>
           <td>£${p.lowScoreFines}</td>
 
-          <td class="${legClass}">£${p.legsWon * 2}</td>
-          <td class="${topClass}">£${p.topScores * 3}</td>
+          <td class="${legClass}">${p.legsWon > 0 ? "£" + (p.legsWon * 2) : ""}</td>
+          <td class="${topClass}">${p.topScores > 0 ? "£" + (p.topScores * 3) : ""}</td>
 
           <td>£${p.netOwed}</td>
         </tr>
@@ -308,6 +305,7 @@ fetchText("csv_export.csv?v=" + Date.now())
 
 </body>
 </html>
+
 
 
 
