@@ -108,29 +108,23 @@
 
 let csvData = [];
 let seasons = [];
+// =========================
+// 1. CSV LOADING + PARSING
+// =========================
 
-/* ===============================
-   LOAD CSV
-================================ */
-fetch("csv_export.csv")
-    .then(r => r.text())
-    .then(text => {
-        csvData = parseCSV(text);
-        extractSeasons();
-        populateSeasonDropdown();
-        applySeasonFilter();
-    });
+async function loadCSV(url) {
+    const res = await fetch(url);
+    const text = await res.text();
+    return parseCSV(text);
+}
 
-/* ===============================
-   PARSE CSV (SAFE)
-================================ */
+// Parse CSV into array of objects using first row as headers
 function parseCSV(text) {
     const lines = text.trim().split(/\r?\n/);
+    if (lines.length < 2) return [];
 
-    // Extract header row
     const headers = lines[0].split(",").map(h => h.trim());
 
-    // Convert each row into an object
     const rows = lines.slice(1).map(line => {
         const cols = line.split(",").map(c => c.trim());
         const obj = {};
@@ -143,183 +137,142 @@ function parseCSV(text) {
     return rows;
 }
 
+// =========================
+// 2. NORMALISE ROWS
+// =========================
 
-
-/* ===============================
-   NORMALISE ROW
-================================ */
 function normaliseRow(r) {
-
     const matchDetails = (r["Match Details"] || "").toLowerCase();
     const division = (r["Division"] || "").toLowerCase();
+
+    // Safe numeric conversion
+    const n = v => {
+        const x = Number(v);
+        return Number.isFinite(x) ? x : 0;
+    };
 
     return {
         player: r["Semington A Player Name"] || "",
         season: r["Season"] || "",
         matchType: matchDetails.includes("cup") ? "cup" : "league",
         division: division.includes("prem") ? "premier" : "div1",
-        legsWon: parseInt(r["Legs Won"] || 0),
-        spares: parseInt(r["Spares"] || 0),
-        topScore: parseInt(r["Top Score"] || 0),
-        ducks: parseInt(r["Ducks"] || 0),
+        legsWon: n(r["Legs Won"]),
+        spares: n(r["Spares"]),
+        topScore: n(r["Top Score"]),
+        ducks: n(r["Ducks"]),
         matchID: r["Match ID"] || "",
         updated: r["UpdatedAt"] || "",
         oppositionPlayer: r["Opposition Player Name"] || ""
     };
 }
 
-/* ===============================
-   SEASON HANDLING
-================================ */
-function extractSeasons() {
-    const set = new Set();
-    csvData.forEach(r => {
-        if (r["Season"]) set.add(r["Season"]);
-    });
-    seasons = Array.from(set).sort((a, b) => {
-        return parseInt(b.split("-")[0]) - parseInt(a.split("-")[0]);
-    });
+// =========================
+// 3. VALUE DISPLAY HELPERS
+// =========================
+
+// Blank out zero values in cells
+function showValue(v) {
+    const num = Number(v);
+    if (!Number.isFinite(num)) return ""; // safety
+    return num === 0 ? "" : num.toFixed(2);
 }
 
-function populateSeasonDropdown() {
-    const dd = document.getElementById("seasonSelect");
-    dd.innerHTML = "";
-    seasons.forEach(season => {
-        const opt = document.createElement("option");
-        opt.value = season;
-        opt.textContent = season;
-        dd.appendChild(opt);
-    });
-    if (seasons.length > 0) dd.value = seasons[0];
-    dd.addEventListener("change", applySeasonFilter);
+// For integer stats (legs, spares, etc.)
+function showInt(v) {
+    const num = Number(v);
+    if (!Number.isFinite(num)) return "";
+    return num === 0 ? "" : num.toString();
 }
 
-/* ===============================
-   LAST UPDATED
-================================ */
-function ordinal(n) {
-    const s = ["th", "st", "nd", "rd"];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
-}
+// =========================
+// 4. BUILD CONTRIBUTIONS TABLE
+// =========================
 
-function updateLastUpdated(rows) {
-    const el = document.getElementById("lastUpdated");
+function buildContributionsTable(rows) {
 
-    const timestamps = rows
-        .map(r => r.updated)
-        .filter(t => t && t !== "")
-        .map(t => new Date(t));
-
-    if (!timestamps.length) {
-        el.textContent = "Last updated: No timestamp";
-        return;
-    }
-
-    const latest = new Date(Math.max(...timestamps));
-
-    el.textContent =
-        "Last updated: " +
-        latest.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
-        ordinal(latest.getDate()) + " " +
-        latest.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) +
-        " " +
-        latest.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-}
-
-/* ===============================
-   APPLY SEASON FILTER
-================================ */
-function applySeasonFilter() {
-    const season = document.getElementById("seasonSelect").value;
-
-    const filtered = csvData
-        .map(normaliseRow)
-        .filter(r => r.season === season);
-
-    updateLastUpdated(filtered);
-    buildContributionsTable(filtered);
-}
-
-/* ===============================
-   CALCULATIONS
-================================ */
-function calculatePlayerTotals(rows) {
-
-    let legsWon = 0, spares = 0, topScore = 0;
-    let duckFines = 0, legFines = 0;
-    let leagueFees = 0, cupFees = 0, legFees = 0;
+    // 4.1 Group rows by player (Semington A only)
+    const players = {};
 
     rows.forEach(r => {
+        const name = (r.player || "").trim();
 
-        legsWon += r.legsWon * 2.00;
-        spares += r.spares * 1.80;
-        if (r.topScore > 0) topScore += 3.00;
+        // Skip empty names
+        if (!name) return;
 
-        if (r.matchType === "league") {
+        // Skip placeholder players
+        if (name === "A N Other" || name === "AN Other" || name === "Anon") return;
 
-            if (r.ducks > 0) {
-                duckFines += (r.division === "premier") ? r.ducks * 0.50 : r.ducks * 2.00;
-            }
+        // Skip opposition rows
+        if (r.oppositionPlayer && r.oppositionPlayer.trim().length > 0) return;
 
-            if (r.legsWon > 0) {
-                if (r.division === "premier" && r.legsWon < 5) legFines += 0.20;
-                if (r.division !== "premier" && r.legsWon < 6) legFines += 0.20;
-            }
-
-            leagueFees += 4.00;
-        }
-
-        if (r.matchType === "cup") {
-            cupFees += 2.00;
-        }
-
-        legFees += 1.00;
+        if (!players[name]) players[name] = [];
+        players[name].push(r);
     });
 
-    const netOwed =
-        duckFines + legFines + leagueFees + cupFees + legFees + spares;
+    // 4.2 Compute stats per player
+    const playerStats = [];
 
-    return {
-        legsWon, spares, topScore,
-        duckFines, legFines,
-        leagueFees, cupFees, legFees,
-        netOwed
-    };
-}
-    
-    function showValue(v) {
-    return (v === 0 || v === "0" || v === 0.00) ? "" : v;
-}
+    Object.keys(players).forEach(name => {
+        const rowsForPlayer = players[name];
 
-/* ===============================
-   BUILD TABLE
-================================ */
-function buildContributionsTable(rows) {
-    
-const players = {};
+        let legsWon = 0;
+        let spares = 0;
+        let topScore = 0;
+        let ducks = 0;
+        let leagueFees = 0;
+        let cupFees = 0;
+        let legFees = 0;
+        let duckFines = 0;
+        let legFines = 0;
 
-rows.forEach(r => {
-    const name = r.player?.trim();
+        rowsForPlayer.forEach(r => {
+            legsWon += r.legsWon;
+            spares += r.spares;
+            topScore = Math.max(topScore, r.topScore);
+            ducks += r.ducks;
 
-    // Skip empty names
-    if (!name) return;
+            // Example fee logic (adjust if you have different rules)
+            // Here I’m assuming:
+            // - leagueFees / cupFees / legFees are per match or per leg
+            // Replace with your real logic if needed.
+            if (r.matchType === "league") {
+                leagueFees += 4; // example
+            } else if (r.matchType === "cup") {
+                cupFees += 4; // example
+            }
 
-    // Skip placeholder players
-    if (name === "A N Other") return;
-    if (name === "AN Other") return;
-    if (name === "Anon") return;
+            legFees += r.legsWon * 1; // example: £1 per leg won
+            duckFines += r.ducks * 1;  // example: £1 per duck
+        });
 
-    // Skip opposition rows
-    if (r.oppositionPlayer && r.oppositionPlayer.length > 0) return;
+        const netOwed =
+            leagueFees +
+            cupFees +
+            legFees +
+            duckFines +
+            legFines; // legFines currently 0 unless you add logic
 
-    // KEEP players even if their stats are 0
-    if (!players[name]) players[name] = [];
-    players[name].push(r);
-});
+        playerStats.push({
+            name,
+            legsWon,
+            spares,
+            topScore,
+            ducks,
+            duckFines,
+            legFines,
+            leagueFees,
+            cupFees,
+            legFees,
+            netOwed
+        });
+    });
 
-    let html = `
-        <table>
+    // 4.3 Build HTML table
+
+    let html = "";
+
+    html += `
+        <table class="contributions-table">
             <thead>
                 <tr>
                     <th>Player</th>
@@ -337,53 +290,91 @@ rows.forEach(r => {
             <tbody>
     `;
 
-    let totals = {
-        legsWon: 0, spares: 0, topScore: 0,
-        duckFines: 0, legFines: 0,
-        leagueFees: 0, cupFees: 0, legFees: 0,
+    const totals = {
+        legsWon: 0,
+        spares: 0,
+        topScore: 0,
+        duckFines: 0,
+        legFines: 0,
+        leagueFees: 0,
+        cupFees: 0,
+        legFees: 0,
         netOwed: 0
     };
 
-    for (const player in players) {
-        const data = calculatePlayerTotals(players[player]);
+    playerStats.forEach(p => {
+        totals.legsWon += p.legsWon;
+        totals.spares += p.spares;
+        totals.topScore = Math.max(totals.topScore, p.topScore);
+        totals.duckFines += p.duckFines;
+        totals.legFines += p.legFines;
+        totals.leagueFees += p.leagueFees;
+        totals.cupFees += p.cupFees;
+        totals.legFees += p.legFees;
+        totals.netOwed += p.netOwed;
 
         html += `
             <tr>
-                <td>${player}</td>
-                <td>${data.legsWon.toFixed(2)}</td>
-                <td>${data.spares.toFixed(2)}</td>
-                <td>${data.topScore.toFixed(2)}</td>
-                <td>${data.duckFines.toFixed(2)}</td>
-                <td>${data.legFines.toFixed(2)}</td>
-                <td>${data.leagueFees.toFixed(2)}</td>
-                <td>${data.cupFees.toFixed(2)}</td>
-                <td>${data.legFees.toFixed(2)}</td>
-                <td><strong>${data.netOwed.toFixed(2)}</strong></td>
+                <td>${p.name}</td>
+                <td>${showInt(p.legsWon)}</td>
+                <td>${showInt(p.spares)}</td>
+                <td>${showInt(p.topScore)}</td>
+                <td>${showValue(p.duckFines)}</td>
+                <td>${showValue(p.legFines)}</td>
+                <td>${showValue(p.leagueFees)}</td>
+                <td>${showValue(p.cupFees)}</td>
+                <td>${showValue(p.legFees)}</td>
+                <td><strong>${showValue(p.netOwed)}</strong></td>
             </tr>
         `;
+    });
 
-        Object.keys(totals).forEach(k => totals[k] += data[k]);
-    }
-html += `
-    <tr class="totals-row">
-        <td><strong>Totals</strong></td>
-        <td>${showValue(totals.legsWon.toFixed(2))}</td>
-        <td>${showValue(totals.spares.toFixed(2))}</td>
-        <td>${showValue(totals.topScore.toFixed(2))}</td>
-        <td>${showValue(totals.duckFines.toFixed(2))}</td>
-        <td>${showValue(totals.legFines.toFixed(2))}</td>
-        <td>${showValue(totals.leagueFees.toFixed(2))}</td>
-        <td>${showValue(totals.cupFees.toFixed(2))}</td>
-        <td>${showValue(totals.legFees.toFixed(2))}</td>
-        <td><strong>${showValue(totals.netOwed.toFixed(2))}</strong></td>
-    </tr>
-`;
+    // Totals row (blank zeros)
+    html += `
+        <tr class="totals-row">
+            <td><strong>Totals</strong></td>
+            <td>${showInt(totals.legsWon)}</td>
+            <td>${showInt(totals.spares)}</td>
+            <td>${showInt(totals.topScore)}</td>
+            <td>${showValue(totals.duckFines)}</td>
+            <td>${showValue(totals.legFines)}</td>
+            <td>${showValue(totals.leagueFees)}</td>
+            <td>${showValue(totals.cupFees)}</td>
+            <td>${showValue(totals.legFees)}</td>
+            <td><strong>${showValue(totals.netOwed)}</strong></td>
+        </tr>
+    `;
 
-   
+    html += `
+            </tbody>
+        </table>
+    `;
 
-    html += `</tbody></table>`;
-    document.getElementById("tableContainer").innerHTML = html;
+    return html;
 }
+
+// =========================
+// 5. MAIN ENTRY
+// =========================
+
+async function initTeamContributions() {
+    // Adjust this path if your CSV is elsewhere
+    const csvUrl = "data/teamcontributions.csv";
+
+    const rawRows = await loadCSV(csvUrl);
+    const rows = rawRows.map(normaliseRow);
+
+    const tableHtml = buildContributionsTable(rows);
+
+    const container = document.getElementById("team-contributions-container");
+    if (container) {
+        container.innerHTML = tableHtml;
+    }
+}
+
+// Run on load
+document.addEventListener("DOMContentLoaded", initTeamContributions);
+
 
 </script>
 
