@@ -125,25 +125,24 @@ fetch("csv_export.csv")
    PARSE CSV (SAFE)
 ================================ */
 function parseCSV(text) {
-
-    // Split into lines
     const lines = text.trim().split(/\r?\n/);
 
     // Extract header row
-    const headers = lines[0].split(",");
+    const headers = lines[0].split(",").map(h => h.trim());
 
     // Convert each row into an object
     const rows = lines.slice(1).map(line => {
-        const cols = line.split(",");
+        const cols = line.split(",").map(c => c.trim());
         const obj = {};
         headers.forEach((h, i) => {
-            obj[h.trim()] = (cols[i] || "").trim();
+            obj[h] = cols[i] || "";
         });
         return obj;
     });
 
     return rows;
 }
+
 
 
 /* ===============================
