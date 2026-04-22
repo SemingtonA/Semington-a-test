@@ -391,9 +391,12 @@ Object.keys(players).forEach(name => {
         </tr>
       `;
     });
-         // ADD TOTALS ROW
-    body.innerHTML += `
-  <tr style="font-weight:bold;">
+    
+
+  });
+// ADD TOTALS ROW
+body.innerHTML += `
+  <tr style="font-weight:bold; background:#f2f2f2;">
     <td>TOTALS</td>
     <td class="center">-</td>
     <td class="center">-</td>
@@ -405,20 +408,6 @@ Object.keys(players).forEach(name => {
   </tr>
 `;
 
-  });
-// ADD TOTALS ROW
-body.innerHTML += `
-  <tr style="font-weight:bold;">
-    <td>TOTALS</td>
-    <td class="center">-</td>
-    <td class="center">-</td>
-    <td>£${totalLeagueFees}</td>
-    <td>£${totalDuckFines}</td>
-    <td>£${totalLowFines}</td>
-    <td>£${totalDuckFines + totalLowFines}</td>
-    <td>£${totalOwed}</td>
-  </tr>
-`;
 
   
 </script>
