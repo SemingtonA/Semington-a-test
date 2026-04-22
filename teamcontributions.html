@@ -105,7 +105,7 @@ function updateLastUpdated(grid) {
     "Last updated: " + formatted;
 }
 
-// ---------- load cup rules from rules.html ----------
+// ---------- load future cup rules from rules.html ----------
 function loadCupRules() {
   return fetchText("rules.html?v=" + Date.now())
     .then(html => {
@@ -121,6 +121,15 @@ function loadCupRules() {
       }
     });
 }
+
+// ---------- THIS SEASON CUP FEES (by Match ID) ----------
+// Fill this with the Match IDs and fees you gave earlier, e.g.:
+// "CUP-001": 2.00,
+const thisSeasonCup = {
+  // "MATCH_ID_1": 2.00,
+  // "MATCH_ID_2": 1.50,
+  // ...
+};
 
 // ---------- main ----------
 Promise.all([
@@ -169,16 +178,14 @@ Promise.all([
     }
   };
 
-  // cup rules JSON from rules.html
+  // future seasons cup rules from rules.html
   // expected structure:
   // {
-  //   "thisSeason": { "MATCH_ID_1": 2.00, ... },
   //   "nextSeason": {
   //     "Premier": { "home": 2.50, "away": 1.00, "nominationHome": 3.20, "nominationAway": 1.25 },
   //     "Div 1":   { ... }
   //   }
   // }
-  const thisSeasonCup = (cupRules && cupRules.thisSeason) || {};
   const nextSeasonCup = (cupRules && cupRules.nextSeason) || {};
 
   function getCupFee(matchId, matchDate, division, homeAway, matchDetails) {
@@ -245,8 +252,8 @@ Promise.all([
 
     const realPlayers = matchRows.filter(r => !invalidPlayers.has(r[iPlayer]));
 
-    // legs won per match (max 6 legs, but only if any score > 0 in that leg)
-    legIndices.forEach((legIdx, legNumber) => {
+    // legs won per match (only if any score > 0 in that leg)
+    legIndices.forEach(legIdx => {
       if (legIdx < 0) return;
 
       let highest = 0;
@@ -264,14 +271,14 @@ Promise.all([
         }
       });
 
-      if (anyScore && winnerName) {
+      if (anyScore && highest > 0 && winnerName) {
         if (!players[winnerName]) players[winnerName] = newPlayer();
         players[winnerName].legsWonCount++;
       }
     });
 
-    // top score per match (one winner only)
-    let topScore = -1;
+    // top score per match (only if someone scores > 0)
+    let topScore = 0;
     let topPlayer = null;
 
     realPlayers.forEach(r => {
@@ -282,7 +289,7 @@ Promise.all([
       }
     });
 
-    if (topPlayer) {
+    if (topScore > 0 && topPlayer) {
       if (!players[topPlayer]) players[topPlayer] = newPlayer();
       players[topPlayer].topScoresCount++;
     }
@@ -422,6 +429,7 @@ Promise.all([
 
 </body>
 </html>
+
 
 
 
