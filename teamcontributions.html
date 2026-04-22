@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Team Contributions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <style>
   body { font-family: Arial, sans-serif; padding: 20px; }
@@ -12,16 +12,12 @@
   th { background: #eee; }
   .center { text-align: center; }
 
-  /* Winner cell */
   .winner { background: #66FF33 !important; font-weight: bold; }
-
-  /* Earned money cell */
   .earned { background: #7CFC00 !important; }
 
   #last-updated { margin-top: 10px; font-style: italic; }
 </style>
 </head>
-
 <body>
 
 <h2>Team Contributions</h2>
@@ -37,6 +33,8 @@
       <th>Cup Fees</th>
       <th>Duck Fines</th>
       <th>Low Score Fines</th>
+      <th>Leg Fees</th>
+      <th>Spare Contributions</th>
       <th>Legs Won (£)</th>
       <th>Top Score (£)</th>
       <th>Net Owed</th>
@@ -46,22 +44,36 @@
 </table>
 
 <script>
-// ---------------------------
-// Fetch helper
-// ---------------------------
-function fetchText(url){
-  return fetch(url, { cache:"no-store" }).then(r => {
-    if(!r.ok) throw new Error(url + " not found");
+// ---------- helpers ----------
+function fetchText(url) {
+  return fetch(url, { cache: "no-store" }).then(r => {
+    if (!r.ok) throw new Error("Failed to load " + url);
     return r.text();
   });
 }
 
-// ---------------------------
-// Update Last Updated
-// ---------------------------
+function parseCSVLine(line) {
+  const result = [];
+  let current = "";
+  let insideQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      insideQuotes = !insideQuotes;
+    } else if (c === ',' && !insideQuotes) {
+      result.push(current.trim());
+      current = "";
+    } else {
+      current += c;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
 function updateLastUpdated(grid) {
   if (!grid || grid.length < 2) return;
-
   const header = grid[0];
   const idx = header.indexOf("UpdatedAt");
   if (idx === -1) return;
@@ -79,7 +91,6 @@ function updateLastUpdated(grid) {
   if (!m) return;
 
   const date = new Date(m[3], m[2] - 1, m[1], m[4], m[5]);
-
   const formatted = date.toLocaleString("en-GB", {
     weekday: "long",
     day: "numeric",
@@ -94,217 +105,313 @@ function updateLastUpdated(grid) {
     "Last updated: " + formatted;
 }
 
-// ---------------------------
-// CSV Parsing
-// ---------------------------
-function parseCSVLine(line) {
-  const result = [];
-  let current = "";
-  let insideQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-
-    if (c === '"') insideQuotes = !insideQuotes;
-    else if (c === ',' && !insideQuotes) {
-      result.push(current.trim());
-      current = "";
-    } else current += c;
-  }
-
-  result.push(current.trim());
-  return result;
+// ---------- load rules from rules.html ----------
+function loadCupRules() {
+  return fetchText("rules.html?v=" + Date.now())
+    .then(html => {
+      const div = document.createElement("div");
+      div.innerHTML = html;
+      const script = div.querySelector("#cupRules");
+      if (!script) return {};
+      try {
+        return JSON.parse(script.textContent.trim());
+      } catch (e) {
+        console.error("Failed to parse cupRules JSON", e);
+        return {};
+      }
+    });
 }
 
-// ---------------------------
-// MAIN LOAD
-// ---------------------------
-fetchText("csv_export.csv?v=" + Date.now())
-  .then(text => {
-    const rows = text.trim().split(/\r?\n/).map(parseCSVLine);
+// ---------- main ----------
+Promise.all([
+  fetchText("csv_export.csv?v=" + Date.now()),
+  loadCupRules()
+]).then(([csvText, cupRules]) => {
+  const rows = csvText.trim().split(/\r?\n/).map(parseCSVLine);
+  updateLastUpdated(rows);
 
-    updateLastUpdated(rows);
+  const header = rows.shift();
+  const idx = name => header.indexOf(name);
 
-    const header = rows.shift();
-    const idx = n => header.indexOf(n);
+  const iMatchDate   = idx("Match Date");
+  const iMatchId     = idx("Match ID");
+  const iMatchDetails= idx("Match Details");
+  const iHomeAway    = idx("Home or Away");
+  const iDivision    = idx("Division");
+  const iPlayer      = idx("Semington A Player Name");
+  const iLeg1        = idx("Leg 1");
+  const iLeg2        = idx("Leg 2");
+  const iLeg3        = idx("Leg 3");
+  const iLeg4        = idx("Leg 4");
+  const iLeg5        = idx("Leg 5");
+  const iLeg6        = idx("Leg 6");
+  const iTotal       = idx("Total Score");
+  const iDucks       = idx("Ducks");
+  const iTopScoreCol = idx("Top Score");
+  const iLegsWonCol  = idx("Legs Won");
+  const iSpares      = idx("Spares");
 
-    const iPlayer       = idx("Semington A Player Name");
-    const iDucks        = idx("Ducks");
-    const iMatchId      = idx("Match ID");
-    const iMatchDetails = idx("Match Details");
+  const invalidPlayers = new Set([
+    "O","0","A N Other","A  N Other","A N Others 4 and Under"
+  ]);
 
-    const iLeg1 = idx("Leg 1:");
-    const iLeg2 = idx("Leg 2:");
-    const iLeg3 = idx("Leg 3:");
-    const iLeg4 = idx("Leg 4:");
-    const iLeg5 = idx("Leg 5:");
-    const iLeg6 = idx("Leg 6:");
-    const iTotal = idx("Total Score");
+  // money rules (from your description)
+  const divisionRules = {
+    "Premier": {
+      duckFine: 0.50,
+      lowScoreThreshold: 5,
+      lowScoreFine: 0.20
+    },
+    "Div 1": {
+      duckFine: 2.00,
+      lowScoreThreshold: 6,
+      lowScoreFine: 0.20
+    }
+  };
 
-    const players = {};
-    const invalidPlayers = new Set([
-      "O","0","A N Other","A  N Other","A N Others 4 and Under"
-    ]);
+  // cup rules JSON from rules.html
+  // expected structure:
+  // {
+  //   "thisSeason": { "19/09/2025": 2.00, ... },
+  //   "nextSeason": {
+  //     "Premier": { "home": 2.50, "away": 1.00, "nominationHome": 3.20, "nominationAway": 1.25 },
+  //     "Div 1":   { ... }
+  //   }
+  // }
+  const thisSeasonCup = (cupRules && cupRules.thisSeason) || {};
+  const nextSeasonCup = (cupRules && cupRules.nextSeason) || {};
 
-    const LOW_SCORE_LIMIT = 5;
-
-    const cupFeeByDate = {
-      "19/09/2025": 2.00,
-      "02/01/2026": 2.50,
-      "30/01/2026": 2.00
-    };
-
-    const matches = {};
-    rows.forEach(r => {
-      const matchId = r[iMatchId];
-      if (!matchId) return;
-      if (!matches[matchId]) matches[matchId] = [];
-      matches[matchId].push(r);
-    });
-
-    function newPlayer() {
-      return {
-        leagueGames: 0, cupGames: 0,
-        leagueFees: 0, cupFees: 0,
-        duckFines: 0, lowScoreFines: 0,
-        legsWon: 0, topScores: 0,
-        netOwed: 0
-      };
+  function getCupFee(matchDate, division, homeAway, matchDetails) {
+    const dateKey = (matchDate || "").trim();
+    if (thisSeasonCup[dateKey] != null) {
+      return Number(thisSeasonCup[dateKey]) || 0;
     }
 
-    Object.values(matches).forEach(matchRows => {
-      const realPlayers = matchRows.filter(r => !invalidPlayers.has(r[iPlayer]));
+    const divKey = division === "Premier" ? "Premier" : "Div 1";
+    const divRules = nextSeasonCup[divKey] || {};
+    const details = (matchDetails || "").toLowerCase();
+    const ha = (homeAway || "").toLowerCase();
 
-      // Legs Won
-      for (let legIndex = 0; legIndex < 6; legIndex++) {
-        let highest = -1;
-        let winner = null;
+    const isNomination = /nomination/.test(details);
 
-        realPlayers.forEach(r => {
-          const legScore = Number(r[iLeg1 + legIndex] || 0);
-          if (legScore > highest) {
-            highest = legScore;
-            winner = r[iPlayer];
-          }
-        });
-
-        if (winner) {
-          if (!players[winner]) players[winner] = newPlayer();
-          players[winner].legsWon++;
-        }
+    if (isNomination) {
+      if (ha === "home" && divRules.nominationHome != null) {
+        return Number(divRules.nominationHome) || 0;
       }
+      if (ha === "away" && divRules.nominationAway != null) {
+        return Number(divRules.nominationAway) || 0;
+      }
+    } else {
+      if (ha === "home" && divRules.home != null) {
+        return Number(divRules.home) || 0;
+      }
+      if (ha === "away" && divRules.away != null) {
+        return Number(divRules.away) || 0;
+      }
+    }
 
-      // Top Score
-      let topScore = -1;
-      let topPlayer = null;
+    return 0;
+  }
+
+  function newPlayer() {
+    return {
+      leagueGames: 0,
+      cupGames: 0,
+      leagueFees: 0,
+      cupFees: 0,
+      duckFines: 0,
+      lowScoreFines: 0,
+      legFees: 0,
+      spareContrib: 0,
+      legsWonCount: 0,
+      topScoresCount: 0,
+      netOwed: 0
+    };
+  }
+
+  const players = {};
+  const matches = {};
+
+  rows.forEach(r => {
+    const matchId = r[iMatchId];
+    if (!matchId) return;
+    if (!matches[matchId]) matches[matchId] = [];
+    matches[matchId].push(r);
+  });
+
+  Object.keys(matches).forEach(matchId => {
+    const matchRows = matches[matchId];
+
+    const realPlayers = matchRows.filter(r => !invalidPlayers.has(r[iPlayer]));
+
+    // legs won per match
+    for (let legIndex = 0; legIndex < 6; legIndex++) {
+      let highest = -1;
+      let winnerName = null;
 
       realPlayers.forEach(r => {
-        const total = Number(r[iTotal] || 0);
-        if (total > topScore) {
-          topScore = total;
-          topPlayer = r[iPlayer];
+        const legScore = Number(r[iLeg1 + legIndex] || 0);
+        if (legScore > highest) {
+          highest = legScore;
+          winnerName = r[iPlayer];
         }
       });
 
-      if (topPlayer) {
-        if (!players[topPlayer]) players[topPlayer] = newPlayer();
-        players[topPlayer].topScores++;
+      if (winnerName) {
+        if (!players[winnerName]) players[winnerName] = newPlayer();
+        players[winnerName].legsWonCount++;
       }
+    }
 
-      // Per-player processing
-      matchRows.forEach(r => {
-        const originalPlayer = r[iPlayer];
-        if (invalidPlayers.has(originalPlayer)) return;
+    // top score per match
+    let topScore = -1;
+    let topPlayer = null;
 
-        if (!players[originalPlayer]) players[originalPlayer] = newPlayer();
-        const p = players[originalPlayer];
+    realPlayers.forEach(r => {
+      const total = Number(r[iTotal] || 0);
+      if (total > topScore) {
+        topScore = total;
+        topPlayer = r[iPlayer];
+      }
+    });
 
-        const matchDetails = r[iMatchDetails] || "";
-        const matchId = r[iMatchId] || "";
+    if (topPlayer) {
+      if (!players[topPlayer]) players[topPlayer] = newPlayer();
+      players[topPlayer].topScoresCount++;
+    }
 
-        const isCup = /cup/i.test(matchDetails);
+    // spares per match
+    const spareCounts = {};
+    realPlayers.forEach(r => {
+      const name = r[iPlayer];
+      const spares = Number(r[iSpares] || 0);
+      spareCounts[name] = (spareCounts[name] || 0) + spares;
+    });
 
-        if (isCup) {
-          p.cupGames++;
-          const datePart = matchId.split(" ")[0];
-          const fee = cupFeeByDate[datePart] || 0;
-          p.cupFees += fee;
-        } else {
-          p.leagueGames++;
-          p.leagueFees = p.leagueGames * 4;
-        }
+    const namesInMatch = realPlayers.map(r => r[iPlayer]);
 
-        const ducks = Number(r[iDucks] || 0);
-        p.duckFines += ducks;
+    Object.keys(spareCounts).forEach(name => {
+      const spares = spareCounts[name];
+      if (spares <= 0) return;
+      if (!players[name]) players[name] = newPlayer();
+      players[name].spareContrib += spares * 1.80;
 
-        const legs = [
-          Number(r[iLeg1] || 0),
-          Number(r[iLeg2] || 0),
-          Number(r[iLeg3] || 0),
-          Number(r[iLeg4] || 0),
-          Number(r[iLeg5] || 0),
-          Number(r[iLeg6] || 0)
-        ];
-
-        legs.forEach(l => {
-          if (l > 0 && l < LOW_SCORE_LIMIT) p.lowScoreFines++;
-        });
-
-        p.netOwed =
-          p.leagueFees +
-          p.cupFees +
-          p.duckFines +
-          p.lowScoreFines;
+      const others = namesInMatch.filter(n => n !== name);
+      others.forEach(otherName => {
+        if (!players[otherName]) players[otherName] = newPlayer();
+        players[otherName].spareContrib -= spares * 0.20;
       });
     });
 
-    let maxLegsWon = 0;
-    let maxTopScores = 0;
-
-    Object.values(players).forEach(p => {
-      if (p.legsWon > maxLegsWon) maxLegsWon = p.legsWon;
-      if (p.topScores > maxTopScores) maxTopScores = p.topScores;
-    });
-
-    const body = document.getElementById("accountsBody");
-    body.innerHTML = "";
-
-    Object.keys(players).sort().forEach(name => {
+    // per-player per-match processing
+    matchRows.forEach(r => {
+      const name = r[iPlayer];
+      if (invalidPlayers.has(name)) return;
+      if (!players[name]) players[name] = newPlayer();
       const p = players[name];
 
-      const isLegWinner = maxLegsWon > 0 && p.legsWon === maxLegsWon;
-      const isTopWinner = maxTopScores > 0 && p.topScores === maxTopScores;
+      const division = (r[iDivision] || "").trim();
+      const divRule = divisionRules[division] || divisionRules["Div 1"];
 
-      const legClass =
-        isLegWinner ? "winner" :
-        (p.legsWon > 0 ? "earned" : "");
+      const matchDetails = r[iMatchDetails] || "";
+      const isCup = /cup/i.test(matchDetails);
+      const matchDate = r[iMatchDate] || "";
+      const homeAway = r[iHomeAway] || "";
 
-      const topClass =
-        isTopWinner ? "winner" :
-        (p.topScores > 0 ? "earned" : "");
+      if (isCup) {
+        p.cupGames++;
+        const fee = getCupFee(matchDate, division, homeAway, matchDetails);
+        p.cupFees += fee;
+      } else {
+        p.leagueGames++;
+        p.leagueFees = p.leagueGames * 4.00;
+      }
 
-      body.innerHTML += `
-        <tr>
-          <td>${name}</td>
-          <td class="center">${p.leagueGames}</td>
-          <td class="center">${p.cupGames}</td>
-          <td>£${p.leagueFees}</td>
-          <td>£${p.cupFees.toFixed(2)}</td>
-          <td>£${p.duckFines}</td>
-          <td>£${p.lowScoreFines}</td>
+      p.legFees += 1.00;
 
-          <td class="${legClass}">${p.legsWon > 0 ? "£" + (p.legsWon * 2) : ""}</td>
-          <td class="${topClass}">${p.topScores > 0 ? "£" + (p.topScores * 3) : ""}</td>
+      const ducks = Number(r[iDucks] || 0);
+      p.duckFines += ducks * divRule.duckFine;
 
-          <td>£${p.netOwed}</td>
-        </tr>
-      `;
+      const legs = [
+        Number(r[iLeg1] || 0),
+        Number(r[iLeg2] || 0),
+        Number(r[iLeg3] || 0),
+        Number(r[iLeg4] || 0),
+        Number(r[iLeg5] || 0),
+        Number(r[iLeg6] || 0)
+      ];
+
+      legs.forEach(l => {
+        if (l > 0 && l < divRule.lowScoreThreshold) {
+          p.lowScoreFines += divRule.lowScoreFine;
+        }
+      });
     });
   });
+
+  let maxLegsWonMoney = 0;
+  let maxTopScoreMoney = 0;
+
+  Object.values(players).forEach(p => {
+    const legsMoney = p.legsWonCount * 2.00;
+    const topMoney = p.topScoresCount * 3.00;
+    if (legsMoney > maxLegsWonMoney) maxLegsWonMoney = legsMoney;
+    if (topMoney > maxTopScoreMoney) maxTopScoreMoney = topMoney;
+  });
+
+  const body = document.getElementById("accountsBody");
+  body.innerHTML = "";
+
+  Object.keys(players).sort().forEach(name => {
+    const p = players[name];
+
+    const legsMoney = p.legsWonCount * 2.00;
+    const topMoney  = p.topScoresCount * 3.00;
+
+    const isLegWinner = maxLegsWonMoney > 0 && legsMoney === maxLegsWonMoney;
+    const isTopWinner = maxTopScoreMoney > 0 && topMoney === maxTopScoreMoney;
+
+    const legClass =
+      isLegWinner ? "winner" :
+      (legsMoney > 0 ? "earned" : "");
+
+    const topClass =
+      isTopWinner ? "winner" :
+      (topMoney > 0 ? "earned" : "");
+
+    p.netOwed =
+      p.leagueFees +
+      p.cupFees +
+      p.duckFines +
+      p.lowScoreFines +
+      p.legFees +
+      p.spareContrib;
+
+    body.innerHTML += `
+      <tr>
+        <td>${name}</td>
+        <td class="center">${p.leagueGames}</td>
+        <td class="center">${p.cupGames}</td>
+        <td>£${p.leagueFees.toFixed(2)}</td>
+        <td>£${p.cupFees.toFixed(2)}</td>
+        <td>£${p.duckFines.toFixed(2)}</td>
+        <td>£${p.lowScoreFines.toFixed(2)}</td>
+        <td>£${p.legFees.toFixed(2)}</td>
+        <td>£${p.spareContrib.toFixed(2)}</td>
+        <td class="${legClass}">${legsMoney > 0 ? "£" + legsMoney.toFixed(2) : ""}</td>
+        <td class="${topClass}">${topMoney > 0 ? "£" + topMoney.toFixed(2) : ""}</td>
+        <td>£${p.netOwed.toFixed(2)}</td>
+      </tr>
+    `;
+  });
+}).catch(err => {
+  console.error(err);
+});
 </script>
 
 </body>
 </html>
+
 
 
 
