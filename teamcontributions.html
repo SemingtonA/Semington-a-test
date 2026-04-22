@@ -153,12 +153,12 @@
 
 <script>
 
-// ===============================
-// LOAD CSV
-// ===============================
 let csvData = [];
 let seasons = [];
 
+// ===============================
+// LOAD CSV
+// ===============================
 fetch("playerdata.csv")
     .then(r => r.text())
     .then(text => {
@@ -184,7 +184,7 @@ function parseCSV(text) {
 }
 
 // ===============================
-// NORMALISE ROW (MATCH YOUR CSV)
+// NORMALISE ROW (MATCHES YOUR CSV)
 // ===============================
 function normaliseRow(r) {
     return {
@@ -202,7 +202,7 @@ function normaliseRow(r) {
 }
 
 // ===============================
-// SEASONS
+// SEASON HANDLING
 // ===============================
 function extractSeasons() {
     const set = new Set();
@@ -307,7 +307,7 @@ function calculatePlayerTotals(rows) {
 
         // Cup fees
         if (r.matchType === "cup") {
-            cupFees += 2.00; // All cup matches £2
+            cupFees += 2.00;
         }
 
         // Leg fees (all matches)
