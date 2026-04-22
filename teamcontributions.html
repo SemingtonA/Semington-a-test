@@ -75,16 +75,6 @@
     td.num { text-align: left; white-space: nowrap; }
   </style>
 </head>
-
-<body>
-
-<script>
-const pw = prompt("Admin access – enter password:");
-if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
-  document.body.innerHTML =
-    "<h2 style='text-align:center;margin-top:50px'>Access denied</h2>";
-}
-</script>
 <div class="nav-buttons">
 <nav>
   <ul>
@@ -97,6 +87,18 @@ if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
     <li>< <a href="teamcontributions.html">Team Contributions</a></li>
   </ul>
 </nav>
+  
+
+<body>
+
+<script>
+const pw = prompt("Admin access – enter password:");
+if (!pw || pw.trim().toLowerCase() !== "skittles2026") {
+  document.body.innerHTML =
+    "<h2 style='text-align:center;margin-top:50px'>Access denied</h2>";
+}
+</script>
+
 
 
 
