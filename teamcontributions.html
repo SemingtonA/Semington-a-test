@@ -184,30 +184,33 @@ fetch("csv_export.csv?v=" + Date.now(), { cache: "no-store" })
   .then(text => {
 
     // ⭐ BULLETPROOF CSV PARSER (handles unquoted commas)
-function parseCSVLine(line) {
-  const result = [];
-  let current = "";
-  let insideQuotes = false;
+    function parseCSVLine(line) {
+      const result = [];
+      let current = "";
+      let insideQuotes = false;
 
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
 
-    if (c === '"') {
-      insideQuotes = !insideQuotes;
-    } else if (c === ',' && !insideQuotes) {
+        if (c === '"') {
+          insideQuotes = !insideQuotes;
+        } else if (c === ',' && !insideQuotes) {
+          result.push(current.trim());
+          current = "";
+        } else {
+          current += c;
+        }
+      }
+
       result.push(current.trim());
-      current = "";
-    } else {
-      current += c;
+      return result;
     }
-  }
 
-  result.push(current.trim());
-  return result;
-}
+    const rows = text.trim().split(/\r?\n/).map(parseCSVLine);
 
-const rows = text.trim().split(/\r?\n/).map(parseCSVLine);
-
+    // ⭐ YOU WERE MISSING THESE TWO LINES
+    const header = rows.shift();
+    const idx = n => header.indexOf(n);
 
     // ⭐ EXACT HEADER NAMES FROM YOUR CSV
     const iPlayer   = idx("Semington A Player Name");
@@ -224,19 +227,18 @@ const rows = text.trim().split(/\r?\n/).map(parseCSVLine);
     const iLeg6 = idx("Leg 6:");
 
     console.log("HEADER CHECK:", {
-  iPlayer,
-  iDucks,
-  iDetails,
-  iMatchId,
-  iUpdated,
-  iLeg1,
-  iLeg2,
-  iLeg3,
-  iLeg4,
-  iLeg5,
-  iLeg6
-});
-
+      iPlayer,
+      iDucks,
+      iDetails,
+      iMatchId,
+      iUpdated,
+      iLeg1,
+      iLeg2,
+      iLeg3,
+      iLeg4,
+      iLeg5,
+      iLeg6
+    });
 
     const players = {};
     const seen = {};
@@ -308,28 +310,30 @@ const rows = text.trim().split(/\r?\n/).map(parseCSVLine);
       if (updated && updated > latest) latest = updated;
     });
 
-    // Rendering happens below (unchanged)
-const body = document.getElementById("accountsBody");
-body.innerHTML = "";
+    // ⭐ RENDERING
+    const body = document.getElementById("accountsBody");
+    body.innerHTML = "";
 
-Object.keys(players).sort().forEach(name => {
-  const p = players[name];
+    Object.keys(players).sort().forEach(name => {
+      const p = players[name];
 
-  body.innerHTML += `
-    <tr>
-      <td>${name}</td>
-      <td class="center">${p.leagueGames}</td>
-      <td class="center">${p.cupGames}</td>
-      <td>£${p.leagueFees}</td>
-      <td>£${p.duckFines}</td>
-      <td>£${p.lowScoreFines}</td>
-      <td>£${p.totalFines}</td>
-      <td>£${p.netOwed}</td>
-    </tr>
-  `;
-});
+      body.innerHTML += `
+        <tr>
+          <td>${name}</td>
+          <td class="center">${p.leagueGames}</td>
+          <td class="center">${p.cupGames}</td>
+          <td>£${p.leagueFees}</td>
+          <td>£${p.duckFines}</td>
+          <td>£${p.lowScoreFines}</td>
+          <td>£${p.totalFines}</td>
+          <td>£${p.netOwed}</td>
+        </tr>
+      `;
+    });
 
+  });
 </script>
+
 
 
 
