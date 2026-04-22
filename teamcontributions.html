@@ -205,17 +205,23 @@ function normaliseRow(r) {
     return {
         player: r["Semington A Player Name"],
         season: r["Season"],
-        matchType: r["Match Details"].toLowerCase().includes("cup") ? "cup" : "league",
-        division: r["Division"].toLowerCase().includes("prem") ? "premier" : "div1",
-        legsWon: parseInt(r["Legs Won"] || 0),
-        spares: parseInt(r["Spares"] || 0),
-        topScore: parseInt(r["Top Score"] || 0),
-        ducks: parseInt(r["Ducks"] || 0),
-        matchID: r["Match ID"],
-        updated: r["UpdatedAt"]
-    };
-}
+        const matchDetails = (r["Match Details"] || "").toLowerCase();
+const division = (r["Division"] || "").toLowerCase();
 
+return {
+    player: r["Semington A Player Name"] || "",
+    season: r["Season"] || "",
+    matchType: matchDetails.includes("cup") ? "cup" : "league",
+    division: division.includes("prem") ? "premier" : "div1",
+    legsWon: parseInt(r["Legs Won"] || 0),
+    spares: parseInt(r["Spares"] || 0),
+    topScore: parseInt(r["Top Score"] || 0),
+    ducks: parseInt(r["Ducks"] || 0),
+    matchID: r["Match ID"] || "",
+    updated: r["UpdatedAt"] || ""
+};
+
+    
 // ===============================
 // SEASON HANDLING
 // ===============================
