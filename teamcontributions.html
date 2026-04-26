@@ -5,156 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Contributions - Semington A (Test)</title>
 
-    <!-- FAVICONS (TEST SITE PATHS) -->
+    <!-- FAVICONS -->
     <link rel="apple-touch-icon" sizes="180x180" href="/Semington-a-test/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/Semington-a-test/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/Semington-a-test/favicon-16x16.png">
     <link rel="manifest" href="/Semington-a-test/site.webmanifest">
     <link rel="shortcut icon" href="/Semington-a-test/favicon.ico">
 
-  /* PAGE BACKGROUND */
-body {
-    margin: 0;
-    background-color: #f5f0e6;   /* NEW background */
-    color: black;
-    font-family: Arial, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
+    <style>
+        /* PAGE BACKGROUND */
+        body {
+            margin: 0;
+            background-color: #f5f0e6;
+            color: black;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-/* HEADER (NO BLACK BAR, JUST TEXT + LOGO) */
-.header {
-    padding: 30px 20px;
-    text-align: center;
-    font-size: 100px;
-    font-weight: bold;
-    color: black;
-    position: relative;
-}
+        /* HEADER (same structure as Fixtures, different text) */
+        .header {
+            padding: 20px 20px;
+            text-align: center;
+            font-size: 100px;
+            font-weight: bold;
+            color: black;
+            position: relative;
+        }
 
-/* LOGO TOP RIGHT */
-.top-right-logo {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    height: 80px;
-}
+        /* LOGO TOP RIGHT (same as Fixtures) */
+        .top-right-logo {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            height: 70px;
+        }
 
-/* NAV BAR (unchanged) */
-.navbar {
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    padding: 12px 0;
-}
+        /* NAV BAR (from Fixtures) */
+        .navbar {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 0;
+        }
 
-.navbar a {
-    color: white;
-    padding: 10px 16px;
-    text-decoration: none;
-    font-size: 18px;
-    background-color: #222;
-    border-radius: 4px;
-}
+        .navbar a {
+            color: white;
+            padding: 10px 16px;
+            text-decoration: none;
+            font-size: 18px;
+            background-color: #222;
+            border-radius: 4px;
+        }
 
-.navbar a:hover {
-    background-color: #444;
-}
+        .navbar a:hover {
+            background-color: #444;
+        }
 
-.navbar .active {
-    background-color: #008CBA;
-}
+        .navbar .active {
+            background-color: #008CBA;
+        }
 
-/* MAIN CONTENT */
-.content {
-    padding: 20px;
-    max-width: 1100px;
-    margin: auto;
-    flex: 1; /* pushes footer to bottom */
-}
+        /* MAIN CONTENT */
+        .content {
+            padding: 20px;
+            max-width: 1100px;
+            margin: auto;
+            flex: 1; /* push footer down */
+        }
 
-/* TEAM CONTRIBUTIONS TABLE */
-#contributionsTable {
-    margin-top: 25px;
-}
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-}
+        /* TEAM CONTRIBUTIONS TABLE */
+        #contributionsTable {
+            margin-top: 25px;
+        }
 
-table th, table td {
-    border: 1px solid #555;
-    padding: 10px;
-    text-align: center;
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
 
-table th {
-    background-color: #ddd;
-}
+        table th, table td {
+            border: 1px solid #555;
+            padding: 10px;
+            text-align: center;
+        }
 
-/* FOOTER BOTTOM CENTER */
-.footer {
-    text-align: center;
-    padding: 20px 0;
-    color: white;
-}
+        table th {
+            background-color: #ddd;
+        }
 
-.footer-logo {
-    height: 40px;
-    margin-top: 10px;
-}
+        /* FOOTER (bottom centre, same feel as Fixtures) */
+        .footer {
+           text-align: center;
+            padding: 15px 0;
+            color: white;
+        }
 
-/* MOBILE FIXES */
-@media (max-width: 768px) {
+        .footer-logo {
+            height: 40px;
+            margin-top: 10px;
+        }
 
-    .header {
-        font-size: 40px;
-        padding: 20px 10px;
-    }
+        /* MOBILE FIXES (mirroring Fixtures behaviour) */
+        @media (max-width: 768px) {
+            .header {
+                font-size: 28px;
+                padding: 15px 10px;
+            }
 
-    .top-right-logo {
-        height: 60px;
-        top: 5px;
-        right: 10px;
-    }
+            .top-right-logo {
+                height: 50px;
+                top: 8px;
+                right: 10px;
+            }
 
-    .navbar {
-        flex-wrap: wrap;
-        gap: 6px;
-        padding: 10px 5px;
-    }
+            .navbar {
+                flex-wrap: wrap;
+                gap: 6px;
+                padding: 10px 5px;
+            }
 
-    .navbar a {
-        font-size: 16px;
-        padding: 8px 12px;
-    }
+            .navbar a {
+                font-size: 16px;
+                padding: 8px 12px;
+            }
 
-    table {
-        min-width: 600px;
-    }
+            .content {
+                padding: 15px;
+            }
 
-    #contributionsTable {
-        overflow-x: auto;
-    }
-}
+            #contributionsTable {
+                overflow-x: auto;
+            }
 
-
+            table {
+                min-width: 600px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-   <!-- HEADER -->
-<header class="header">
-    Semington A Skittles Team
-    <img src="Semington A Logo 5.jpg" class="top-right-logo" alt="Semington A Logo">
-</header>
+    <!-- HEADER (logo top-right, text = Team Contributions) -->
+    <header class="header">
+        Team Contributions
+        <img src="Semington A Logo 5.jpg" alt="Semington A Skittles Team Logo" class="top-right-logo">
+    </header>
 
-
-    <!-- NAVIGATION BAR -->
+    <!-- NAVIGATION BAR (same as Fixtures) -->
     <nav class="navbar">
         <a href="/Semington-a-test/index.html">Home</a>
         <a href="/Semington-a-test/fixtures.html">Fixtures</a>
@@ -167,202 +174,24 @@ table th {
 
     <!-- MAIN CONTENT -->
     <main class="content">
-        <h2>Team Contributions</h2>
-
-        <label for="yearSelect">Select Season:</label>
+        <h2>Select Season</h2>
+        <label for="yearSelect">Season:</label>
         <select id="yearSelect"></select>
 
         <div id="contributionsTable"></div>
     </main>
 
-    <!-- FOOTER -->
-   <footer class="footer">
-    © Semington A Skittles Team
-    <br>
-    <img src="Semington A Logo 5.jpg" class="footer-logo" alt="Semington A">
-</footer>
+    <!-- FOOTER (bottom centre) -->
+    <footer class="footer">
+        © Semington A Skittles Team
+        <br>
+        <img src="Semington A Logo 5.jpg" class="footer-logo" alt="Semington A">
+    </footer>
 
-
-    <!-- FULL TEAM CONTRIBUTIONS SCRIPT -->
+    <!-- YOUR EXISTING TEAM CONTRIBUTIONS SCRIPT GOES HERE -->
     <script>
-        /* your JS stays here */
-    </script>
-
-</body>
-
-  <!-- FULL TEAM CONTRIBUTIONS SCRIPT -->
-    <script>
-
-    document.addEventListener("DOMContentLoaded", function () {
-
-        const csvPath = "/Semington-a-test/data/semingtonAdata.csv";
-
-        let feeTable = {};
-        let cupFees = {};
-        let matchRows = [];
-
-        fetch(csvPath)
-            .then(response => response.text())
-            .then(data => {
-                const rows = data.split("\n").map(r => r.split(","));
-                processCSV(rows);
-                populateYearDropdown();
-            });
-
-        function processCSV(rows) {
-
-            rows.forEach(row => {
-
-                const year = row[26];
-                const cupID = row[27];
-                const cupFee = row[28];
-
-                if (year && row[29] !== "") {
-
-                    feeTable[year] = {
-                        leagueFee: parseFloat(row[29]) || 0,
-                        spareValue: parseFloat(row[30]) || 0,
-                        duckPrem: parseFloat(row[31]) || 0,
-                        duckDiv1: parseFloat(row[32]) || 0,
-                        under5Prem: parseFloat(row[33]) || 0,
-                        under6Div1: parseFloat(row[34]) || 0,
-                        legsWonValue: parseFloat(row[35]) || 0,
-                        topScoreValue: parseFloat(row[36]) || 0,
-                        stickerUp: parseFloat(row[37]) || 0
-                    };
-
-                    cupFees[year] = {};
-                }
-
-                if (year && cupID && cupFee && row[29] === "") {
-                    if (!cupFees[year]) cupFees[year] = {};
-                    cupFees[year][cupID.trim()] = parseFloat(cupFee);
-                }
-
-                if (row[0] === "Cup" || row[0] === "League") {
-                    matchRows.push(row);
-                }
-            });
-        }
-
-        function populateYearDropdown() {
-            const select = document.getElementById("yearSelect");
-            select.innerHTML = "";
-
-            Object.keys(feeTable).forEach(year => {
-                const opt = document.createElement("option");
-                opt.value = year;
-                opt.textContent = year;
-                select.appendChild(opt);
-            });
-
-            select.addEventListener("change", () => buildTable(select.value));
-
-            if (select.value) buildTable(select.value);
-        }
-
-        function buildTable(year) {
-
-            const fees = feeTable[year];
-            const cupFeeLookup = cupFees[year];
-
-            let playerTotals = {};
-
-            matchRows.forEach(row => {
-
-                const matchYear = row[26];
-                if (matchYear !== year) return;
-
-                const matchType = row[0];
-                const homeAway = row[1];
-                const division = row[2];
-                const player = row[3];
-
-                const legs = parseInt(row[4]) || 0;
-                const ducks = parseInt(row[5]) || 0;
-                const spares = parseInt(row[6]) || 0;
-                const topScore = parseInt(row[7]) || 0;
-                const underScore = parseInt(row[8]) || 0;
-
-                let cupID = "";
-                if (matchType === "Cup") {
-                    const matchNumber = detectCupRound(row);
-                    cupID = `${matchNumber} ${homeAway}`;
-                }
-
-                let total = 0;
-
-                total += legs * fees.legsWonValue;
-
-                if (division === "premier") total += ducks * fees.duckPrem;
-                else total += ducks * fees.duckDiv1;
-
-                total += spares * fees.spareValue;
-
-                if (division === "premier") total += underScore * fees.under5Prem;
-                else total += underScore * fees.under6Div1;
-
-                total += topScore * fees.topScoreValue;
-
-                total += fees.stickerUp;
-
-                if (matchType === "League") total += fees.leagueFee;
-
-                if (matchType === "Cup" && cupFeeLookup[cupID]) {
-                    total += cupFeeLookup[cupID];
-                }
-
-                if (!playerTotals[player]) playerTotals[player] = 0;
-                playerTotals[player] += total;
-            });
-
-            renderTable(playerTotals);
-        }
-
-        function detectCupRound(row) {
-            const matchName = row[3];
-            if (matchName.includes("10")) return 10;
-            if (matchName.includes("8")) return 8;
-            return 0;
-        }
-
-        function renderTable(playerTotals) {
-
-            let html = `
-                <table>
-                    <tr>
-                        <th>Player</th>
-                        <th>Total Contribution (£)</th>
-                    </tr>
-            `;
-
-            Object.keys(playerTotals).forEach(player => {
-                html += `
-                    <tr>
-                        <td>${player}</td>
-                        <td>£${playerTotals[player].toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-
-            html += `</table>`;
-
-            document.getElementById("contributionsTable").innerHTML = html;
-        }
-
-    });
-
+        // paste your JS here (unchanged)
     </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
- 
-
