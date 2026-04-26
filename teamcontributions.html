@@ -188,18 +188,16 @@
     </footer>
 
     <!-- YOUR EXISTING TEAM CONTRIBUTIONS SCRIPT GOES HERE -->
-   <script>
+<script>
 document.addEventListener("DOMContentLoaded", function () {
 
-     // Correct path for test site
-  const csvPath = "csv_export.csv";
-    
+    // ✔ One CSV file only
+    const csvPath = "csv_export.csv";
 
     let feeTable = {};
     let cupFees = {};
     let matchRows = [];
 
-    // Load CSV
     fetch(csvPath)
         .then(response => response.text())
         .then(data => {
@@ -208,47 +206,56 @@ document.addEventListener("DOMContentLoaded", function () {
             populateYearDropdown();
         });
 
-    // Process CSV into fee table + match rows
     function processCSV(rows) {
 
         rows.forEach(row => {
 
+            // -----------------------------
+            // MATCH DATA (Columns A → U)
+            // -----------------------------
+            const matchType = row[3];   // Match Details
+            const homeAway = row[4];
+            const division = row[5];
+            const player = row[6];
+
+            if (matchType === "League" || matchType === "Cup") {
+                matchRows.push(row);
+            }
+
+            // -----------------------------
+            // FEE TABLE (Columns AA → AL)
+            // -----------------------------
             const year = row[26];      // AA
             const cupID = row[27];     // AB
             const cupFee = row[28];    // AC
+            const leagueFee = row[29]; // AD
 
-            // Fee table rows (League Fees column AD must NOT be empty)
-            if (year && row[29] && row[29].trim() !== "") {
+            // Fee rows (League Fee NOT empty)
+            if (year && leagueFee && leagueFee.trim() !== "") {
 
                 feeTable[year] = {
-                    leagueFee: parseFloat(row[29]) || 0,   // AD
-                    spareValue: parseFloat(row[30]) || 0,  // AE
-                    duckPrem: parseFloat(row[31]) || 0,    // AF
-                    duckDiv1: parseFloat(row[32]) || 0,    // AG
-                    under5Prem: parseFloat(row[33]) || 0,  // AH
-                    under6Div1: parseFloat(row[34]) || 0,  // AI
-                    legsWonValue: parseFloat(row[35]) || 0,// AJ
-                    topScoreValue: parseFloat(row[36]) || 0,// AK
-                    stickerUp: parseFloat(row[37]) || 0    // AL
+                    leagueFee: parseFloat(row[29]) || 0,
+                    spareValue: parseFloat(row[30]) || 0,
+                    duckPrem: parseFloat(row[31]) || 0,
+                    duckDiv1: parseFloat(row[32]) || 0,
+                    under5Prem: parseFloat(row[33]) || 0,
+                    under6Div1: parseFloat(row[34]) || 0,
+                    legsWonValue: parseFloat(row[35]) || 0,
+                    topScoreValue: parseFloat(row[36]) || 0,
+                    stickerUp: parseFloat(row[37]) || 0
                 };
 
                 cupFees[year] = {};
             }
 
-            // Cup fee rows (League Fees column AD must be empty)
-            if (year && cupID && cupFee && row[29] && row[29].trim() === "") {
+            // Cup fee rows (League Fee empty)
+            if (year && cupID && cupFee && (!leagueFee || leagueFee.trim() === "")) {
                 if (!cupFees[year]) cupFees[year] = {};
                 cupFees[year][cupID.trim()] = parseFloat(cupFee);
-            }
-
-            // Match rows (Cup or League)
-            if (row[0] === "Cup" || row[0] === "League") {
-                matchRows.push(row);
             }
         });
     }
 
-    // Populate dropdown
     function populateYearDropdown() {
         const select = document.getElementById("yearSelect");
         select.innerHTML = "";
@@ -265,7 +272,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (select.value) buildTable(select.value);
     }
 
-    // Build Team Contributions table
     function buildTable(year) {
 
         const fees = feeTable[year];
@@ -275,28 +281,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
         matchRows.forEach(row => {
 
-            const matchYear = row[26];
+            const matchYear = row[1]; // Season column (B)
             if (matchYear !== year) return;
 
-            const matchType = row[0];
-            const homeAway = row[1];
-            const division = row[2];
-            const player = row[3];
+            const matchType = row[3];
+            const homeAway = row[4];
+            const division = row[5];
+            const player = row[6];
 
-            const legs = parseInt(row[4]) || 0;
-            const ducks = parseInt(row[5]) || 0;
-            const spares = parseInt(row[6]) || 0;
-            const topScore = parseInt(row[7]) || 0;
-            const underScore = parseInt(row[8]) || 0;
+            const legs = parseInt(row[16]) || 0;
+            const ducks = parseInt(row[14]) || 0;
+            const spares = parseInt(row[17]) || 0;
+            const topScore = parseInt(row[15]) || 0;
+            const underScore = 0; // Your CSV does not include this
 
-            // Build CupID automatically
             let cupID = "";
             if (matchType === "Cup") {
-                const matchNumber = detectCupRound(row);
-                cupID = `${matchNumber} ${homeAway}`;
+                const matchName = row[3];
+                if (matchName.includes("10")) cupID = "10 " + homeAway;
+                if (matchName.includes("8")) cupID = "8 " + homeAway;
             }
 
-            // Calculate contributions
             let total = 0;
 
             total += legs * fees.legsWonValue;
@@ -326,15 +331,6 @@ document.addEventListener("DOMContentLoaded", function () {
         renderTable(playerTotals);
     }
 
-    // Detect Cup round number
-    function detectCupRound(row) {
-        const matchName = row[3];
-        if (matchName.includes("10")) return 10;
-        if (matchName.includes("8")) return 8;
-        return 0;
-    }
-
-    // Render HTML table
     function renderTable(playerTotals) {
 
         let html = `
@@ -361,4 +357,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
+
 
