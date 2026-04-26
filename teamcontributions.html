@@ -222,16 +222,15 @@ document.addEventListener("DOMContentLoaded", function () {
     // PROCESS CSV
     // -----------------------------
     function processCSV(rows) {
-
-        rows.forEach(row => {
+        
+rows.forEach(row => {
 
     // ⭐ Capture UpdatedAt from column U (index 20)
     if (!csvTimestamp && row[20] && row[20].trim() !== "") {
         csvTimestamp = row[20].trim();
-        console.log("CSV UpdatedAt (raw):", csvTimestamp);
+        console.log("CSV timestamp captured:", csvTimestamp);
     }
 
-    // ...rest of your logic...
 });
 
             // -----------------------------
@@ -274,7 +273,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 cupFees[year][cupID.trim()] = parseFloat(cupFee);
             }
         });
-    }
+   
 
     // -----------------------------
     // POPULATE SEASON DROPDOWN
@@ -419,11 +418,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // -----------------------------
     // LAST UPDATED (CSV TIMESTAMP)
     // -----------------------------
-   function updateLastUpdated() {
+ function updateLastUpdated() {
     const el = document.getElementById("lastUpdated");
 
     if (!csvTimestamp) {
-        el.textContent = "Last updated: (no timestamp found in CSV)";
+        el.textContent = "Last updated: (no timestamp found)";
         return;
     }
 
@@ -431,20 +430,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const m = csvTimestamp.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
 
     if (!m) {
-        el.textContent = "Last updated: (invalid timestamp format)";
+        el.textContent = "Last updated: " + csvTimestamp; // fallback
         return;
     }
 
-    // Build a real JS date
     const date = new Date(
-        parseInt(m[3]),        // year
-        parseInt(m[2]) - 1,    // month index
-        parseInt(m[1]),        // day
-        parseInt(m[4]),        // hour
-        parseInt(m[5])         // minute
+        parseInt(m[3]),
+        parseInt(m[2]) - 1,
+        parseInt(m[1]),
+        parseInt(m[4]),
+        parseInt(m[5])
     );
 
-    // Format exactly like your other pages
     const formatted =
         date.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
         date.getDate() + " " +
