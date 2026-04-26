@@ -191,7 +191,6 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-    // ✔ One CSV file only
     const csvPath = "csv_export.csv";
 
     let feeTable = {};
@@ -293,7 +292,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const ducks = parseInt(row[14]) || 0;
             const spares = parseInt(row[17]) || 0;
             const topScore = parseInt(row[15]) || 0;
-            const underScore = 0; // Your CSV does not include this
 
             let cupID = "";
             if (matchType === "Cup") {
@@ -310,9 +308,6 @@ document.addEventListener("DOMContentLoaded", function () {
             else total += ducks * fees.duckDiv1;
 
             total += spares * fees.spareValue;
-
-            if (division === "premier") total += underScore * fees.under5Prem;
-            else total += underScore * fees.under6Div1;
 
             total += topScore * fees.topScoreValue;
 
@@ -357,6 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
+
 
   </body>
         </html>
