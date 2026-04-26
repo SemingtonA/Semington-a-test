@@ -178,12 +178,14 @@
 
     <label for="yearSelect">Season:</label>
     <select id="yearSelect"></select>
+    
+<div id="lastUpdated" style="text-align:center; font-size:12px; margin-bottom:10px; color:#555;">
+    Last updated: —
+</div>
 
-    <div id="contributionsTable"></div>
+<div id="contributionsTable"></div>
 
-    <div id="lastUpdated" style="text-align:center; font-size:12px; margin-top:10px; color:#555;">
-        Last updated: —
-    </div>
+    
 
   </main>
 
@@ -374,44 +376,49 @@ rows.forEach(row => {
     // -----------------------------
     // RENDER FULL TABLE
     // -----------------------------
-    function renderTable(playerTotals) {
+   function renderTable(playerTotals) {
 
-        let html = `
-            <table>
-                <tr>
-                    <th>Player</th>
-                    <th>Legs Won (£)</th>
-                    <th>Ducks (£)</th>
-                    <th>Spares (£)</th>
-                    <th>Top Score (£)</th>
-                    <th>Sticker Up (£)</th>
-                    <th>League Fee (£)</th>
-                    <th>Cup Fee (£)</th>
-                    <th>Total Contribution (£)</th>
-                </tr>
+    // ⭐ Insert Last Updated ABOVE the table
+    let html = `
+        <div style="text-align:center; font-size:12px; margin-bottom:10px; color:#555;">
+            Last updated: ${document.getElementById("lastUpdated").textContent.replace("Last updated: ", "")}
+        </div>
+
+        <table>
+            <tr>
+                <th>Player</th>
+                <th>Legs Won (£)</th>
+                <th>Ducks (£)</th>
+                <th>Spares (£)</th>
+                <th>Top Score (£)</th>
+                <th>Sticker Up (£)</th>
+                <th>League Fee (£)</th>
+                <th>Cup Fee (£)</th>
+                <th>Total Contribution (£)</th>
+            </tr>
+    `;
+
+    Object.keys(playerTotals).forEach(player => {
+        const p = playerTotals[player];
+        html += `
+            <tr>
+                <td>${player}</td>
+                <td>£${p.legsValue.toFixed(2)}</td>
+                <td>£${p.duckValue.toFixed(2)}</td>
+                <td>£${p.spareValue.toFixed(2)}</td>
+                <td>£${p.topScoreValue.toFixed(2)}</td>
+                <td>£${p.stickerUpValue.toFixed(2)}</td>
+                <td>£${p.leagueFeeValue.toFixed(2)}</td>
+                <td>£${p.cupFeeValue.toFixed(2)}</td>
+                <td><strong>£${p.total.toFixed(2)}</strong></td>
+            </tr>
         `;
+    });
 
-        Object.keys(playerTotals).forEach(player => {
-            const p = playerTotals[player];
-            html += `
-                <tr>
-                    <td>${player}</td>
-                    <td>£${p.legsValue.toFixed(2)}</td>
-                    <td>£${p.duckValue.toFixed(2)}</td>
-                    <td>£${p.spareValue.toFixed(2)}</td>
-                    <td>£${p.topScoreValue.toFixed(2)}</td>
-                    <td>£${p.stickerUpValue.toFixed(2)}</td>
-                    <td>£${p.leagueFeeValue.toFixed(2)}</td>
-                    <td>£${p.cupFeeValue.toFixed(2)}</td>
-                    <td><strong>£${p.total.toFixed(2)}</strong></td>
-                </tr>
-            `;
-        });
+    html += `</table>`;
 
-        html += `</table>`;
-
-        document.getElementById("contributionsTable").innerHTML = html;
-    }
+    document.getElementById("contributionsTable").innerHTML = html;
+}
 
     // -----------------------------
     // LAST UPDATED (CSV TIMESTAMP)
