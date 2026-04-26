@@ -188,9 +188,178 @@
     </footer>
 
     <!-- YOUR EXISTING TEAM CONTRIBUTIONS SCRIPT GOES HERE -->
-    <script>
-        // paste your JS here (unchanged)
-    </script>
+   <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const csvPath = "/Semington-a-test/data/semingtonAdata.csv";
+
+    let feeTable = {};
+    let cupFees = {};
+    let matchRows = [];
+
+    // Load CSV
+    fetch(csvPath)
+        .then(response => response.text())
+        .then(data => {
+            const rows = data.split("\n").map(r => r.split(","));
+            processCSV(rows);
+            populateYearDropdown();
+        });
+
+    // Process CSV into fee table + match rows
+    function processCSV(rows) {
+
+        rows.forEach(row => {
+
+            const year = row[26]; // YearDates
+            const cupID = row[27]; 
+            const cupFee = row[28];
+
+            // Fee table rows
+            if (year && row[29] !== "") {
+
+                feeTable[year] = {
+                    leagueFee: parseFloat(row[29]) || 0,
+                    spareValue: parseFloat(row[30]) || 0,
+                    duckPrem: parseFloat(row[31]) || 0,
+                    duckDiv1: parseFloat(row[32]) || 0,
+                    under5Prem: parseFloat(row[33]) || 0,
+                    under6Div1: parseFloat(row[34]) || 0,
+                    legsWonValue: parseFloat(row[35]) || 0,
+                    topScoreValue: parseFloat(row[36]) || 0,
+                    stickerUp: parseFloat(row[37]) || 0
+                };
+
+                cupFees[year] = {};
+            }
+
+            // Cup fee rows
+            if (year && cupID && cupFee && row[29] === "") {
+                if (!cupFees[year]) cupFees[year] = {};
+                cupFees[year][cupID.trim()] = parseFloat(cupFee);
+            }
+
+            // Match rows
+            if (row[0] === "Cup" || row[0] === "League") {
+                matchRows.push(row);
+            }
+        });
+    }
+
+    // Populate dropdown
+    function populateYearDropdown() {
+        const select = document.getElementById("yearSelect");
+        select.innerHTML = "";
+
+        Object.keys(feeTable).forEach(year => {
+            const opt = document.createElement("option");
+            opt.value = year;
+            opt.textContent = year;
+            select.appendChild(opt);
+        });
+
+        select.addEventListener("change", () => buildTable(select.value));
+
+        if (select.value) buildTable(select.value);
+    }
+
+    // Build Team Contributions table
+    function buildTable(year) {
+
+        const fees = feeTable[year];
+        const cupFeeLookup = cupFees[year];
+
+        let playerTotals = {};
+
+        matchRows.forEach(row => {
+
+            const matchYear = row[26];
+            if (matchYear !== year) return;
+
+            const matchType = row[0];
+            const homeAway = row[1];
+            const division = row[2];
+            const player = row[3];
+
+            const legs = parseInt(row[4]) || 0;
+            const ducks = parseInt(row[5]) || 0;
+            const spares = parseInt(row[6]) || 0;
+            const topScore = parseInt(row[7]) || 0;
+            const underScore = parseInt(row[8]) || 0;
+
+            // Build CupID automatically
+            let cupID = "";
+            if (matchType === "Cup") {
+                const matchNumber = detectCupRound(row);
+                cupID = `${matchNumber} ${homeAway}`;
+            }
+
+            // Calculate contributions
+            let total = 0;
+
+            total += legs * fees.legsWonValue;
+
+            if (division === "premier") total += ducks * fees.duckPrem;
+            else total += ducks * fees.duckDiv1;
+
+            total += spares * fees.spareValue;
+
+            if (division === "premier") total += underScore * fees.under5Prem;
+            else total += underScore * fees.under6Div1;
+
+            total += topScore * fees.topScoreValue;
+
+            total += fees.stickerUp;
+
+            if (matchType === "League") total += fees.leagueFee;
+
+            if (matchType === "Cup" && cupFeeLookup[cupID]) {
+                total += cupFeeLookup[cupID];
+            }
+
+            if (!playerTotals[player]) playerTotals[player] = 0;
+            playerTotals[player] += total;
+        });
+
+        renderTable(playerTotals);
+    }
+
+    // Detect Cup round number
+    function detectCupRound(row) {
+        const matchName = row[3];
+        if (matchName.includes("10")) return 10;
+        if (matchName.includes("8")) return 8;
+        return 0;
+    }
+
+    // Render HTML table
+    function renderTable(playerTotals) {
+
+        let html = `
+            <table>
+                <tr>
+                    <th>Player</th>
+                    <th>Total Contribution (£)</th>
+                </tr>
+        `;
+
+        Object.keys(playerTotals).forEach(player => {
+            html += `
+                <tr>
+                    <td>${player}</td>
+                    <td>£${playerTotals[player].toFixed(2)}</td>
+                </tr>
+            `;
+        });
+
+        html += `</table>`;
+
+        document.getElementById("contributionsTable").innerHTML = html;
+    }
+
+});
+</script>
+
 
 </body>
 </html>
