@@ -217,6 +217,11 @@ document.addEventListener("DOMContentLoaded", function () {
     function processCSV(rows) {
 
         rows.forEach(row => {
+            
+// Capture UpdatedAt from column U (index 20)
+if (!csvTimestamp && row[20] && row[20].trim() !== "") {
+    csvTimestamp = row[20].trim();
+}
 
             // -----------------------------
             // MATCH DATA (Columns A → U)
@@ -359,18 +364,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ⭐ MOVED INSIDE DOMContentLoaded SO IT ACTUALLY RUNS
-    function updateLastUpdated() {
-        const lastUpdatedElement = document.getElementById("lastUpdated");
-        const now = new Date();
+   function updateLastUpdated() {
+    const el = document.getElementById("lastUpdated");
 
-        const formatted =
-            now.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
-            now.getDate() + " " +
-            now.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) + " " +
-            now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-
-        lastUpdatedElement.textContent = "Last updated: " + formatted;
+    // If CSV didn't contain a timestamp
+    if (!csvTimestamp) {
+        el.textContent = "Last updated: (no timestamp found in CSV)";
+        return;
     }
+
+    // Convert CSV timestamp into a Date object
+    const date = new Date(csvTimestamp);
+
+    // Format it the same way as your other pages
+    const formatted =
+        date.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
+        date.getDate() + " " +
+        date.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) + " " +
+        date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
+    el.textContent = "Last updated: " + formatted;
+}
+
 
 });
 </script>
