@@ -12,65 +12,63 @@
     <link rel="manifest" href="/Semington-a-test/site.webmanifest">
     <link rel="shortcut icon" href="/Semington-a-test/favicon.ico">
 
-    <!-- PAGE STYLES (MATCHES OTHER PAGES) -->
-    <style>
-        body {
-            margin: 0;
-            background-color: #1b1b1b;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
 
-        .header {
-            background-color: #333;
-            padding: 20px;
-            text-align: center;
-            font-size: 28px;
-            font-weight: bold;
-            color: white;
-            position: relative;
-        }
+ <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: Arial, sans-serif;
+      background-color: #f5f0e6;
+    }
 
-        .top-right-logo {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            height: 70px;
-        }
+    /* ===== HEADER ===== */
+    header {
+      text-align: center;
+      padding: 20px;
+    }
 
-        .navbar {
-            background-color: #444;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-        }
+    .logo img {
+      width: 280px;
+      height: auto;
+    }
 
-        .navbar a {
-            color: white;
-            padding: 14px 20px;
-            text-decoration: none;
-            font-size: 18px;
-        }
+    header h1 {
+      margin: 10px 0 20px;
+      font-size: 72px;
+    }
 
-        .navbar a:hover {
-            background-color: #666;
-        }
+    .nav-buttons a {
+      display: inline-block;
+      margin: 6px;
+      padding: 10px 18px;
+      background: #000;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
 
-        .navbar .active {
-            background-color: #008CBA;
-        }
+    .nav-buttons a:hover {
+      background: #163aa3;
+    }
 
-        .content {
-            padding: 20px;
-            max-width: 1100px;
-            margin: auto;
-        }
+    /* ===== MAIN ===== */
+    main {
+      flex: 1;
+      text-align: center;
+      padding: 20px;
+    }
 
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+    .centre-image img {
+      width: 600px;
+      max-width: 100%;
+      height: auto;
+      margin: 40px 0;
+    }
 
+    
         #contributionsTable {
             margin-top: 25px;
         }
@@ -91,18 +89,41 @@
             background-color: #333;
         }
 
-        .footer {
-            background-color: #333;
-            text-align: center;
-            padding: 15px;
-            margin-top: 40px;
-            color: white;
-        }
+          /* ===== FOOTER ===== */
+    .site-footer {
+  background-color: #f5f0e6;
+  padding: 15px;
+  font-size: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
 
-        .footer-logo {
-            height: 40px;
-            margin-top: 10px;
-        }
+.footer-center {
+  grid-column: 2;
+  text-align: center;
+}
+
+.footer-logo {
+  height: 60px;
+  width: auto;
+  display: block;
+  margin: 4px auto 0;
+}
+/* ===== MOBILE FOOTER ===== */
+@media (max-width: 900px) {
+  footer {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .footer-center {
+    position: static;
+    transform: none;
+  }
+}
+
     </style>
 </head>
 
