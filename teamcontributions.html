@@ -224,10 +224,10 @@ document.addEventListener("DOMContentLoaded", function () {
             // -----------------------------
             // FEE TABLE (Columns AA → AL)
             // -----------------------------
-            const year = row[26];      // AA
-            const cupID = row[27];     // AB
-            const cupFee = row[28];    // AC
-            const leagueFee = row[29]; // AD
+            const year = row[26]?.replace(/\s+/g, " ").trim();      // AA
+            const cupID = row[27];
+            const cupFee = row[28];
+            const leagueFee = row[29];
 
             // Fee rows (League Fee NOT empty)
             if (year && leagueFee && leagueFee.trim() !== "") {
@@ -280,11 +280,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         matchRows.forEach(row => {
 
-            const matchYear = row[1]?.replace(/\s+/g, " ").trim(); // Season column (B)
-const year = row[26]?.replace(/\s+/g, " ").trim();     // Year Dates column (AA)
+            // NORMALISE SEASON STRING HERE
+            const matchYear = row[1]?.replace(/\s+/g, " ").trim();
 
-if (matchYear !== year) return;
-
+            if (matchYear !== year) return;
 
             const matchType = row[3];
             const homeAway = row[4];
@@ -355,6 +354,7 @@ if (matchYear !== year) return;
 
 });
 </script>
+
 
 
   </body>
