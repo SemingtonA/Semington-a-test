@@ -12,138 +12,146 @@
     <link rel="manifest" href="/Semington-a-test/site.webmanifest">
     <link rel="shortcut icon" href="/Semington-a-test/favicon.ico">
 
-    /* PAGE BACKGROUND */
-body {
-    margin: 0;
-    background-color: #1b1b1b;
-    color: white;
-    font-family: Arial, sans-serif;
-}
+  
+ <style>
 
-/* HEADER AT TOP WITH LOGO TOP-RIGHT */
-.header {
-    background-color: #333;
-    padding: 20px 20px;
-    text-align: center;
-    font-size: 28px;
-    font-weight: bold;
-    color: white;
-    position: relative;
-}
+        /* PAGE BACKGROUND */
+        body {
+            margin: 0;
+            background-color: #1b1b1b;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
 
-.top-right-logo {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    height: 70px;
-}
+        /* HEADER */
+        .header {
+            background-color: #333;
+            padding: 20px 20px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            position: relative;
+        }
 
-/* NAV BAR CENTERED WITH BLACK BUTTONS */
-.navbar {
-    background-color: #000;          /* black bar */
-    display: flex;
-    justify-content: center;         /* centre the buttons */
-    gap: 8px;
-    padding: 10px 0;
-}
+        /* LOGO TOP RIGHT */
+        .top-right-logo {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            height: 70px;
+        }
 
-.navbar a {
-    color: white;
-    padding: 10px 16px;
-    text-decoration: none;
-    font-size: 18px;
-    background-color: #222;          /* black-ish buttons */
-    border-radius: 4px;
-}
+        /* NAV BAR */
+        .navbar {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 0;
+        }
 
-.navbar a:hover {
-    background-color: #444;
-}
+        .navbar a {
+            color: white;
+            padding: 10px 16px;
+            text-decoration: none;
+            font-size: 18px;
+            background-color: #222;
+            border-radius: 4px;
+        }
 
-.navbar .active {
-    background-color: #008CBA;       /* highlight current page */
-}
+        .navbar a:hover {
+            background-color: #444;
+        }
 
-/* MAIN CONTENT */
-.content {
-    padding: 20px;
-    max-width: 1100px;
-    margin: auto;
-}
+        .navbar .active {
+            background-color: #008CBA;
+        }
 
-/* TABLE STYLING */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: #2a2a2a;
-}
+        /* MAIN CONTENT */
+        .content {
+            padding: 20px;
+            max-width: 1100px;
+            margin: auto;
+        }
 
-table th, table td {
-    border: 1px solid #555;
-    padding: 10px;
-    text-align: center;
-}
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-table th {
-    background-color: #333;
-}
+        /* TEAM CONTRIBUTIONS TABLE */
+        #contributionsTable {
+            margin-top: 25px;
+        }
 
-/* FOOTER */
-.footer {
-    background-color: #333;
-    text-align: center;
-    padding: 15px;
-    margin-top: 40px;
-    color: white;
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #2a2a2a;
+        }
 
-.footer-logo {
-    height: 40px;
-    margin-top: 10px;
-}
-/* MOBILE RESPONSIVE FIXES */
-@media (max-width: 768px) {
+        table th, table td {
+            border: 1px solid #555;
+            padding: 10px;
+            text-align: center;
+        }
 
-    /* Header spacing */
-    .header {
-        padding: 15px 10px;
-        font-size: 22px;
-    }
+        table th {
+            background-color: #333;
+        }
 
-    /* Logo shrinks + stays top-right */
-    .top-right-logo {
-        height: 50px;
-        top: 8px;
-        right: 10px;
-    }
+        /* FOOTER */
+        .footer {
+            background-color: #333;
+            text-align: center;
+            padding: 15px;
+            margin-top: 40px;
+            color: white;
+        }
 
-    /* Nav bar stacks neatly */
-    .navbar {
-        flex-wrap: wrap;
-        gap: 6px;
-        padding: 10px 5px;
-    }
+        .footer-logo {
+            height: 40px;
+            margin-top: 10px;
+        }
 
-    .navbar a {
-        font-size: 16px;
-        padding: 8px 12px;
-    }
+        /* MOBILE FIXES */
+        @media (max-width: 768px) {
 
-    /* Content padding reduced */
-    .content {
-        padding: 15px;
-    }
+            .header {
+                padding: 15px 10px;
+                font-size: 22px;
+            }
 
-    /* Table scrolls horizontally instead of breaking */
-    #contributionsTable {
-        overflow-x: auto;
-    }
+            .top-right-logo {
+                height: 50px;
+                top: 8px;
+                right: 10px;
+            }
 
-    table {
-        min-width: 600px; /* prevents squashing */
-    }
-}
+            .navbar {
+                flex-wrap: wrap;
+                gap: 6px;
+                padding: 10px 5px;
+            }
 
+            .navbar a {
+                font-size: 16px;
+                padding: 8px 12px;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            #contributionsTable {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+        }
 
     </style>
 </head>
@@ -151,12 +159,12 @@ table th {
 <body>
 
     <!-- HEADER -->
-   <header>
-    <div class="logo">
-      <img src="Semington A Logo 5.jpg" alt="Semington A Skittles Team Logo">
-  </Header>
+    <header class="header">
+        Semington A Skittles Team
+        <img src="/Semington-a-test/images/semington A Logo 5.jpg" class="top-right-logo">
+    </header>
 
-    <!-- NAVIGATION BAR (TEST PATHS) -->
+    <!-- NAVIGATION BAR -->
     <nav class="navbar">
         <a href="/Semington-a-test/index.html">Home</a>
         <a href="/Semington-a-test/fixtures.html">Fixtures</a>
@@ -177,21 +185,179 @@ table th {
         <div id="contributionsTable"></div>
     </main>
 
- <!-- FOOTER -->
-  <footer class="site-footer">
+    <!-- FOOTER -->
+    <footer class="footer">
+        © Semington A Skittles Team
+        <br>
+        <img src="/Semington-a-test/images/semington A Logo 5-small.jpg" class="footer-logo">
+    </footer>
 
-  <div class="footer-center">
-    <div class="footer-copyright">
-      © Semington A Skittles Team
-    </div>
-    <img src="Semington A Logo 5.jpg" class="footer-logo" alt="Semington A">
-  </div>
+    <!-- FULL TEAM CONTRIBUTIONS SCRIPT -->
+    <script>
 
-      
-   
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const csvPath = "/Semington-a-test/data/semingtonAdata.csv";
+
+        let feeTable = {};
+        let cupFees = {};
+        let matchRows = [];
+
+        fetch(csvPath)
+            .then(response => response.text())
+            .then(data => {
+                const rows = data.split("\n").map(r => r.split(","));
+                processCSV(rows);
+                populateYearDropdown();
+            });
+
+        function processCSV(rows) {
+
+            rows.forEach(row => {
+
+                const year = row[26];
+                const cupID = row[27];
+                const cupFee = row[28];
+
+                if (year && row[29] !== "") {
+
+                    feeTable[year] = {
+                        leagueFee: parseFloat(row[29]) || 0,
+                        spareValue: parseFloat(row[30]) || 0,
+                        duckPrem: parseFloat(row[31]) || 0,
+                        duckDiv1: parseFloat(row[32]) || 0,
+                        under5Prem: parseFloat(row[33]) || 0,
+                        under6Div1: parseFloat(row[34]) || 0,
+                        legsWonValue: parseFloat(row[35]) || 0,
+                        topScoreValue: parseFloat(row[36]) || 0,
+                        stickerUp: parseFloat(row[37]) || 0
+                    };
+
+                    cupFees[year] = {};
+                }
+
+                if (year && cupID && cupFee && row[29] === "") {
+                    if (!cupFees[year]) cupFees[year] = {};
+                    cupFees[year][cupID.trim()] = parseFloat(cupFee);
+                }
+
+                if (row[0] === "Cup" || row[0] === "League") {
+                    matchRows.push(row);
+                }
+            });
+        }
+
+        function populateYearDropdown() {
+            const select = document.getElementById("yearSelect");
+            select.innerHTML = "";
+
+            Object.keys(feeTable).forEach(year => {
+                const opt = document.createElement("option");
+                opt.value = year;
+                opt.textContent = year;
+                select.appendChild(opt);
+            });
+
+            select.addEventListener("change", () => buildTable(select.value));
+
+            if (select.value) buildTable(select.value);
+        }
+
+        function buildTable(year) {
+
+            const fees = feeTable[year];
+            const cupFeeLookup = cupFees[year];
+
+            let playerTotals = {};
+
+            matchRows.forEach(row => {
+
+                const matchYear = row[26];
+                if (matchYear !== year) return;
+
+                const matchType = row[0];
+                const homeAway = row[1];
+                const division = row[2];
+                const player = row[3];
+
+                const legs = parseInt(row[4]) || 0;
+                const ducks = parseInt(row[5]) || 0;
+                const spares = parseInt(row[6]) || 0;
+                const topScore = parseInt(row[7]) || 0;
+                const underScore = parseInt(row[8]) || 0;
+
+                let cupID = "";
+                if (matchType === "Cup") {
+                    const matchNumber = detectCupRound(row);
+                    cupID = `${matchNumber} ${homeAway}`;
+                }
+
+                let total = 0;
+
+                total += legs * fees.legsWonValue;
+
+                if (division === "premier") total += ducks * fees.duckPrem;
+                else total += ducks * fees.duckDiv1;
+
+                total += spares * fees.spareValue;
+
+                if (division === "premier") total += underScore * fees.under5Prem;
+                else total += underScore * fees.under6Div1;
+
+                total += topScore * fees.topScoreValue;
+
+                total += fees.stickerUp;
+
+                if (matchType === "League") total += fees.leagueFee;
+
+                if (matchType === "Cup" && cupFeeLookup[cupID]) {
+                    total += cupFeeLookup[cupID];
+                }
+
+                if (!playerTotals[player]) playerTotals[player] = 0;
+                playerTotals[player] += total;
+            });
+
+            renderTable(playerTotals);
+        }
+
+        function detectCupRound(row) {
+            const matchName = row[3];
+            if (matchName.includes("10")) return 10;
+            if (matchName.includes("8")) return 8;
+            return 0;
+        }
+
+        function renderTable(playerTotals) {
+
+            let html = `
+                <table>
+                    <tr>
+                        <th>Player</th>
+                        <th>Total Contribution (£)</th>
+                    </tr>
+            `;
+
+            Object.keys(playerTotals).forEach(player => {
+                html += `
+                    <tr>
+                        <td>${player}</td>
+                        <td>£${playerTotals[player].toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</table>`;
+
+            document.getElementById("contributionsTable").innerHTML = html;
+        }
+
+    });
+
+    </script>
+
 </body>
 </html>
-
 
 
 
