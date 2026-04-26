@@ -211,6 +211,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const rows = data.split("\n").map(r => r.split(","));
             processCSV(rows);
             populateYearDropdown();
+            updateLastUpdated();   // ⭐ NOW IT RUNS
         });
 
     function processCSV(rows) {
@@ -220,7 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // -----------------------------
             // MATCH DATA (Columns A → U)
             // -----------------------------
-            const matchType = row[3];   // Match Details
+            const matchType = row[3];
             const homeAway = row[4];
             const division = row[5];
             const player = row[6];
@@ -232,12 +233,11 @@ document.addEventListener("DOMContentLoaded", function () {
             // -----------------------------
             // FEE TABLE (Columns AA → AL)
             // -----------------------------
-            const year = row[26]?.replace(/\s+/g, " ").trim();      // AA
+            const year = row[26]?.replace(/\s+/g, " ").trim();
             const cupID = row[27];
             const cupFee = row[28];
             const leagueFee = row[29];
 
-            // Fee rows (League Fee NOT empty)
             if (year && leagueFee && leagueFee.trim() !== "") {
 
                 feeTable[year] = {
@@ -255,7 +255,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 cupFees[year] = {};
             }
 
-            // Cup fee rows (League Fee empty)
             if (year && cupID && cupFee && (!leagueFee || leagueFee.trim() === "")) {
                 if (!cupFees[year]) cupFees[year] = {};
                 cupFees[year][cupID.trim()] = parseFloat(cupFee);
@@ -288,7 +287,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         matchRows.forEach(row => {
 
-            // NORMALISE SEASON STRING HERE
             const matchYear = row[1]?.replace(/\s+/g, " ").trim();
 
             if (matchYear !== year) return;
@@ -360,22 +358,23 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("contributionsTable").innerHTML = html;
     }
 
+    // ⭐ MOVED INSIDE DOMContentLoaded SO IT ACTUALLY RUNS
+    function updateLastUpdated() {
+        const lastUpdatedElement = document.getElementById("lastUpdated");
+        const now = new Date();
+
+        const formatted =
+            now.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
+            now.getDate() + " " +
+            now.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) + " " +
+            now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
+        lastUpdatedElement.textContent = "Last updated: " + formatted;
+    }
+
 });
-function updateLastUpdated() {
-    const lastUpdatedElement = document.getElementById("lastUpdated");
-    const now = new Date();
-
-    const formatted =
-        now.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
-        now.getDate() + " " +
-        now.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) + " " +
-        now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-
-    lastUpdatedElement.textContent = "Last updated: " + formatted;
-}
-
-    
 </script>
+
 
 
 
