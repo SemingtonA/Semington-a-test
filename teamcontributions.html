@@ -177,7 +177,13 @@
         <label for="yearSelect">Season:</label>
         <select id="yearSelect"></select>
 
-        <div id="contributionsTable"></div>
+       <div id="contributionsTable"></div>
+
+<div id="lastUpdated" style="text-align:center; font-size:12px; margin-top:10px; color:#555;">
+    Last updated: —
+</div>
+
+ 
     </main>
 
     <!-- FOOTER (bottom centre) -->
@@ -354,6 +360,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+
+    function updateLastUpdated() {
+    const lastUpdatedElement = document.getElementById("lastUpdated");
+    const now = new Date();
+    const formatted =
+        now.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
+        now.getDate() + " " +
+        now.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) + " " +
+        now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
+    lastUpdatedElement.textContent = "Last updated: " + formatted;
+}
+
 </script>
 
 
