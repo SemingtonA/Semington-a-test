@@ -280,8 +280,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         matchRows.forEach(row => {
 
-            const matchYear = row[1]; // Season column (B)
-            if (matchYear !== year) return;
+            const matchYear = row[1]?.replace(/\s+/g, " ").trim(); // Season column (B)
+const year = row[26]?.replace(/\s+/g, " ").trim();     // Year Dates column (AA)
+
+if (matchYear !== year) return;
+
 
             const matchType = row[3];
             const homeAway = row[4];
