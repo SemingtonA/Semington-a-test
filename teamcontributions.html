@@ -361,10 +361,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
-
-    function updateLastUpdated() {
+function updateLastUpdated() {
     const lastUpdatedElement = document.getElementById("lastUpdated");
     const now = new Date();
+
     const formatted =
         now.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
         now.getDate() + " " +
@@ -374,6 +374,7 @@ document.addEventListener("DOMContentLoaded", function () {
     lastUpdatedElement.textContent = "Last updated: " + formatted;
 }
 
+    
 </script>
 
 
