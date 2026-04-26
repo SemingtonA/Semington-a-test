@@ -1,385 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Team Contributions</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Contributions - Semington A (Test)</title>
 
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-    }
+    <!-- FAVICONS (TEST SITE PATHS) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/Semington-a-test/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/Semington-a-test/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/Semington-a-test/favicon-16x16.png">
+    <link rel="manifest" href="/Semington-a-test/site.webmanifest">
+    <link rel="shortcut icon" href="/Semington-a-test/favicon.ico">
 
-    /* NAV BUTTONS */
-    .nav-buttons ul {
-        list-style: none;
-        padding: 0;
-        margin: 0 0 15px 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
+    <!-- PAGE STYLES (MATCHES OTHER PAGES) -->
+    <style>
+        body {
+            margin: 0;
+            background-color: #1b1b1b;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
 
-    .nav-buttons li {
-        margin: 0;
-    }
+        .header {
+            background-color: #333;
+            padding: 20px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            position: relative;
+        }
 
-    .nav-buttons a {
-        display: inline-block;
-        padding: 8px 14px;
-        background: black;
-        color: white;
-        text-decoration: none;
-        border-radius: 4px;
-        font-size: 15px;
-    }
+        .top-right-logo {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            height: 70px;
+        }
 
-    .nav-buttons a.active {
-        background: #444;
-    }
+        .navbar {
+            background-color: #444;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+        }
 
-    .season-bar {
-        margin-bottom: 15px;
-        font-size: 18px;
-        font-weight: bold;
-    }
+        .navbar a {
+            color: white;
+            padding: 14px 20px;
+            text-decoration: none;
+            font-size: 18px;
+        }
 
-    .season-dropdown {
-        font-size: 16px;
-        padding: 4px 8px;
-    }
+        .navbar a:hover {
+            background-color: #666;
+        }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-    }
+        .navbar .active {
+            background-color: #008CBA;
+        }
 
-    th, td {
-        border: 1px solid #ccc;
-        padding: 6px 8px;
-        text-align: center;
-    }
+        .content {
+            padding: 20px;
+            max-width: 1100px;
+            margin: auto;
+        }
 
-    th {
-        background: #f0f0f0;
-    }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-    .totals-row {
-        background: #e8f4ff;
-        font-weight: bold;
-    }
+        #contributionsTable {
+            margin-top: 25px;
+        }
 
-    #lastUpdated {
-        margin-top: 10px;
-        font-style: italic;
-    }
-</style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #2a2a2a;
+        }
+
+        table th, table td {
+            border: 1px solid #555;
+            padding: 10px;
+            text-align: center;
+        }
+
+        table th {
+            background-color: #333;
+        }
+
+        .footer {
+            background-color: #333;
+            text-align: center;
+            padding: 15px;
+            margin-top: 40px;
+            color: white;
+        }
+
+        .footer-logo {
+            height: 40px;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 
 <body>
 
-<h2>Team Contributions</h2>
-<div id="lastUpdated"></div>
+    <!-- HEADER -->
+    <header class="header">
+        Semington A Skittles Team
+        <img src="/Semington-a-test/images/semingtonAlogo.png" class="top-right-logo">
+    </header>
 
-<!-- ===== NAVIGATION BUTTONS ===== -->
-<nav class="nav-buttons">
-    <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="fixtures.html">Fixtures</a></li>
-        <li><a href="results.html">Results</a></li>
-        <li><a href="tocatch.html">To Catch Each Player</a></li>
-        <li><a href="rules.html">Rules</a></li>
-        <li><a href="tocatch.html">To Catch</a></li>
-        <li><a href="teamcontributions.html" class="active">Team Contributions</a></li>
-    </ul>
-</nav>
+    <!-- NAVIGATION BAR (TEST PATHS) -->
+    <nav class="navbar">
+        <a href="/Semington-a-test/index.html">Home</a>
+        <a href="/Semington-a-test/fixtures.html">Fixtures</a>
+        <a href="/Semington-a-test/results.html">Results</a>
+        <a href="/Semington-a-test/gallery.html">Gallery</a>
+        <a href="/Semington-a-test/rules.html">Rules</a>
+        <a href="/Semington-a-test/tocatch.html">To Catch</a>
+        <a class="active" href="/Semington-a-test/teamcontributions.html">Team Contributions</a>
+    </nav>
 
-<!-- ===== SEASON DROPDOWN BAR ===== -->
-<div class="season-bar">
-    Season:
-    <select id="seasonSelect" class="season-dropdown"></select>
-</div>
+    <!-- MAIN CONTENT -->
+    <main class="content">
+        <h2>Team Contributions</h2>
 
-<!-- ===== TABLE CONTAINER ===== -->
-<div id="tableContainer"></div>
+        <label for="yearSelect">Select Season:</label>
+        <select id="yearSelect"></select>
 
-<script>
+        <div id="contributionsTable"></div>
+    </main>
 
-let csvData = [];
-let seasons = [];
-// =========================
-// 1. CSV LOADING + PARSING
-// =========================
+    <!-- FOOTER -->
+    <footer class="footer">
+        © Semington A Skittles Team
+        <br>
+        <img src="/Semington-a-test/images/semingtonAlogo-small.png" class="footer-logo">
+    </footer>
 
-async function loadCSV(url) {
-    const res = await fetch(url);
-    const text = await res.text();
-    return parseCSV(text);
-}
-
-// Parse CSV into array of objects using first row as headers
-function parseCSV(text) {
-    const lines = text.trim().split(/\r?\n/);
-    if (lines.length < 2) return [];
-
-    const headers = lines[0].split(",").map(h => h.trim());
-
-    const rows = lines.slice(1).map(line => {
-        const cols = line.split(",").map(c => c.trim());
-        const obj = {};
-        headers.forEach((h, i) => {
-            obj[h] = cols[i] || "";
-        });
-        return obj;
-    });
-
-    return rows;
-}
-
-// =========================
-// 2. NORMALISE ROWS
-// =========================
-
-function normaliseRow(r) {
-    const matchDetails = (r["Match Details"] || "").toLowerCase();
-    const division = (r["Division"] || "").toLowerCase();
-
-    // Safe numeric conversion
-    const n = v => {
-        const x = Number(v);
-        return Number.isFinite(x) ? x : 0;
-    };
-
-    return {
-        player: r["Semington A Player Name"] || "",
-        season: r["Season"] || "",
-        matchType: matchDetails.includes("cup") ? "cup" : "league",
-        division: division.includes("prem") ? "premier" : "div1",
-        legsWon: n(r["Legs Won"]),
-        spares: n(r["Spares"]),
-        topScore: n(r["Top Score"]),
-        ducks: n(r["Ducks"]),
-        matchID: r["Match ID"] || "",
-        updated: r["UpdatedAt"] || "",
-        oppositionPlayer: r["Opposition Player Name"] || ""
-    };
-}
-
-// =========================
-// 3. VALUE DISPLAY HELPERS
-// =========================
-
-// Blank out zero values in cells
-function showValue(v) {
-    const num = Number(v);
-    if (!Number.isFinite(num)) return ""; // safety
-    return num === 0 ? "" : num.toFixed(2);
-}
-
-// For integer stats (legs, spares, etc.)
-function showInt(v) {
-    const num = Number(v);
-    if (!Number.isFinite(num)) return "";
-    return num === 0 ? "" : num.toString();
-}
-
-// =========================
-// 4. BUILD CONTRIBUTIONS TABLE
-// =========================
-
-function buildContributionsTable(rows) {
-
-    // 4.1 Group rows by player (Semington A only)
-    const players = {};
-
-    rows.forEach(r => {
-        const name = (r.player || "").trim();
-
-        // Skip empty names
-        if (!name) return;
-
-        // Skip placeholder players
-        if (name === "A N Other" || name === "AN Other" || name === "Anon") return;
-
-        // Skip opposition rows
-        if (r.oppositionPlayer && r.oppositionPlayer.trim().length > 0) return;
-
-        if (!players[name]) players[name] = [];
-        players[name].push(r);
-    });
-
-    // 4.2 Compute stats per player
-    const playerStats = [];
-
-    Object.keys(players).forEach(name => {
-        const rowsForPlayer = players[name];
-
-        let legsWon = 0;
-        let spares = 0;
-        let topScore = 0;
-        let ducks = 0;
-        let leagueFees = 0;
-        let cupFees = 0;
-        let legFees = 0;
-        let duckFines = 0;
-        let legFines = 0;
-
-        rowsForPlayer.forEach(r => {
-            legsWon += r.legsWon;
-            spares += r.spares;
-            topScore = Math.max(topScore, r.topScore);
-            ducks += r.ducks;
-
-            // Example fee logic (adjust if you have different rules)
-            // Here I’m assuming:
-            // - leagueFees / cupFees / legFees are per match or per leg
-            // Replace with your real logic if needed.
-            if (r.matchType === "league") {
-                leagueFees += 4; // example
-            } else if (r.matchType === "cup") {
-                cupFees += 4; // example
-            }
-
-            legFees += r.legsWon * 1; // example: £1 per leg won
-            duckFines += r.ducks * 1;  // example: £1 per duck
-        });
-
-        const netOwed =
-            leagueFees +
-            cupFees +
-            legFees +
-            duckFines +
-            legFines; // legFines currently 0 unless you add logic
-
-        playerStats.push({
-            name,
-            legsWon,
-            spares,
-            topScore,
-            ducks,
-            duckFines,
-            legFines,
-            leagueFees,
-            cupFees,
-            legFees,
-            netOwed
-        });
-    });
-
-    // 4.3 Build HTML table
-
-    let html = "";
-
-    html += `
-        <table class="contributions-table">
-            <thead>
-                <tr>
-                    <th>Player</th>
-                    <th>Legs Won (£)</th>
-                    <th>Spares (£)</th>
-                    <th>Top Score (£)</th>
-                    <th>Duck Fines (£)</th>
-                    <th>Leg Fines (£)</th>
-                    <th>League Fees (£)</th>
-                    <th>Cup Fees (£)</th>
-                    <th>Leg Fees (£)</th>
-                    <th>Net Owed (£)</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    const totals = {
-        legsWon: 0,
-        spares: 0,
-        topScore: 0,
-        duckFines: 0,
-        legFines: 0,
-        leagueFees: 0,
-        cupFees: 0,
-        legFees: 0,
-        netOwed: 0
-    };
-
-    playerStats.forEach(p => {
-        totals.legsWon += p.legsWon;
-        totals.spares += p.spares;
-        totals.topScore = Math.max(totals.topScore, p.topScore);
-        totals.duckFines += p.duckFines;
-        totals.legFines += p.legFines;
-        totals.leagueFees += p.leagueFees;
-        totals.cupFees += p.cupFees;
-        totals.legFees += p.legFees;
-        totals.netOwed += p.netOwed;
-
-        html += `
-            <tr>
-                <td>${p.name}</td>
-                <td>${showInt(p.legsWon)}</td>
-                <td>${showInt(p.spares)}</td>
-                <td>${showInt(p.topScore)}</td>
-                <td>${showValue(p.duckFines)}</td>
-                <td>${showValue(p.legFines)}</td>
-                <td>${showValue(p.leagueFees)}</td>
-                <td>${showValue(p.cupFees)}</td>
-                <td>${showValue(p.legFees)}</td>
-                <td><strong>${showValue(p.netOwed)}</strong></td>
-            </tr>
-        `;
-    });
-
-    // Totals row (blank zeros)
-    html += `
-        <tr class="totals-row">
-            <td><strong>Totals</strong></td>
-            <td>${showInt(totals.legsWon)}</td>
-            <td>${showInt(totals.spares)}</td>
-            <td>${showInt(totals.topScore)}</td>
-            <td>${showValue(totals.duckFines)}</td>
-            <td>${showValue(totals.legFines)}</td>
-            <td>${showValue(totals.leagueFees)}</td>
-            <td>${showValue(totals.cupFees)}</td>
-            <td>${showValue(totals.legFees)}</td>
-            <td><strong>${showValue(totals.netOwed)}</strong></td>
-        </tr>
-    `;
-
-    html += `
-            </tbody>
-        </table>
-    `;
-
-    return html;
-}
-
-// =========================
-// 5. MAIN ENTRY
-// =========================
-
-async function initTeamContributions() {
-    // Adjust this path if your CSV is elsewhere
-    const csvUrl = "csv_export.csv";
-
-    const rawRows = await loadCSV(csvUrl);
-    const rows = rawRows.map(normaliseRow);
-
-    const tableHtml = buildContributionsTable(rows);
-
-    const container = document.getElementById("team-contributions-container");
-    if (container) {
-        container.innerHTML = tableHtml;
-    }
-}
-
-// Run on load
-document.addEventListener("DOMContentLoaded", initTeamContributions);
-
-
-</script>
+    <!-- JAVASCRIPT (PLACEHOLDER FOR YOUR LOGIC) -->
+    <script src="/Semington-a-test/scripts/teamcontributions.js"></script>
 
 </body>
 </html>
+
 
 
 
