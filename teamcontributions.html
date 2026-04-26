@@ -191,8 +191,7 @@
    <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-const csvPath = "data/semingtonAdata.csv";
-
+    const csvPath = "data/semingtonAdata.csv";   // Correct path for test site
 
     let feeTable = {};
     let cupFees = {};
@@ -212,35 +211,35 @@ const csvPath = "data/semingtonAdata.csv";
 
         rows.forEach(row => {
 
-            const year = row[26]; // YearDates
-            const cupID = row[27]; 
-            const cupFee = row[28];
+            const year = row[26];      // AA
+            const cupID = row[27];     // AB
+            const cupFee = row[28];    // AC
 
-            // Fee table rows
-            if (year && row[29] !== "") {
+            // Fee table rows (League Fees column AD must NOT be empty)
+            if (year && row[29] && row[29].trim() !== "") {
 
                 feeTable[year] = {
-                    leagueFee: parseFloat(row[29]) || 0,
-                    spareValue: parseFloat(row[30]) || 0,
-                    duckPrem: parseFloat(row[31]) || 0,
-                    duckDiv1: parseFloat(row[32]) || 0,
-                    under5Prem: parseFloat(row[33]) || 0,
-                    under6Div1: parseFloat(row[34]) || 0,
-                    legsWonValue: parseFloat(row[35]) || 0,
-                    topScoreValue: parseFloat(row[36]) || 0,
-                    stickerUp: parseFloat(row[37]) || 0
+                    leagueFee: parseFloat(row[29]) || 0,   // AD
+                    spareValue: parseFloat(row[30]) || 0,  // AE
+                    duckPrem: parseFloat(row[31]) || 0,    // AF
+                    duckDiv1: parseFloat(row[32]) || 0,    // AG
+                    under5Prem: parseFloat(row[33]) || 0,  // AH
+                    under6Div1: parseFloat(row[34]) || 0,  // AI
+                    legsWonValue: parseFloat(row[35]) || 0,// AJ
+                    topScoreValue: parseFloat(row[36]) || 0,// AK
+                    stickerUp: parseFloat(row[37]) || 0    // AL
                 };
 
                 cupFees[year] = {};
             }
 
-            // Cup fee rows
-            if (year && cupID && cupFee && row[29] === "") {
+            // Cup fee rows (League Fees column AD must be empty)
+            if (year && cupID && cupFee && row[29] && row[29].trim() === "") {
                 if (!cupFees[year]) cupFees[year] = {};
                 cupFees[year][cupID.trim()] = parseFloat(cupFee);
             }
 
-            // Match rows
+            // Match rows (Cup or League)
             if (row[0] === "Cup" || row[0] === "League") {
                 matchRows.push(row);
             }
@@ -361,6 +360,3 @@ const csvPath = "data/semingtonAdata.csv";
 });
 </script>
 
-
-</body>
-</html>
