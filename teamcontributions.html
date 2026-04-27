@@ -198,17 +198,17 @@
     </footer>
 
     <!-- YOUR EXISTING TEAM CONTRIBUTIONS SCRIPT GOES HERE -->
-<script data-version="5">
+<script data-version="6">
 document.addEventListener("DOMContentLoaded", function () {
 
-    const csvPath = "csv_team_fees.csv";
+    const matchCSV = "csv_export.csv";
+    const feeCSV = "csv_team_fees.csv";
 
-    let feeTable = {};
-    let cupFees = {};
     let matchRows = [];
+    let feeTable = {};
     let csvTimestamp = "";
 
-    // SAFER CSV PARSER (handles commas inside quotes)
+    // Safe CSV parser (handles commas inside quotes)
     function parseCSV(text) {
         return text
             .trim()
@@ -216,20 +216,26 @@ document.addEventListener("DOMContentLoaded", function () {
             .map(row => row.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/));
     }
 
-    fetch(csvPath)
+    // Load match data first, then fee table
+    fetch(matchCSV)
         .then(r => r.text())
-        .then(text => {
-            const rows = parseCSV(text);
-            processCSV(rows);
+        .then(matchText => {
+            const matchData = parseCSV(matchText);
+            processMatchCSV(matchData);
+
+            return fetch(feeCSV);
+        })
+        .then(r => r.text())
+        .then(feeText => {
+            const feeData = parseCSV(feeText);
+            processFeeCSV(feeData);
+
             populateYearDropdown();
             updateLastUpdated();
         });
-      function processCSV(rows) {
-
-        // HEADER ROW
+    function processMatchCSV(rows) {
         const header = rows[0];
 
-        // Identify column indexes dynamically
         const idxSeason = header.indexOf("Season");
         const idxPlayer = header.indexOf("Player");
         const idxTeam = header.indexOf("Team");
@@ -238,48 +244,61 @@ document.addEventListener("DOMContentLoaded", function () {
         const idxDate = header.indexOf("Date");
         const idxUpdated = header.indexOf("UpdatedAt");
 
-        // Fee table columns
-        const idxFeeStart = header.indexOf("FeeName");
-        const idxFeeAmount = header.indexOf("FeeAmount");
-        const idxCupName = header.indexOf("CupName");
-        const idxCupFee = header.indexOf("CupFee");
-
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
+            if (!row[idxPlayer]) continue;
 
-            // Skip empty rows
-            if (row.length < 3) continue;
+            matchRows.push({
+                season: row[idxSeason],
+                player: row[idxPlayer],
+                team: row[idxTeam],
+                matchType: row[idxMatchType],
+                score: Number(row[idxScore]),
+                date: row[idxDate]
+            });
 
-            // Match rows
-            if (row[idxPlayer] && row[idxScore]) {
-                matchRows.push({
-                    season: row[idxSeason],
-                    player: row[idxPlayer],
-                    team: row[idxTeam],
-                    matchType: row[idxMatchType],
-                    score: Number(row[idxScore]),
-                    date: row[idxDate]
-                });
-            }
-
-            // Fee table
-            if (row[idxFeeStart]) {
-                feeTable[row[idxFeeStart]] = Number(row[idxFeeAmount]);
-            }
-
-            // Cup fees
-            if (row[idxCupName]) {
-                cupFees[row[idxCupName]] = Number(row[idxCupFee]);
-            }
-
-            // Timestamp
             if (row[idxUpdated]) {
                 csvTimestamp = row[idxUpdated];
             }
         }
     }
+    function processFeeCSV(rows) {
+        const header = rows[0];
+
+        const idxSeason = header.indexOf("Year Dates");
+        const idxCupFees = header.indexOf("Cup Fees");
+        const idxLeagueFees = header.indexOf("League Fees");
+        const idxSpare = header.indexOf("Spare Value");
+        const idxDuckPrem = header.indexOf("Duck Value Premier");
+        const idxDuckDiv1 = header.indexOf("Duck Value Div 1");
+        const idxU5Prem = header.indexOf("Under 5 Premier");
+        const idxU6Div1 = header.indexOf("Under 6 Div 1");
+        const idxLegs = header.indexOf("Legs won Value");
+        const idxTopScore = header.indexOf("Top Score Value");
+        const idxSticker = header.indexOf("Sticker Up Fees");
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const season = row[idxSeason];
+            if (!season) continue;
+
+            feeTable[season] = {
+                cup: Number(row[idxCupFees]),
+                league: Number(row[idxLeagueFees]),
+                spare: Number(row[idxSpare]),
+                duckPrem: Number(row[idxDuckPrem]),
+                duckDiv1: Number(row[idxDuckDiv1]),
+                u5Prem: Number(row[idxU5Prem]),
+                u6Div1: Number(row[idxU6Div1]),
+                legs: Number(row[idxLegs]),
+                topScore: Number(row[idxTopScore]),
+                sticker: Number(row[idxSticker])
+            };
+        }
+    }
     function populateYearDropdown() {
         const select = document.getElementById("seasonSelect");
+
         const seasons = [...new Set(matchRows.map(r => r.season))].sort();
 
         select.innerHTML = "";
