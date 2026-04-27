@@ -207,7 +207,7 @@
     </footer>
 
     <!-- YOUR EXISTING TEAM CONTRIBUTIONS SCRIPT GOES HERE -->
-<script data-version="6">
+<script data-version="7">
 document.addEventListener("DOMContentLoaded", function () {
 
     const matchCSV = "csv_export.csv";
@@ -217,7 +217,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let feeTable = {};
     let csvTimestamp = "";
 
-    // Safe CSV parser (handles commas inside quotes)
     function parseCSV(text) {
         return text
             .trim()
@@ -225,7 +224,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .map(row => row.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/));
     }
 
-    // Load match data first, then fee table
     fetch(matchCSV)
         .then(r => r.text())
         .then(matchText => {
@@ -245,63 +243,67 @@ document.addEventListener("DOMContentLoaded", function () {
     function processMatchCSV(rows) {
         const header = rows[0];
 
+        const idxDate = header.indexOf("Match Date");
         const idxSeason = header.indexOf("Season");
-        const idxPlayer = header.indexOf("Player");
-        const idxTeam = header.indexOf("Team");
-        const idxMatchType = header.indexOf("MatchType");
-        const idxScore = header.indexOf("Score");
-        const idxDate = header.indexOf("Date");
+        const idxDivision = header.indexOf("Division");
+        const idxPlayer = header.indexOf("Semington A Player Name");
+        const idxTotal = header.indexOf("Total Score");
+        const idxDucks = header.indexOf("Ducks");
+        const idxTopScore = header.indexOf("Top Score");
+        const idxLegsWon = header.indexOf("Legs Won");
+        const idxSpares = header.indexOf("Spares");
+        const idxMatchDetails = header.indexOf("Match Details");
         const idxUpdated = header.indexOf("UpdatedAt");
 
         for (let i = 1; i < rows.length; i++) {
-            const row = rows[i];
-            if (!row[idxPlayer]) continue;
+            const r = rows[i];
+            if (!r[idxPlayer]) continue;
 
             matchRows.push({
-                season: row[idxSeason],
-                player: row[idxPlayer],
-                team: row[idxTeam],
-                matchType: row[idxMatchType],
-                score: Number(row[idxScore]),
-                date: row[idxDate]
+                season: r[idxSeason],
+                division: r[idxDivision],
+                player: r[idxPlayer],
+                total: Number(r[idxTotal]),
+                ducks: Number(r[idxDucks]),
+                topScore: Number(r[idxTopScore]),
+                legsWon: Number(r[idxLegsWon]),
+                spares: Number(r[idxSpares]),
+                matchType: r[idxMatchDetails],
+                date: r[idxDate]
             });
 
-            if (row[idxUpdated]) {
-                csvTimestamp = row[idxUpdated];
-            }
+            if (r[idxUpdated]) csvTimestamp = r[idxUpdated];
         }
     }
     function processFeeCSV(rows) {
         const header = rows[0];
 
         const idxSeason = header.indexOf("Year Dates");
-        const idxCupFees = header.indexOf("Cup Fees");
-        const idxLeagueFees = header.indexOf("League Fees");
+        const idxCup = header.indexOf("Cup Fees");
+        const idxLeague = header.indexOf("League Fees");
         const idxSpare = header.indexOf("Spare Value");
         const idxDuckPrem = header.indexOf("Duck Value Premier");
         const idxDuckDiv1 = header.indexOf("Duck Value Div 1");
         const idxU5Prem = header.indexOf("Under 5 Premier");
         const idxU6Div1 = header.indexOf("Under 6 Div 1");
         const idxLegs = header.indexOf("Legs won Value");
-        const idxTopScore = header.indexOf("Top Score Value");
-        const idxSticker = header.indexOf("Sticker Up Fees");
+        const idxTop = header.indexOf("Top Score Value");
 
         for (let i = 1; i < rows.length; i++) {
-            const row = rows[i];
-            const season = row[idxSeason];
+            const r = rows[i];
+            const season = r[idxSeason];
             if (!season) continue;
 
             feeTable[season] = {
-                cup: Number(row[idxCupFees]),
-                league: Number(row[idxLeagueFees]),
-                spare: Number(row[idxSpare]),
-                duckPrem: Number(row[idxDuckPrem]),
-                duckDiv1: Number(row[idxDuckDiv1]),
-                u5Prem: Number(row[idxU5Prem]),
-                u6Div1: Number(row[idxU6Div1]),
-                legs: Number(row[idxLegs]),
-                topScore: Number(row[idxTopScore]),
-                sticker: Number(row[idxSticker])
+                cup: Number(r[idxCup]),
+                league: Number(r[idxLeague]),
+                spare: Number(r[idxSpare]),
+                duckPrem: Number(r[idxDuckPrem]),
+                duckDiv1: Number(r[idxDuckDiv1]),
+                u5Prem: Number(r[idxU5Prem]),
+                u6Div1: Number(r[idxU6Div1]),
+                legs: Number(r[idxLegs]),
+                top: Number(r[idxTop])
             };
         }
     }
@@ -309,8 +311,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const select = document.getElementById("seasonSelect");
 
         const seasons = [...new Set(matchRows.map(r => r.season))].sort();
-
         select.innerHTML = "";
+
         seasons.forEach(season => {
             const opt = document.createElement("option");
             opt.value = season;
@@ -318,9 +320,7 @@ document.addEventListener("DOMContentLoaded", function () {
             select.appendChild(opt);
         });
 
-        if (seasons.length > 0) {
-            buildTable(seasons[0]);
-        }
+        if (seasons.length > 0) buildTable(seasons[0]);
 
         select.addEventListener("change", () => {
             buildTable(select.value);
@@ -331,17 +331,70 @@ document.addEventListener("DOMContentLoaded", function () {
         const tbody = document.getElementById("contribBody");
         tbody.innerHTML = "";
 
-        const filtered = matchRows.filter(r => r.season === season);
+        const rows = matchRows.filter(r => r.season === season);
+        const fee = feeTable[season];
 
-        filtered.forEach(row => {
+        const players = {};
+
+        rows.forEach(r => {
+            if (!players[r.player]) {
+                players[r.player] = {
+                    legs: 0,
+                    top: 0,
+                    spares: 0,
+                    ducksPrem: 0,
+                    ducksDiv1: 0,
+                    u5Prem: 0,
+                    u6Div1: 0,
+                    league: 0,
+                    cup: 0
+                };
+            }
+
+            const p = players[r.player];
+
+            p.legs += r.legsWon;
+            p.top += r.topScore;
+            p.spares += r.spares;
+
+            if (r.division === "Premier") p.ducksPrem += r.ducks;
+            if (r.division === "Div 1") p.ducksDiv1 += r.ducks;
+
+            if (r.division === "Premier" && r.total < 5) p.u5Prem++;
+            if (r.division === "Div 1" && r.total < 6) p.u6Div1++;
+
+            if (r.matchType.includes("Cup")) p.cup++;
+            else p.league++;
+        });
+
+        Object.keys(players).forEach(name => {
+            const p = players[name];
+
+            const pluses =
+                p.legs * fee.legs +
+                p.top * fee.top +
+                p.spares * fee.spare;
+
+            const fines =
+                p.ducksPrem * fee.duckPrem +
+                p.ducksDiv1 * fee.duckDiv1 +
+                p.u5Prem * fee.u5Prem +
+                p.u6Div1 * fee.u6Div1;
+
+            const matchFees =
+                p.league * fee.league +
+                p.cup * fee.cup;
+
+            const total = pluses + fines + matchFees;
+
             const tr = document.createElement("tr");
 
             tr.innerHTML = `
-                <td>${row.player}</td>
-                <td>${row.team}</td>
-                <td>${row.matchType}</td>
-                <td>${row.score}</td>
-                <td>${row.date}</td>
+                <td>${name}</td>
+                <td class="plus">£${pluses.toFixed(2)}</td>
+                <td class="fine">£${fines.toFixed(2)}</td>
+                <td class="fee">£${matchFees.toFixed(2)}</td>
+                <td class="total">£${total.toFixed(2)}</td>
             `;
 
             tbody.appendChild(tr);
@@ -349,11 +402,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     function updateLastUpdated() {
         const el = document.getElementById("lastUpdated");
-        if (csvTimestamp) {
-            el.textContent = "Last Updated: " + csvTimestamp;
-        } else {
-            el.textContent = "Last Updated: (no timestamp found)";
-        }
+        el.textContent = csvTimestamp
+            ? "Last Updated: " + csvTimestamp
+            : "Last Updated: (no timestamp found)";
     }
 
 });
