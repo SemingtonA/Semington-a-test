@@ -224,6 +224,113 @@ document.addEventListener("DOMContentLoaded", function () {
             populateYearDropdown();
             updateLastUpdated();
         });
+      function processCSV(rows) {
+
+        // HEADER ROW
+        const header = rows[0];
+
+        // Identify column indexes dynamically
+        const idxSeason = header.indexOf("Season");
+        const idxPlayer = header.indexOf("Player");
+        const idxTeam = header.indexOf("Team");
+        const idxMatchType = header.indexOf("MatchType");
+        const idxScore = header.indexOf("Score");
+        const idxDate = header.indexOf("Date");
+        const idxUpdated = header.indexOf("UpdatedAt");
+
+        // Fee table columns
+        const idxFeeStart = header.indexOf("FeeName");
+        const idxFeeAmount = header.indexOf("FeeAmount");
+        const idxCupName = header.indexOf("CupName");
+        const idxCupFee = header.indexOf("CupFee");
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+
+            // Skip empty rows
+            if (row.length < 3) continue;
+
+            // Match rows
+            if (row[idxPlayer] && row[idxScore]) {
+                matchRows.push({
+                    season: row[idxSeason],
+                    player: row[idxPlayer],
+                    team: row[idxTeam],
+                    matchType: row[idxMatchType],
+                    score: Number(row[idxScore]),
+                    date: row[idxDate]
+                });
+            }
+
+            // Fee table
+            if (row[idxFeeStart]) {
+                feeTable[row[idxFeeStart]] = Number(row[idxFeeAmount]);
+            }
+
+            // Cup fees
+            if (row[idxCupName]) {
+                cupFees[row[idxCupName]] = Number(row[idxCupFee]);
+            }
+
+            // Timestamp
+            if (row[idxUpdated]) {
+                csvTimestamp = row[idxUpdated];
+            }
+        }
+    }
+    function populateYearDropdown() {
+        const select = document.getElementById("seasonSelect");
+        const seasons = [...new Set(matchRows.map(r => r.season))].sort();
+
+        select.innerHTML = "";
+        seasons.forEach(season => {
+            const opt = document.createElement("option");
+            opt.value = season;
+            opt.textContent = season;
+            select.appendChild(opt);
+        });
+
+        if (seasons.length > 0) {
+            buildTable(seasons[0]);
+        }
+
+        select.addEventListener("change", () => {
+            buildTable(select.value);
+        });
+    }
+
+    function buildTable(season) {
+        const tbody = document.getElementById("contribBody");
+        tbody.innerHTML = "";
+
+        const filtered = matchRows.filter(r => r.season === season);
+
+        filtered.forEach(row => {
+            const tr = document.createElement("tr");
+
+            tr.innerHTML = `
+                <td>${row.player}</td>
+                <td>${row.team}</td>
+                <td>${row.matchType}</td>
+                <td>${row.score}</td>
+                <td>${row.date}</td>
+            `;
+
+            tbody.appendChild(tr);
+        });
+    }
+    function updateLastUpdated() {
+        const el = document.getElementById("lastUpdated");
+        if (csvTimestamp) {
+            el.textContent = "Last Updated: " + csvTimestamp;
+        } else {
+            el.textContent = "Last Updated: (no timestamp found)";
+        }
+    }
+
+});
+</script>
+
 
  </body>
         </html>
