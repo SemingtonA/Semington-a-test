@@ -253,208 +253,126 @@
     </footer>
 
     <!-- YOUR EXISTING TEAM CONTRIBUTIONS SCRIPT GOES HERE -->
-<script data-version="7">
-document.addEventListener("DOMContentLoaded", function () {
+<script>
+// ===============================
+// CONFIG
+// ===============================
+const CSV_FILE = "teamcontributions.csv"; // same folder
+const TABLE_ID = "contributionsTable";
+const PREMIER_ONLY = true;
 
-    const matchCSV = "csv_export.csv";
-    const feeCSV = "csv_team_fees.csv";
+// ===============================
+// FETCH + PARSE CSV
+// ===============================
+async function loadCSV() {
+    const response = await fetch(CSV_FILE);
+    const text = await response.text();
+    return parseCSV(text);
+}
 
-    let matchRows = [];
-    let feeTable = {};
-    let csvTimestamp = "";
+function parseCSV(text) {
+    const lines = text.trim().split("\n");
+    const headers = lines[0].split(",").map(h => h.trim());
 
-    function parseCSV(text) {
-        return text
-            .trim()
-            .split(/\r?\n/)
-            .map(row => row.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/));
+    return lines.slice(1).map(line => {
+        const values = line.split(",").map(v => v.trim());
+        const row = {};
+        headers.forEach((h, i) => row[h] = values[i]);
+        return row;
+    });
+}
+
+// ===============================
+// CLEAN + FORMAT DATA
+// ===============================
+function cleanValue(value) {
+    if (!value || value === "0" || value === "0.00") return "";
+    const num = parseFloat(value);
+    return isNaN(num) ? "" : `£${num.toFixed(2)}`;
+}
+
+function toNumber(value) {
+    const num = parseFloat(value);
+    return isNaN(num) ? 0 : num;
+}
+
+function cleanRow(row) {
+    return {
+        Team: row.Team,
+        Division: row.Division,
+        LeaguePaid: cleanValue(row.LeaguePaid),
+        CupPaid: cleanValue(row.CupPaid),
+        TotalPaid: cleanValue(row.TotalPaid),
+        TotalNetPaid: toNumber(row.TotalNetPaid)
+    };
+}
+
+// ===============================
+// FILTER LOGIC
+// ===============================
+function applyFilters(data) {
+    let filtered = data;
+
+    if (PREMIER_ONLY) {
+        filtered = filtered.filter(r => r.Division === "Premier");
     }
 
-    fetch(matchCSV)
-        .then(r => r.text())
-        .then(matchText => {
-            const matchData = parseCSV(matchText);
-            processMatchCSV(matchData);
+    return filtered.filter(r => r.Team !== "A N Other");
+}
 
-            return fetch(feeCSV);
-        })
-        .then(r => r.text())
-        .then(feeText => {
-            const feeData = parseCSV(feeText);
-            processFeeCSV(feeData);
+// ===============================
+// SORTING
+// ===============================
+function sortData(data) {
+    return data.sort((a, b) => b.TotalNetPaid - a.TotalNetPaid);
+}
 
-            populateYearDropdown();
-            updateLastUpdated();
-        });
-    function processMatchCSV(rows) {
-        const header = rows[0];
+// ===============================
+// TABLE RENDERING
+// ===============================
+function renderTable(data) {
+    const table = document.getElementById(TABLE_ID);
+    if (!table) return;
 
-        const idxDate = header.indexOf("Match Date");
-        const idxSeason = header.indexOf("Season");
-        const idxDivision = header.indexOf("Division");
-        const idxPlayer = header.indexOf("Semington A Player Name");
-        const idxTotal = header.indexOf("Total Score");
-        const idxDucks = header.indexOf("Ducks");
-        const idxTopScore = header.indexOf("Top Score");
-        const idxLegsWon = header.indexOf("Legs Won");
-        const idxSpares = header.indexOf("Spares");
-        const idxMatchDetails = header.indexOf("Match Details");
-        const idxUpdated = header.indexOf("UpdatedAt");
+    table.innerHTML = `
+        <tr>
+            <th>Team</th>
+            <th>Division</th>
+            <th>League Paid</th>
+            <th>Cup Paid</th>
+            <th>Total Paid</th>
+            <th>Total Net Paid</th>
+        </tr>
+    `;
 
-        for (let i = 1; i < rows.length; i++) {
-            const r = rows[i];
-            if (!r[idxPlayer]) continue;
+    data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${row.Team}</td>
+            <td>${row.Division}</td>
+            <td>${row.LeaguePaid}</td>
+            <td>${row.CupPaid}</td>
+            <td>${row.TotalPaid}</td>
+            <td>${row.TotalNetPaid === 0 ? "" : "£" + row.TotalNetPaid.toFixed(2)}</td>
+        `;
+        table.appendChild(tr);
+    });
+}
 
-            matchRows.push({
-                season: r[idxSeason],
-                division: r[idxDivision],
-                player: r[idxPlayer],
-                total: Number(r[idxTotal]),
-                ducks: Number(r[idxDucks]),
-                topScore: Number(r[idxTopScore]),
-                legsWon: Number(r[idxLegsWon]),
-                spares: Number(r[idxSpares]),
-                matchType: r[idxMatchDetails],
-                date: r[idxDate]
-            });
+// ===============================
+// MAIN
+// ===============================
+async function init() {
+    let data = await loadCSV();
+    data = data.map(cleanRow);
+    data = applyFilters(data);
+    data = sortData(data);
+    renderTable(data);
+}
 
-            if (r[idxUpdated]) csvTimestamp = r[idxUpdated];
-        }
-    }
-    function processFeeCSV(rows) {
-        const header = rows[0];
-
-        const idxSeason = header.indexOf("Year Dates");
-        const idxCup = header.indexOf("Cup Fees");
-        const idxLeague = header.indexOf("League Fees");
-        const idxSpare = header.indexOf("Spare Value");
-        const idxDuckPrem = header.indexOf("Duck Value Premier");
-        const idxDuckDiv1 = header.indexOf("Duck Value Div 1");
-        const idxU5Prem = header.indexOf("Under 5 Premier");
-        const idxU6Div1 = header.indexOf("Under 6 Div 1");
-        const idxLegs = header.indexOf("Legs won Value");
-        const idxTop = header.indexOf("Top Score Value");
-
-        for (let i = 1; i < rows.length; i++) {
-            const r = rows[i];
-            const season = r[idxSeason];
-            if (!season) continue;
-
-            feeTable[season] = {
-                cup: Number(r[idxCup]),
-                league: Number(r[idxLeague]),
-                spare: Number(r[idxSpare]),
-                duckPrem: Number(r[idxDuckPrem]),
-                duckDiv1: Number(r[idxDuckDiv1]),
-                u5Prem: Number(r[idxU5Prem]),
-                u6Div1: Number(r[idxU6Div1]),
-                legs: Number(r[idxLegs]),
-                top: Number(r[idxTop])
-            };
-        }
-    }
-    function populateYearDropdown() {
-        const select = document.getElementById("seasonSelect");
-
-        const seasons = [...new Set(matchRows.map(r => r.season))].sort();
-        select.innerHTML = "";
-
-        seasons.forEach(season => {
-            const opt = document.createElement("option");
-            opt.value = season;
-            opt.textContent = season;
-            select.appendChild(opt);
-        });
-
-        if (seasons.length > 0) buildTable(seasons[0]);
-
-        select.addEventListener("change", () => {
-            buildTable(select.value);
-        });
-    }
-
-    function buildTable(season) {
-        const tbody = document.getElementById("contribBody");
-        tbody.innerHTML = "";
-
-        const rows = matchRows.filter(r => r.season === season);
-        const fee = feeTable[season];
-
-        const players = {};
-
-        rows.forEach(r => {
-            if (!players[r.player]) {
-                players[r.player] = {
-                    legs: 0,
-                    top: 0,
-                    spares: 0,
-                    ducksPrem: 0,
-                    ducksDiv1: 0,
-                    u5Prem: 0,
-                    u6Div1: 0,
-                    league: 0,
-                    cup: 0
-                };
-            }
-
-            const p = players[r.player];
-
-            p.legs += r.legsWon;
-            p.top += r.topScore;
-            p.spares += r.spares;
-
-            if (r.division === "Premier") p.ducksPrem += r.ducks;
-            if (r.division === "Div 1") p.ducksDiv1 += r.ducks;
-
-            if (r.division === "Premier" && r.total < 5) p.u5Prem++;
-            if (r.division === "Div 1" && r.total < 6) p.u6Div1++;
-
-            if (r.matchType.includes("Cup")) p.cup++;
-            else p.league++;
-        });
-
-        Object.keys(players).forEach(name => {
-            const p = players[name];
-
-            const pluses =
-                p.legs * fee.legs +
-                p.top * fee.top +
-                p.spares * fee.spare;
-
-            const fines =
-                p.ducksPrem * fee.duckPrem +
-                p.ducksDiv1 * fee.duckDiv1 +
-                p.u5Prem * fee.u5Prem +
-                p.u6Div1 * fee.u6Div1;
-
-            const matchFees =
-                p.league * fee.league +
-                p.cup * fee.cup;
-
-            const total = pluses + fines + matchFees;
-
-            const tr = document.createElement("tr");
-
-            tr.innerHTML = `
-                <td>${name}</td>
-                <td class="plus">£${pluses.toFixed(2)}</td>
-                <td class="fine">£${fines.toFixed(2)}</td>
-                <td class="fee">£${matchFees.toFixed(2)}</td>
-                <td class="total">£${total.toFixed(2)}</td>
-            `;
-
-            tbody.appendChild(tr);
-        });
-    }
-    function updateLastUpdated() {
-        const el = document.getElementById("lastUpdated");
-        el.textContent = csvTimestamp
-            ? "Last Updated: " + csvTimestamp
-            : "Last Updated: (no timestamp found)";
-    }
-
-});
+document.addEventListener("DOMContentLoaded", init);
 </script>
+
 
 
  </body>
