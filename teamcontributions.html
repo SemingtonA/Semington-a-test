@@ -198,276 +198,32 @@
     </footer>
 
     <!-- YOUR EXISTING TEAM CONTRIBUTIONS SCRIPT GOES HERE -->
-<script data-version="4">
-
+<script data-version="5">
 document.addEventListener("DOMContentLoaded", function () {
 
-    const csvPath = "csv_export2.csv";
+    const csvPath = "csv_team_fees.csv";
 
     let feeTable = {};
     let cupFees = {};
     let matchRows = [];
-    let csvTimestamp = "";   // ⭐ store UpdatedAt from column U (index 20)
+    let csvTimestamp = "";
 
-    // -----------------------------
-    // LOAD CSV
-    // -----------------------------
+    // SAFER CSV PARSER (handles commas inside quotes)
+    function parseCSV(text) {
+        return text
+            .trim()
+            .split(/\r?\n/)
+            .map(row => row.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/));
+    }
+
     fetch(csvPath)
-        .then(response => response.text())
-        .then(data => {
-             const rows = data
-    .trim()
-    .split(/\r?\n/)
-    .map(r => r.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/));
-
+        .then(r => r.text())
+        .then(text => {
+            const rows = parseCSV(text);
             processCSV(rows);
             populateYearDropdown();
-            updateLastUpdated();   // ⭐ now uses CSV timestamp
+            updateLastUpdated();
         });
 
-    // -----------------------------
-    // PROCESS CSV
-    // -----------------------------
-    function processCSV(rows) {
-        
-rows.forEach(row => {
-
-    // ⭐ Capture UpdatedAt from column U (index 20)
-    if (!csvTimestamp && row[20] && row[20].trim() !== "") {
-        csvTimestamp = row[20].trim();
-        console.log("CSV timestamp captured:", csvTimestamp);
-    }
-
-            // -----------------------------
-            // MATCH DATA (Columns A → U)
-            // -----------------------------
-            const matchType = row[3];
-            const player = row[6];
-
-            if (matchType === "League" || matchType === "Cup") {
-                matchRows.push(row);
-            }
-
-            // -----------------------------
-            // FEE TABLE (Columns AA → AL)
-            // -----------------------------
-            const year = row[26]?.replace(/\s+/g, " ").trim();
-            const cupID = row[27];
-            const cupFee = row[28];
-            const leagueFee = row[29];
-
-            if (year && leagueFee && leagueFee.trim() !== "") {
-
-                feeTable[year] = {
-                    leagueFee: parseFloat(row[29]) || 0,
-                    spareValue: parseFloat(row[30]) || 0,
-                    duckPrem: parseFloat(row[31]) || 0,
-                    duckDiv1: parseFloat(row[32]) || 0,
-                    under5Prem: parseFloat(row[33]) || 0,
-                    under6Div1: parseFloat(row[34]) || 0,
-                    legsWonValue: parseFloat(row[35]) || 0,
-                    topScoreValue: parseFloat(row[36]) || 0,
-                    stickerUp: parseFloat(row[37]) || 0
-                };
-
-                cupFees[year] = {};
-            }
-
-            if (year && cupID && cupFee && (!leagueFee || leagueFee.trim() === "")) {
-                if (!cupFees[year]) cupFees[year] = {};
-                cupFees[year][cupID.trim()] = parseFloat(cupFee);
-            }
-        });
-}
-
-    // -----------------------------
-    // POPULATE SEASON DROPDOWN
-    // -----------------------------
-    function populateYearDropdown() {
-        const select = document.getElementById("yearSelect");
-        select.innerHTML = "";
-
-        Object.keys(feeTable).forEach(year => {
-            const opt = document.createElement("option");
-            opt.value = year;
-            opt.textContent = year;
-            select.appendChild(opt);
-        });
-
-        select.addEventListener("change", () => buildTable(select.value));
-
-        if (select.value) buildTable(select.value);
-    }
-
-    // -----------------------------
-    // BUILD FULL CONTRIBUTIONS TABLE
-    // -----------------------------
-    function buildTable(year) {
-
-        const fees = feeTable[year];
-        const cupFeeLookup = cupFees[year];
-
-        let playerTotals = {};
-
-        matchRows.forEach(row => {
-
-            const matchYear = row[1]?.replace(/\s+/g, " ").trim();
-            if (matchYear !== year) return;
-
-            const matchType = row[3];
-            const homeAway = row[4];
-            const division = row[5];
-            const player = row[6];
-
-            const legs = parseInt(row[16]) || 0;
-            const ducks = parseInt(row[14]) || 0;
-            const spares = parseInt(row[17]) || 0;
-            const topScore = parseInt(row[15]) || 0;
-
-            let cupID = "";
-            if (matchType === "Cup") {
-                const matchName = row[3];
-                if (matchName.includes("10")) cupID = "10 " + homeAway;
-                if (matchName.includes("8")) cupID = "8 " + homeAway;
-            }
-
-            let total = 0;
-
-            const legsValue = legs * fees.legsWonValue;
-            const duckValue = (division === "premier")
-                ? ducks * fees.duckPrem
-                : ducks * fees.duckDiv1;
-            const spareValue = spares * fees.spareValue;
-            const topScoreValue = topScore * fees.topScoreValue;
-            const stickerUpValue = fees.stickerUp;
-            const leagueFeeValue = (matchType === "League") ? fees.leagueFee : 0;
-            const cupFeeValue = (matchType === "Cup" && cupFeeLookup[cupID]) ? cupFeeLookup[cupID] : 0;
-
-            total =
-                legsValue +
-                duckValue +
-                spareValue +
-                topScoreValue +
-                stickerUpValue +
-                leagueFeeValue +
-                cupFeeValue;
-
-            if (!playerTotals[player]) {
-                playerTotals[player] = {
-                    legsValue: 0,
-                    duckValue: 0,
-                    spareValue: 0,
-                    topScoreValue: 0,
-                    stickerUpValue: 0,
-                    leagueFeeValue: 0,
-                    cupFeeValue: 0,
-                    total: 0
-                };
-            }
-
-            playerTotals[player].legsValue += legsValue;
-            playerTotals[player].duckValue += duckValue;
-            playerTotals[player].spareValue += spareValue;
-            playerTotals[player].topScoreValue += topScoreValue;
-            playerTotals[player].stickerUpValue += stickerUpValue;
-            playerTotals[player].leagueFeeValue += leagueFeeValue;
-            playerTotals[player].cupFeeValue += cupFeeValue;
-            playerTotals[player].total += total;
-        });
-
-        renderTable(playerTotals);
-    }
-
-    // -----------------------------
-    // RENDER FULL TABLE
-    // -----------------------------
-   function renderTable(playerTotals) {
-
-    // ⭐ Insert Last Updated ABOVE the table
-    let html = `
-        <div style="text-align:center; font-size:12px; margin-bottom:10px; color:#555;">
-            Last updated: ${document.getElementById("lastUpdated").textContent.replace("Last updated: ", "")}
-        </div>
-
-        <table>
-            <tr>
-                <th>Player</th>
-                <th>Legs Won (£)</th>
-                <th>Ducks (£)</th>
-                <th>Spares (£)</th>
-                <th>Top Score (£)</th>
-                <th>Sticker Up (£)</th>
-                <th>League Fee (£)</th>
-                <th>Cup Fee (£)</th>
-                <th>Total Contribution (£)</th>
-            </tr>
-    `;
-
-    Object.keys(playerTotals).forEach(player => {
-        const p = playerTotals[player];
-        html += `
-            <tr>
-                <td>${player}</td>
-                <td>£${p.legsValue.toFixed(2)}</td>
-                <td>£${p.duckValue.toFixed(2)}</td>
-                <td>£${p.spareValue.toFixed(2)}</td>
-                <td>£${p.topScoreValue.toFixed(2)}</td>
-                <td>£${p.stickerUpValue.toFixed(2)}</td>
-                <td>£${p.leagueFeeValue.toFixed(2)}</td>
-                <td>£${p.cupFeeValue.toFixed(2)}</td>
-                <td><strong>£${p.total.toFixed(2)}</strong></td>
-            </tr>
-        `;
-    });
-
-    html += `</table>`;
-
-    document.getElementById("contributionsTable").innerHTML = html;
-}
-
-    // -----------------------------
-    // LAST UPDATED (CSV TIMESTAMP)
-    // -----------------------------
- function updateLastUpdated() {
-    const el = document.getElementById("lastUpdated");
-
-    if (!csvTimestamp) {
-        el.textContent = "Last updated: (no timestamp found)";
-        return;
-    }
-
-    // Match DD/MM/YYYY HH:mm
-    const m = csvTimestamp.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
-
-    if (!m) {
-        el.textContent = "Last updated: " + csvTimestamp; // fallback
-        return;
-    }
-
-    const date = new Date(
-        parseInt(m[3]),
-        parseInt(m[2]) - 1,
-        parseInt(m[1]),
-        parseInt(m[4]),
-        parseInt(m[5])
-    );
-
-    const formatted =
-        date.toLocaleDateString("en-GB", { weekday: "short" }) + " " +
-        date.getDate() + " " +
-        date.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) + " " +
-        date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-
-    el.textContent = "Last updated: " + formatted;
-}
-
-
-});
-</script>
-
-
-
-
-
-  </body>
+ </body>
         </html>
