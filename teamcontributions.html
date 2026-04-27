@@ -81,6 +81,9 @@
             margin-bottom: 20px;
         }
 
+      <head>
+
+    <style>
         /* TEAM CONTRIBUTIONS TABLE */
         #contributionsTable {
             margin-top: 25px;
@@ -102,6 +105,41 @@
             background-color: #ddd;
         }
 
+        /* WIN (green) */
+        .win {
+            background-color: #b6f2ad; /* stronger green */
+            color: #0a4d00;            /* dark green text */
+            font-weight: 600;
+            padding: 4px 6px;
+        }
+
+        /* PAID (red) */
+        .paid {
+            background-color: #f7c5c5; /* soft red */
+            color: #7a0000;            /* dark red text */
+            font-weight: 600;
+            padding: 4px 6px;
+        }
+
+        /* TOTAL (yellow) */
+        .total {
+            background-color: #fff4b3; /* soft yellow */
+            font-weight: 700;
+            padding: 4px 6px;
+        }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            padding: 10px 0;
+            color: black;
+        }
+    </style>
+
+</head>
+
+
+      
         /* FOOTER (bottom centre, same feel as Fixtures) */
         .footer {
            text-align: center;
@@ -183,19 +221,27 @@
     <div id="lastUpdated" style="text-align:center; font-size:12px; margin-bottom:10px; color:#555;">
         Last updated: —
     </div>
+<table class="contrib-table">
+  <thead>
+    <tr>
+      <th>Player</th>
+      <th class="win">Legs Won (£)</th>
+      <th class="win">Top Score (£)</th>
+      <th class="win">Spares (£)</th>
+      <th class="win">Total Win (£)</th>
+      <th class="paid">Ducks Prem (£)</th>
+      <th class="paid">Ducks Div1 (£)</th>
+      <th class="paid">Under‑5 Prem (£)</th>
+      <th class="paid">Under‑6 Div1 (£)</th>
+      <th class="paid">League Fees (£)</th>
+      <th class="paid">Cup Fees (£)</th>
+      <th class="paid">Total Net Paid (£)</th>
+    </tr>
+  </thead>
+  <tbody id="contribBody"></tbody>
+</table>
 
-    <table class="contrib-table">
-        <thead>
-            <tr>
-                <th>Player</th>
-                <th>Team</th>
-                <th>Match Type</th>
-                <th>Score</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody id="contribBody"></tbody>
-    </table>
+    
 </main>
 
 
