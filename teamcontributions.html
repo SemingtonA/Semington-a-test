@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-  <!-- rebuild -->
-  <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Contributions - Semington A (Test)</title>
@@ -25,7 +24,7 @@
             flex-direction: column;
         }
 
-        /* HEADER (same structure as Fixtures, different text) */
+        /* HEADER */
         .header {
             padding: 20px 20px;
             text-align: center;
@@ -35,15 +34,15 @@
             position: relative;
         }
 
-        /* LOGO TOP RIGHT (same as Fixtures) */
+        /* LOGO TOP RIGHT */
         .top-right-logo {
             position: absolute;
-              top: 10px;
+            top: 10px;
             right: 20px;
             height: 200px;
         }
 
-        /* NAV BAR (from Fixtures) */
+        /* NAV BAR */
         .navbar {
             display: flex;
             justify-content: center;
@@ -73,7 +72,7 @@
             padding: 20px;
             max-width: 1100px;
             margin: auto;
-            flex: 1; /* push footer down */
+            flex: 1;
         }
 
         h2 {
@@ -81,9 +80,6 @@
             margin-bottom: 20px;
         }
 
-      <head>
-
-    <style>
         /* TEAM CONTRIBUTIONS TABLE */
         #contributionsTable {
             margin-top: 25px;
@@ -107,23 +103,23 @@
 
         /* WIN (green) */
         .win {
-            background-color: #b6f2ad; /* stronger green */
-            color: #0a4d00;            /* dark green text */
+            background-color: #b6f2ad;
+            color: #0a4d00;
             font-weight: 600;
             padding: 4px 6px;
         }
 
         /* PAID (red) */
         .paid {
-            background-color: #f7c5c5; /* soft red */
-            color: #7a0000;            /* dark red text */
+            background-color: #f7c5c5;
+            color: #7a0000;
             font-weight: 600;
             padding: 4px 6px;
         }
 
         /* TOTAL (yellow) */
         .total {
-            background-color: #fff4b3; /* soft yellow */
+            background-color: #fff4b3;
             font-weight: 700;
             padding: 4px 6px;
         }
@@ -134,25 +130,13 @@
             padding: 10px 0;
             color: black;
         }
-    </style>
-
-</head>
-
-
-      
-        /* FOOTER (bottom centre, same feel as Fixtures) */
-        .footer {
-           text-align: center;
-            padding: 10px 0;
-            color: Black;
-        }
 
         .footer-logo {
             height: 40px;
             margin-top: 10px;
         }
 
-        /* MOBILE FIXES (mirroring Fixtures behaviour) */
+        /* MOBILE FIXES */
         @media (max-width: 768px) {
             .header {
                 font-size: 28px;
@@ -193,9 +177,16 @@
 
 <body>
 
+
     <!-- HEADER (logo top-right, text = Team Contributions) -->
-        <header class="header">
-        Team Contributions
+       <div class="content">
+
+    <h2>Team Contributions</h2>
+
+    <div id="divisionDisplay" style="font-weight:bold; margin-bottom:10px;"></div>
+
+    <table id="contributionsTable"></table>
+
         <img src="Semington A Logo 5.jpg" alt="Semington A Skittles Team Logo" class="top-right-logo">
     </header>
 
