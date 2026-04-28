@@ -189,6 +189,11 @@
 </footer>
 
 <script>
+// Convert CSV values to numbers safely
+function toNum(v) {
+    return Number(String(v).replace(/[^0-9.-]/g, "")) || 0;
+}
+
 // Load CSV file
 async function loadCSV(file) {
     const response = await fetch(file);
@@ -209,13 +214,35 @@ function parseCSV(text) {
     });
 }
 
+// Build season dropdown
+function buildSeasonDropdown(rows) {
+    const seasons = [...new Set(rows.map(r => r.Season))].filter(Boolean);
+
+    const select = document.createElement("select");
+    select.id = "seasonSelect";
+    select.style.marginBottom = "15px";
+
+    seasons.forEach(season => {
+        const opt = document.createElement("option");
+        opt.value = season;
+        opt.textContent = season;
+        select.appendChild(opt);
+    });
+
+    document.getElementById("divisionDisplay").before(select);
+
+    select.addEventListener("change", init);
+}
+
 // Group match rows by player
 function groupByPlayer(rows) {
     const players = {};
 
     rows.forEach(r => {
         const name = r["Semington A Player Name"];
-        if (!name) return;
+
+        // Remove junk players
+        if (!name || name === ")" || name === "A N Other" || name === "0") return;
 
         if (!players[name]) {
             players[name] = {
@@ -229,18 +256,18 @@ function groupByPlayer(rows) {
             };
         }
 
-        players[name].Ducks += Number(r.Ducks || 0);
-        players[name].LegsWon += Number(r["Legs Won "] || 0);
-        players[name].TopScore += Number(r["Top Score"] || 0);
-        players[name].Spares += Number(r.Spares || 0);
+        players[name].Ducks += toNum(r.Ducks);
+        players[name].LegsWon += toNum(r["Legs Won "]);
+        players[name].TopScore += toNum(r["Top Score"]);
+        players[name].Spares += toNum(r.Spares);
 
         const legs = [
-            Number(r["Leg 1:"] || 0),
-            Number(r["Leg 2: "] || 0),
-            Number(r["Leg 3: "] || 0),
-            Number(r["Leg 4: "] || 0),
-            Number(r["Leg 5: "] || 0),
-            Number(r["Leg 6:"] || 0)
+            toNum(r["Leg 1:"]),
+            toNum(r["Leg 2: "]),
+            toNum(r["Leg 3: "]),
+            toNum(r["Leg 4: "]),
+            toNum(r["Leg 5: "]),
+            toNum(r["Leg 6:"])
         ];
 
         const threshold = r.Division.toLowerCase() === "premier" ? 5 : 6;
@@ -259,15 +286,15 @@ function getFeeRules(feesCSV, season) {
 function calculateRow(player, fees) {
     const isPremier = player.Division === "premier";
 
-    const duckValue = isPremier ? Number(fees["Duck Value Premier"]) : Number(fees["Duck Value Div 1"]);
-    const underValue = isPremier ? Number(fees["Under 5 Premier"]) : Number(fees["Under 6 Div 1"]);
+    const duckValue = isPremier ? toNum(fees["Duck Value Premier"]) : toNum(fees["Duck Value Div 1"]);
+    const underValue = isPremier ? toNum(fees["Under 5 Premier"]) : toNum(fees["Under 6 Div 1"]);
 
-    const legsWonValue = Number(fees["Legs won Value"]);
-    const topScoreValue = Number(fees["Top Score Value"]);
-    const spareValue = Number(fees["Spare Value"] || 0);
+    const legsWonValue = toNum(fees["Legs won Value"]);
+    const topScoreValue = toNum(fees["Top Score Value"]);
+    const spareValue = toNum(fees["Spare Value"]);
 
-    const leagueFees = Number(fees["League Fees"] || 0);
-    const cupFees = Number(fees["Cup Fees"] || 0);
+    const leagueFees = toNum(fees["League Fees"]);
+    const cupFees = toNum(fees["Cup Fees"]);
 
     const duckFine = player.Ducks * duckValue;
     const underFine = player.UnderCount * underValue;
@@ -282,7 +309,9 @@ function calculateRow(player, fees) {
 
     return {
         Player: player.Player,
-        LegsWon: winMoney.toFixed(2),
+        LegsWon: (player.LegsWon * legsWonValue).toFixed(2),
+        TopScore: (player.TopScore * topScoreValue).toFixed(2),
+        Spares: (player.Spares * spareValue).toFixed(2),
         Ducks: duckFine.toFixed(2),
         Under: underFine.toFixed(2),
         LeagueFees: leagueFees.toFixed(2),
@@ -300,6 +329,8 @@ function renderTable(rows) {
     const headers = [
         "Player",
         "Legs Won (£)",
+        "Top Score (£)",
+        "Spares (£)",
         "Ducks (£)",
         "Under (£)",
         "League Fees (£)",
@@ -318,6 +349,8 @@ function renderTable(rows) {
             <tr>
                 <td>${r.Player}</td>
                 <td class="win">£${r.LegsWon}</td>
+                <td class="win">£${r.TopScore}</td>
+                <td class="win">£${r.Spares}</td>
                 <td class="paid">£${r.Ducks}</td>
                 <td class="paid">£${r.Under}</td>
                 <td class="paid">£${r.LeagueFees}</td>
@@ -334,10 +367,16 @@ async function init() {
     const matches = await loadCSV("csv_export.csv");
     const feesCSV = await loadCSV("csv_team_fees.csv");
 
-    const season = matches[0]["Year Dates"];
+    // Build dropdown once
+    if (!document.getElementById("seasonSelect")) {
+        buildSeasonDropdown(matches);
+    }
+
+    const season = document.getElementById("seasonSelect").value;
     const feeRules = getFeeRules(feesCSV, season);
 
-    const players = groupByPlayer(matches);
+    const filtered = matches.filter(r => r.Season === season);
+    const players = groupByPlayer(filtered);
     const finalRows = players.map(p => calculateRow(p, feeRules));
 
     document.getElementById("divisionDisplay").textContent =
@@ -348,6 +387,7 @@ async function init() {
 
 document.addEventListener("DOMContentLoaded", init);
 </script>
+
 
 </body>
 </html>
