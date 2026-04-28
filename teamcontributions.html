@@ -75,6 +75,14 @@
     margin-bottom: 15px;
     text-align: center;
   }
+<style>
+th {
+    white-space: normal;
+    line-height: 1.1;
+    text-align: center;
+    padding: 4px 4px;
+}
+</style>
 
   table {
     width: 100%;
@@ -177,7 +185,18 @@
 
   <div id="divisionDisplay"></div>
 
-  <table id="contributionsTable"></table>
+ <table id="contributionsTable">
+  <thead>
+    <tr>
+      <th>Player<br>Name<br>&nbsp;</th>
+      <th>Ducks<br>(League)<br>&nbsp;</th>
+      <th>Spares<br>(All<br>Games)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Your script will insert rows here -->
+  </tbody>
+</table>
 
 </main>
 
