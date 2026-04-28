@@ -426,112 +426,8 @@ function calculateRows(players, matches, feeRules) {
     return rows;
 }
 
+  // ⭐ RENDER TABLE
 function renderTable(rows, division) {
-    const table = document.getElementById("contributionsTable");
-    table.innerHTML = "";
-
-    const underHeader = division === "premier" ? "Under 5 (£)" : "Under 6 (£)";
-
-    const headers = [
-        "Player",
-        "Legs Won (£)",
-        "Top Score (£)",
-        "Spares League & Cup(£)",
-        "Total Win (£)",
-        "Ducks (£)",
-        underHeader,
-        "League Fees (£)",
-        "Cup Fees (£)",
-        "Total Paid (£)"
-    ];
-
-       
-let headerRow = "<tr>";
-headers.forEach(h => headerRow += `<th>${h}</th>`);
-headerRow += "</tr>";
-table.innerHTML += headerRow;
-
-  rows.forEach(r => {
-    table.innerHTML += `
-        <tr>
-            <td>${r.Player}</td>
-            <td class="win">${money(Number(r.LegsWon))}</td>
-            <td class="win">${money(r.TopScore)}</td>
-            <td class="win">${money(r.Spares)}</td>
-            <td class="win" style="background:#7CFF7C; color:#004400;">${money(r.TotalWin)}</td>
-            <td class="paid">${money(r.Ducks)}</td>
-            <td class="paid">${money(r.Under)}</td>
-            <td class="paid">${money(r.LeagueFees)}</td>
-            <td class="paid">${money(r.CupFees)}</td>
-            <td class="paid" style="background:#FF7C7C; color:#660000;">${money(r.TotalPaid)}</td>
-        </tr>
-    `;
-});
-
-}
-
-async function init() {
-    const matches = await loadCSV("csv_export.csv");
-    const feesCSV = await loadCSV("csv_team_fees.csv");
-
-    // Build dropdown once
-    if (!document.getElementById("seasonSelect")) {
-        buildSeasonDropdown(matches);
-    }
-
-    const season = document.getElementById("seasonSelect").value;
-    const feeRules = getFeeRules(feesCSV, season);
-
-    // ⭐ FILTER MATCHES FOR SELECTED SEASON (normalised)
-    const filtered = matches.filter(r =>
-        (r.Season || "").replace(/\s+/g, " ").trim() ===
-        season.replace(/\s+/g, " ").trim()
-    );
-
-    // ⭐ IF NO MATCH DATA → SHOW BLANK TABLE + MESSAGE
-    if (filtered.length === 0) {
-        document.getElementById("divisionDisplay").textContent = "No data for this season";
-        document.getElementById("contributionsTable").innerHTML = "";
-        
-        // Update Last Updated text to blank
-        document.getElementById("lastUpdated").textContent = "Last updated: —";
-        return;
-    }
-
-    // ⭐ UPDATE LAST UPDATED TEXT
-    const newest = filtered
-        .map(r => r.UpdatedAt)
-        .filter(Boolean)
-        .sort()
-        .pop();
-
-    document.getElementById("lastUpdated").textContent =
-        newest ? `Last updated: ${newest}` : "Last updated: —";
-
-    // ⭐ GROUP PLAYERS + MATCHES
-    const { players, matchesById } = groupByPlayer(filtered);
-
-    // ⭐ IF NO PLAYERS → STOP HERE
-    const playerList = Object.values(players);
-    if (playerList.length === 0) {
-        document.getElementById("divisionDisplay").textContent = "No data for this season";
-        document.getElementById("contributionsTable").innerHTML = "";
-        return;
-    }
-
-    // ⭐ APPLY TOP SCORE LOGIC
-    applyTopScoreLogic(players, matchesById);
-
-    // ⭐ CALCULATE FINAL ROWS
-    const finalRows = calculateRows(players, filtered, feeRules);
-
-    // ⭐ SET DIVISION DISPLAY
-    const division = playerList[0].Division;
-    document.getElementById("divisionDisplay").textContent =
-        "Division: " + division;
-
-    // ⭐ RENDER TABLE
-   function renderTable(rows, division) {
     const table = document.getElementById("contributionsTable");
     table.innerHTML = "";
 
@@ -583,8 +479,73 @@ async function init() {
     });
 }
 
-</script>
 
+async function init() {
+    const matches = await loadCSV("csv_export.csv");
+    const feesCSV = await loadCSV("csv_team_fees.csv");
+
+    // Build dropdown once
+    if (!document.getElementById("seasonSelect")) {
+        buildSeasonDropdown(matches);
+    }
+
+    const season = document.getElementById("seasonSelect").value;
+    const feeRules = getFeeRules(feesCSV, season);
+
+    // ⭐ FILTER MATCHES FOR SELECTED SEASON (normalised)
+    const filtered = matches.filter(r =>
+        (r.Season || "").replace(/\s+/g, " ").trim() ===
+        season.replace(/\s+/g, " ").trim()
+    );
+
+    // ⭐ IF NO MATCH DATA → SHOW BLANK TABLE + MESSAGE
+    if (filtered.length === 0) {
+        document.getElementById("divisionDisplay").textContent = "No data for this season";
+        document.getElementById("contributionsTable").innerHTML = "";
+        
+        // Update Last Updated text to blank
+        document.getElementById("lastUpdated").textContent = "Last updated: —";
+        return;
+    }
+
+    // ⭐ UPDATE LAST UPDATED TEXT
+    const newest = filtered
+        .map(r => r.UpdatedAt)
+        .filter(Boolean)
+        .sort()
+        .pop();
+
+    document.getElementById("lastUpdated").textContent =
+        newest ? `Last updated: ${newest}` : "Last updated: —";
+
+    // ⭐ GROUP PLAYERS + MATCHES
+    const { players, matchesById } = groupByPlayer(filtered);
+
+    // ⭐ IF NO PLAYERS → STOP HERE
+    const playerList = Object.values(players);
+    if (playerList.length === 0) {
+        document.getElementById("divisionDisplay").textContent = "No data for this season";
+        document.getElementById("contributionsTable").innerHTML = "";
+        return;
+    }
+// ⭐ APPLY TOP SCORE LOGIC
+applyTopScoreLogic(players, matchesById);
+
+// ⭐ CALCULATE FINAL ROWS
+const finalRows = calculateRows(players, filtered, feeRules);
+
+// ⭐ SET DIVISION DISPLAY
+const division = playerList[0].Division;
+document.getElementById("divisionDisplay").textContent =
+    "Division: " + division;
+
+// ⭐ RENDER TABLE
+renderTable(finalRows, division);
+}
+
+  document.addEventListener("DOMContentLoaded", init);
+
+</script>
 
 </body>
 </html>
