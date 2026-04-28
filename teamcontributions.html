@@ -58,7 +58,6 @@
     background: #163aa3;
   }
 
-  /* Highlight active page */
   .nav-buttons a.active {
     background: #163aa3;
   }
@@ -76,27 +75,29 @@
     text-align: center;
   }
 
-/* ===== TABLE ===== */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #ffffffcc;
-  margin-top: 20px;
-}
+  /* ===== TABLE ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffffcc;
+    margin-top: 20px;
+  }
 
-th, td {
-  border: 1px solid #555;
-  padding: 10px;
-  text-align: center;
-}
+  th, td {
+    border: 1px solid #555;
+    padding: 10px;
+    text-align: center;
+  }
 
-th {
-  background: #ddd;
-}
+  th {
+    background: #ddd;
+  }
 
-    
-
- 
+  /* Equal width for money columns */
+  .money-col {
+    width: 80px;
+    white-space: normal;
+  }
 
   .win {
     background: #b6f2ad;
@@ -129,7 +130,6 @@ th {
 
   /* ===== MOBILE ===== */
   @media (max-width: 900px) {
-
     .header-top {
       flex-direction: column;
       text-align: center;
@@ -182,12 +182,8 @@ th {
 
   <div id="divisionDisplay"></div>
 
- <table id="contributionsTable">
-  
-  <tbody>
-    <!-- Your script will insert rows here -->
-  </tbody>
-</table>
+  <!-- CLEAN TABLE — NO TBODY -->
+  <table id="contributionsTable"></table>
 
 </main>
 
@@ -197,6 +193,7 @@ th {
     <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
   </div>
 </footer>
+
 
 <script>
 // Convert CSV values to numbers safely
@@ -534,10 +531,58 @@ async function init() {
         "Division: " + division;
 
     // ⭐ RENDER TABLE
-    renderTable(finalRows, division);
+   function renderTable(rows, division) {
+    const table = document.getElementById("contributionsTable");
+    table.innerHTML = "";
+
+    // Dynamic Under header
+    const underHeader = division === "premier" ? "Under<br>5<br>£" : "Under<br>6<br>£";
+
+    // Build multi‑line header row
+    const headerRow = `
+    <tr>
+        <th>Player<br>Name<br>&nbsp;</th>
+        <th class="money-col">Legs<br>Won<br>£</th>
+        <th class="money-col">Top<br>Score<br>£</th>
+        <th class="money-col">Spares<br>League+Cup<br>£</th>
+        <th class="money-col">Total<br>Win<br>£</th>
+        <th class="money-col">Ducks<br>(League)<br>£</th>
+        <th class="money-col">${underHeader}</th>
+        <th class="money-col">League<br>Fees<br>£</th>
+        <th class="money-col">Cup<br>Fees<br>£</th>
+        <th class="money-col">Total<br>Paid<br>£</th>
+    </tr>
+    `;
+
+    table.innerHTML = headerRow;
+
+    // Add rows
+    rows.forEach(r => {
+        table.innerHTML += `
+            <tr>
+                <td>${r.Player}</td>
+
+                <td class="win money-col">${money(Number(r.LegsWon))}</td>
+                <td class="win money-col">${money(r.TopScore)}</td>
+                <td class="win money-col">${money(r.Spares)}</td>
+
+                <td class="win money-col" style="background:#7CFF7C; color:#004400;">
+                    ${money(r.TotalWin)}
+                </td>
+
+                <td class="paid money-col">${money(r.Ducks)}</td>
+                <td class="paid money-col">${money(r.Under)}</td>
+                <td class="paid money-col">${money(r.LeagueFees)}</td>
+                <td class="paid money-col">${money(r.CupFees)}</td>
+
+                <td class="paid money-col" style="background:#FF7C7C; color:#660000;">
+                    ${money(r.TotalPaid)}
+                </td>
+            </tr>
+        `;
+    });
 }
 
-document.addEventListener("DOMContentLoaded", init);
 </script>
 
 
