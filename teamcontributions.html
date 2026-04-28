@@ -447,14 +447,17 @@ function renderTable(rows, division) {
         "Cup Fees (£)",
         "Total Paid (£)"
     ];
+let headerRow = `
+<tr>
+    <th>Player<br>Name<br>&nbsp;</th>
+    <th>Ducks<br>(League)<br>&nbsp;</th>
+    <th>Spares<br>(All<br>Games)</th>
+</tr>
+`;
 
-    let headerRow = "<tr>";
+table.innerHTML += headerRow;
+
     
-    headerRow += "</tr>";
-    table.innerHTML += headerRow;
-    headers.forEach(h => headerRow += `<th>${h.replace(" ", "<br>")}<br>&nbsp;</th>`);
-    rows.forEach(r => {
-        table.innerHTML += `
             <tr>
                 <td>${r.Player}</td>
                 <td class="win">${money(Number(r.LegsWon))}</td>
