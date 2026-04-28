@@ -76,13 +76,14 @@
   }
 
   /* ===== TABLE ===== */
-  table {
-    width: 100%;
+table {
+    width: auto;              /* ⭐ SHRINKS TO FIT CONTENT */
     border-collapse: collapse;
     background: #ffffffcc;
     margin-top: 20px;
-    table-layout: fixed;   /* ⭐ THIS MAKES PLAYER COLUMN SHRINK *
-  }
+    table-layout: auto;       /* ⭐ LETS BROWSER SIZE COLUMNS BY CONTENT */
+}
+
 
   th, td {
     border: 1px solid #555;
