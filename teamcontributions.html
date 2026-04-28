@@ -448,26 +448,13 @@ function renderTable(rows, division) {
         "Total Paid (£)"
     ];
 
-            let headerRow = `
-<tr>
-    <th>Player<br>Name<br>&nbsp;</th>
-    <th>Legs<br>Won<br>&nbsp;</th>
-    <th>Top<br>Score<br>&nbsp;</th>
-    <th>Spares<br>(All)<br>&nbsp;</th>
-    <th>Total<br>Win<br>&nbsp;</th>
-    <th>Ducks<br>(League)<br>&nbsp;</th>
-    <th>Under<br>5/6<br>&nbsp;</th>
-    <th>League<br>Fees<br>&nbsp;</th>
-    <th>Cup<br>Fees<br>&nbsp;</th>
-    <th>Total<br>Paid<br>&nbsp;</th>
-</tr>
-`;
+       
+let headerRow = "<tr>";
+headers.forEach(h => headerRow += `<th>${h}</th>`);
+headerRow += "</tr>";
+table.innerHTML += headerRow;
 
-table.innerHTML = headerRow;
-
-
-    
-            <tr>
+    <tr>
                 <td>${r.Player}</td>
                 <td class="win">${money(Number(r.LegsWon))}</td>
                 <td class="win">${money(r.TopScore)}</td>
