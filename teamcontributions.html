@@ -222,9 +222,23 @@ function parseCSV(text) {
 function buildSeasonDropdown(rows) {
     const seasons = [...new Set(rows.map(r => r.Season))].filter(Boolean);
 
+    // Create container for Season + Dropdown + Last Updated
+    const bar = document.createElement("div");
+    bar.style.display = "flex";
+    bar.style.alignItems = "center";
+    bar.style.gap = "20px";
+    bar.style.marginBottom = "15px";
+
+    // Season label
+    const label = document.createElement("div");
+    label.textContent = "Season:";
+    label.style.fontWeight = "bold";
+
+    // Dropdown
     const select = document.createElement("select");
     select.id = "seasonSelect";
-    select.style.marginBottom = "15px";
+    select.style.width = "auto";          // auto-size to text
+    select.style.padding = "4px 6px";
 
     seasons.forEach(season => {
         const opt = document.createElement("option");
@@ -233,24 +247,23 @@ function buildSeasonDropdown(rows) {
         select.appendChild(opt);
     });
 
-   // Add label
-const label = document.createElement("div");
-label.textContent = "Season";
-label.style.fontWeight = "bold";
-label.style.marginBottom = "5px";
+    // Last updated text
+    const last = document.createElement("div");
+    last.id = "lastUpdated";
+    last.style.marginLeft = "auto";       // push to right side
+    last.style.fontStyle = "italic";
 
-const container = document.createElement("div");
-container.style.display = "flex";
-container.style.flexDirection = "column";
-container.style.marginBottom = "15px";
+    // Build bar
+    bar.appendChild(label);
+    bar.appendChild(select);
+    bar.appendChild(last);
 
-container.appendChild(label);
-container.appendChild(select);
-
-document.getElementById("divisionDisplay").before(container);
+    // Insert above division display
+    document.getElementById("divisionDisplay").before(bar);
 
     select.addEventListener("change", init);
 }
+
 
 // Group match rows by player
 function groupByPlayer(rows) {
@@ -447,7 +460,6 @@ function renderTable(rows, division) {
         `;
     });
 }
-
 async function init() {
     const matches = await loadCSV("csv_export.csv");
     const feesCSV = await loadCSV("csv_team_fees.csv");
@@ -460,6 +472,17 @@ async function init() {
     const feeRules = getFeeRules(feesCSV, season);
 
     const filtered = matches.filter(r => r.Season === season);
+
+    // ⭐ LAST UPDATED BLOCK
+    const newest = filtered
+        .map(r => r.UpdatedAt)
+        .filter(Boolean)
+        .sort()
+        .pop();
+
+    document.getElementById("lastUpdated").textContent =
+        newest ? `Last updated: ${newest}` : "Last updated: —";
+    // ⭐ END BLOCK
 
     const { players, matchesById } = groupByPlayer(filtered);
 
@@ -476,6 +499,8 @@ async function init() {
 
 document.addEventListener("DOMContentLoaded", init);
 </script>
+
+
 
 </body>
 </html>
