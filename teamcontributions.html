@@ -405,8 +405,9 @@ function calculateRows(players, matches, feeRules) {
 
         const totalWin = legsWonMoney + topScoreMoney + spareMoney;
 
-        // Payments
-        const duckFine = player.Ducks * duckValue;
+        // Payments (counts -> amounts)
+        const ducksCount = player.Ducks;                      // number of ducks
+        const duckFine = ducksCount * duckValue;             // amount charged for ducks
         const underFine = player.UnderCount * underValue;
         const leagueFees = player.MatchCount * leagueFeeValue;
 
@@ -431,7 +432,11 @@ function calculateRows(players, matches, feeRules) {
             TopScore: topScoreMoney.toFixed(2),
             Spares: spareMoney.toFixed(2),
             TotalWin: totalWin.toFixed(2),
+
+            // Provide both count and calculated amount
+            DucksCount: ducksCount,
             Ducks: duckFine.toFixed(2),
+
             Under: underFine.toFixed(2),
             LeagueFees: leagueFees.toFixed(2),
             CupFees: cupFees.toFixed(2),
@@ -441,6 +446,7 @@ function calculateRows(players, matches, feeRules) {
 
     return rows;
 }
+
 
   // ⭐ RENDER TABLE
 function renderTable(rows, division) {
@@ -482,7 +488,7 @@ function renderTable(rows, division) {
                     ${money(r.TotalWin)}
                 </td>
 
-                <td class="paid money-col">${money(r.Ducks)}</td>
+                <td class="paid money-col">${r.DucksCount ? r.DucksCount + " (" + money(r.Ducks) + ")" : money(r.Ducks)}</td>
                 <td class="paid money-col">${money(r.Under)}</td>
                 <td class="paid money-col">${money(r.LeagueFees)}</td>
                 <td class="paid money-col">${money(r.CupFees)}</td>
