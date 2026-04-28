@@ -317,7 +317,7 @@ function groupByPlayer(rows) {
             };
         }
 
-        players[name].MatchCount += 1;
+      players[name].MatchCount += 1;
 
 // determine cup once
 const isCup = (r["Match Details"] || "").toLowerCase().includes("cup");
@@ -330,6 +330,7 @@ players[name].Spares += toNum(r.Spares);
 if (!isCup) {
   players[name].Ducks += toNum(r.Ducks);
 }
+
 
 // Under 5/6 fines (Leg 1–5 only)
 const legs = [
