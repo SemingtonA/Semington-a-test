@@ -224,7 +224,7 @@ function toNum(v) {
 
 // Format money, blank if zero
 function money(v) {
-    return Number(v) === 0 ? "" : "£" + v;
+  return Number(v) === 0 ? "" : "£" + Number(v).toFixed(2);
 }
 
 // Load CSV file
@@ -432,22 +432,24 @@ function calculateRows(players, matches, feeRules) {
         });
 
         const totalPaid = duckFine + underFine + leagueFees + cupFees;
+      
+rows.push({
+  Player: player.Player,
+  LegsWon: legsWonMoney,        // numeric
+  TopScore: topScoreMoney,      // numeric
+  Spares: spareMoney,           // numeric
+  TotalWin: totalWin,           // numeric
 
-        rows.push({
-            Player: player.Player,
-            LegsWon: legsWonMoney,        // numeric
-            TopScore: topScoreMoney,      // numeric
-            Spares: spareMoney,           // numeric
-            TotalWin: totalWin,           // numeric
+  DucksCount: Number(player.Ducks || 0), // numeric count
+  Ducks: duckFine,              // numeric amount
 
-            DucksCount: ducksCount,       // numeric count
-            Ducks: duckFine,              // numeric amount
+  Under: underFine,             // numeric
+  LeagueFees: leagueFees,       // numeric
+  CupFees: cupFees,             // numeric
+  TotalPaid: totalPaid          // numeric
+});
 
-            Under: underFine,             // numeric
-            LeagueFees: leagueFees,       // numeric
-            CupFees: cupFees,             // numeric
-            TotalPaid: totalPaid          // numeric
-        });
+      
     });
 
     return rows;
@@ -485,23 +487,21 @@ function renderTable(rows, division) {
         table.innerHTML += `
             <tr>
                 <td class="player-col">${r.Player}</td>
+<td class="win money-col">${money(Number(r.LegsWon))}</td>
+<td class="win money-col">${money(Number(r.TopScore))}</td>
+<td class="win money-col">${money(Number(r.Spares))}</td>
+<td class="win money-col" style="background:#7CFF7C; color:#004400;">
+  ${money(Number(r.TotalWin))}
+</td>
+<td class="paid money-col">${r.DucksCount ? r.DucksCount + " (" + money(Number(r.Ducks)) + ")" : money(Number(r.Ducks))}</td>
+<td class="paid money-col">${money(Number(r.Under))}</td>
+<td class="paid money-col">${money(Number(r.LeagueFees))}</td>
+<td class="paid money-col">${money(Number(r.CupFees))}</td>
+<td class="paid money-col" style="background:#FF7C7C; color:#660000;">
+  ${money(Number(r.TotalPaid))}
+</td>
 
-                <td class="win money-col">${money(Number(r.LegsWon))}</td>
-                <td class="win money-col">${money(r.TopScore)}</td>
-                <td class="win money-col">${money(r.Spares)}</td>
-
-                <td class="win money-col" style="background:#7CFF7C; color:#004400;">
-                    ${money(r.TotalWin)}
-                </td>
-
-                <td class="paid money-col"> ${r.DucksCount ? r.DucksCount + " (" + money(Number(r.Ducks)) + ")" : money(Number(r.Ducks))}</td>
-                <td class="paid money-col">${money(r.Under)}</td>
-                <td class="paid money-col">${money(r.LeagueFees)}</td>
-                <td class="paid money-col">${money(r.CupFees)}</td>
-
-                <td class="paid money-col" style="background:#FF7C7C; color:#660000;">
-                    ${money(r.TotalPaid)}
-                </td>
+                
             </tr>
         `;
     });
