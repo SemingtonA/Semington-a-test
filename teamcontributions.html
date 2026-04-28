@@ -92,6 +92,12 @@
   th {
     background: #ddd;
   }
+    .player-col {
+    width: 120px;      /* adjust as needed */
+    white-space: normal;
+    word-wrap: break-word;
+}
+
 
   /* Equal width for money columns */
   .money-col {
@@ -437,7 +443,7 @@ function renderTable(rows, division) {
     // Build multi‑line header row
     const headerRow = `
     <tr>
-        <th>Player<br>Name<br>&nbsp;</th>
+        <th class="player-col">Player<br>Name<br>&nbsp;</th>
         <th class="money-col">Legs<br>Won<br>£</th>
         <th class="money-col">Top<br>Score<br>£</th>
         <th class="money-col">Spares<br>League+Cup<br>£</th>
@@ -456,7 +462,7 @@ function renderTable(rows, division) {
     rows.forEach(r => {
         table.innerHTML += `
             <tr>
-                <td>${r.Player}</td>
+                <td class="player-col">${r.Player}</td>
 
                 <td class="win money-col">${money(Number(r.LegsWon))}</td>
                 <td class="win money-col">${money(r.TopScore)}</td>
