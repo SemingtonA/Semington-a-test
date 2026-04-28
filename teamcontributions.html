@@ -245,124 +245,98 @@
 
     <!-- YOUR EXISTING TEAM CONTRIBUTIONS SCRIPT GOES HERE -->
 <script>
-// ===============================
-// CONFIG
-// ===============================
-const CSV_FILE = "teamcontributions.csv"; // same folder
-const TABLE_ID = "contributionsTable";
-const PREMIER_ONLY = true;
-
-// ===============================
-// FETCH + PARSE CSV
-// ===============================
+// Load CSV file
 async function loadCSV() {
-    const response = await fetch(CSV_FILE);
+    const response = await fetch("teamcontributions.csv");
     const text = await response.text();
     return parseCSV(text);
 }
 
+// Convert CSV text into objects
 function parseCSV(text) {
     const lines = text.trim().split("\n");
-    const headers = lines[0].split(",").map(h => h.trim());
+    const headers = lines[0].split(",");
 
     return lines.slice(1).map(line => {
-        const values = line.split(",").map(v => v.trim());
+        const values = line.split(",");
         const row = {};
-        headers.forEach((h, i) => row[h] = values[i]);
+        headers.forEach((h, i) => row[h.trim()] = values[i]?.trim());
         return row;
     });
 }
 
-// ===============================
-// CLEAN + FORMAT DATA
-// ===============================
-function cleanValue(value) {
-    if (!value || value === "0" || value === "0.00") return "";
-    const num = parseFloat(value);
-    return isNaN(num) ? "" : `£${num.toFixed(2)}`;
-}
-
-function toNumber(value) {
-    const num = parseFloat(value);
-    return isNaN(num) ? 0 : num;
-}
-
+// Clean row values
 function cleanRow(row) {
-    return {
-        Team: row.Team,
-        Division: row.Division,
-        LeaguePaid: cleanValue(row.LeaguePaid),
-        CupPaid: cleanValue(row.CupPaid),
-        TotalPaid: cleanValue(row.TotalPaid),
-        TotalNetPaid: toNumber(row.TotalNetPaid)
-    };
+    return row;
 }
 
-// ===============================
-// FILTER LOGIC
-// ===============================
+// Apply filters (Season Select)
 function applyFilters(data) {
-    let filtered = data;
+    const season = document.getElementById("seasonSelect").value;
+    if (season !== "All") {
+        return data.filter(r => r.Season === season);
+    }
+    return data;
+}
 
-    if (PREMIER_ONLY) {
-        filtered = filtered.filter(r => r.Division === "Premier");
+// Sort data (optional)
+function sortData(data) {
+    return data;
+}
+
+// ⭐ SHOW DIVISION AT TOP
+function showDivision(data) {
+    const div = document.getElementById("divisionDisplay");
+    if (!div || data.length === 0) return;
+
+    const division = data[0].Division || "";
+    div.textContent = `Division: ${division}`;
+}
+
+// Render table
+function renderTable(data) {
+    const table = document.getElementById("contributionsTable");
+    table.innerHTML = "";
+
+    if (data.length === 0) {
+        table.innerHTML = "<tr><td>No data available</td></tr>";
+        return;
     }
 
-    return filtered.filter(r => r.Team !== "A N Other");
-}
+    // Build header
+    const headers = Object.keys(data[0]);
+    let headerRow = "<tr>";
+    headers.forEach(h => headerRow += `<th>${h}</th>`);
+    headerRow += "</tr>";
+    table.innerHTML += headerRow;
 
-// ===============================
-// SORTING
-// ===============================
-function sortData(data) {
-    return data.sort((a, b) => b.TotalNetPaid - a.TotalNetPaid);
-}
-
-// ===============================
-// TABLE RENDERING
-// ===============================
-function renderTable(data) {
-    const table = document.getElementById(TABLE_ID);
-    if (!table) return;
-
-    table.innerHTML = `
-        <tr>
-            <th>Team</th>
-            <th>Division</th>
-            <th>League Paid</th>
-            <th>Cup Paid</th>
-            <th>Total Paid</th>
-            <th>Total Net Paid</th>
-        </tr>
-    `;
-
+    // Build rows
     data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${row.Team}</td>
-            <td>${row.Division}</td>
-            <td>${row.LeaguePaid}</td>
-            <td>${row.CupPaid}</td>
-            <td>${row.TotalPaid}</td>
-            <td>${row.TotalNetPaid === 0 ? "" : "£" + row.TotalNetPaid.toFixed(2)}</td>
-        `;
-        table.appendChild(tr);
+        let rowHTML = "<tr>";
+        headers.forEach(h => rowHTML += `<td>${row[h] || ""}</td>`);
+        rowHTML += "</tr>";
+        table.innerHTML += rowHTML;
     });
 }
 
-// ===============================
-// MAIN
-// ===============================
+// Initialise page
 async function init() {
     let data = await loadCSV();
     data = data.map(cleanRow);
     data = applyFilters(data);
     data = sortData(data);
+
+    showDivision(data);   // ⭐ NEW LINE
     renderTable(data);
 }
 
-document.addEventListener("DOMContentLoaded", init);
+// Season dropdown listener
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("seasonSelect").addEventListener("change", init);
+    init();
+});
 </script>
+
 
 
 
