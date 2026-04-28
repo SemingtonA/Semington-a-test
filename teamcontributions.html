@@ -13,7 +13,6 @@
     <link rel="shortcut icon" href="/Semington-a-test/favicon.ico">
 
     <style>
-        /* PAGE BACKGROUND */
         body {
             margin: 0;
             background-color: #f5f0e6;
@@ -24,30 +23,28 @@
             flex-direction: column;
         }
 
-        /* HEADER */
         .header {
             padding: 20px 20px;
             text-align: center;
-            font-size: 100px;
+            font-size: 40px;
             font-weight: bold;
             color: black;
             position: relative;
         }
 
-        /* LOGO TOP RIGHT */
         .top-right-logo {
             position: absolute;
             top: 10px;
             right: 20px;
-            height: 200px;
+            height: 80px;
         }
 
-        /* NAV BAR */
         .navbar {
             display: flex;
             justify-content: center;
             gap: 10px;
             padding: 12px 0;
+            background-color: #222;
         }
 
         .navbar a {
@@ -67,7 +64,6 @@
             background-color: #008CBA;
         }
 
-        /* MAIN CONTENT */
         .content {
             padding: 20px;
             max-width: 1100px;
@@ -80,28 +76,29 @@
             margin-bottom: 20px;
         }
 
-        /* TEAM CONTRIBUTIONS TABLE */
-        #contributionsTable {
-            margin-top: 25px;
+        #divisionDisplay {
+            font-weight: bold;
+            margin-bottom: 10px;
         }
 
-        table {
+        #contributionsTable {
+            margin-top: 25px;
             width: 100%;
             border-collapse: collapse;
             background-color: white;
         }
 
-        table th, table td {
+        #contributionsTable th,
+        #contributionsTable td {
             border: 1px solid #555;
             padding: 10px;
             text-align: center;
         }
 
-        table th {
+        #contributionsTable th {
             background-color: #ddd;
         }
 
-        /* WIN (green) */
         .win {
             background-color: #b6f2ad;
             color: #0a4d00;
@@ -109,7 +106,6 @@
             padding: 4px 6px;
         }
 
-        /* PAID (red) */
         .paid {
             background-color: #f7c5c5;
             color: #7a0000;
@@ -117,14 +113,12 @@
             padding: 4px 6px;
         }
 
-        /* TOTAL (yellow) */
         .total {
             background-color: #fff4b3;
             font-weight: 700;
             padding: 4px 6px;
         }
 
-        /* FOOTER */
         .footer {
             text-align: center;
             padding: 10px 0;
@@ -136,7 +130,6 @@
             margin-top: 10px;
         }
 
-        /* MOBILE FIXES */
         @media (max-width: 768px) {
             .header {
                 font-size: 28px;
@@ -166,9 +159,6 @@
 
             #contributionsTable {
                 overflow-x: auto;
-            }
-
-            table {
                 min-width: 600px;
             }
         }
@@ -176,169 +166,200 @@
 </head>
 
 <body>
-
-
-    <!-- HEADER (logo top-right, text = Team Contributions) -->
-       <div class="content">
-
-    <h2>Team Contributions</h2>
-
-    <div id="divisionDisplay" style="font-weight:bold; margin-bottom:10px;"></div>
-
-    <table id="contributionsTable"></table>
-
+    <header class="header">
+        Team Contributions
         <img src="Semington A Logo 5.jpg" alt="Semington A Skittles Team Logo" class="top-right-logo">
     </header>
 
-    <!-- NAVIGATION BAR (same as Fixtures) -->
     <nav class="navbar">
-        <a href="/Semington-a-test/index.html">Home</a>
-        <a href="/Semington-a-test/fixtures.html">Fixtures</a>
-        <a href="/Semington-a-test/results.html">Results</a>
-        <a href="/Semington-a-test/gallery.html">Gallery</a>
-        <a href="/Semington-a-test/rules.html">Rules</a>
-        <a href="/Semington-a-test/tocatch.html">To Catch</a>
-        <a class="active" href="/Semington-a-test/teamcontributions.html">Team Contributions</a>
+        <a href="#">Home</a>
+        <a href="#" class="active">Contributions</a>
+        <a href="#">Fixtures</a>
     </nav>
 
-    </main>
-   <!-- MAIN CONTENT -->
-<main class="content">
-    <h2>Select Season</h2>
+    <div class="content">
+        <h2>Team Contributions</h2>
 
-    <label for="seasonSelect">Season:</label>
-    <select id="seasonSelect"></select>
+        <div id="divisionDisplay"></div>
 
-    <div id="lastUpdated" style="text-align:center; font-size:12px; margin-bottom:10px; color:#555;">
-        Last updated: —
+        <table id="contributionsTable"></table>
     </div>
-<table class="contrib-table">
-  <thead>
-    <tr>
-      <th>Player</th>
-      <th class="win">Legs Won (£)</th>
-      <th class="win">Top Score (£)</th>
-      <th class="win">Spares (£)</th>
-      <th class="win">Total Win (£)</th>
-      <th class="paid">Ducks Prem (£)</th>
-      <th class="paid">Ducks Div1 (£)</th>
-      <th class="paid">Under‑5 Prem (£)</th>
-      <th class="paid">Under‑6 Div1 (£)</th>
-      <th class="paid">League Fees (£)</th>
-      <th class="paid">Cup Fees (£)</th>
-      <th class="paid">Total Net Paid (£)</th>
-    </tr>
-  </thead>
-  <tbody id="contribBody"></tbody>
-</table>
 
-    
-</main>
-
-
-    <!-- FOOTER (bottom centre) -->
     <footer class="footer">
-        © Semington A Skittles Team
-        <br>
-        <img src="Semington A Logo 5.jpg" class="footer-logo" alt="Semington A">
+        Semington A Skittles
     </footer>
 
-    <!-- YOUR EXISTING TEAM CONTRIBUTIONS SCRIPT GOES HERE -->
-<script>
-// Load CSV file
-async function loadCSV() {
-    const response = await fetch("teamcontributions.csv");
-    const text = await response.text();
-    return parseCSV(text);
-}
-
-// Convert CSV text into objects
-function parseCSV(text) {
-    const lines = text.trim().split("\n");
-    const headers = lines[0].split(",");
-
-    return lines.slice(1).map(line => {
-        const values = line.split(",");
-        const row = {};
-        headers.forEach((h, i) => row[h.trim()] = values[i]?.trim());
-        return row;
-    });
-}
-
-// Clean row values
-function cleanRow(row) {
-    return row;
-}
-
-// Apply filters (Season Select)
-function applyFilters(data) {
-    const season = document.getElementById("seasonSelect").value;
-    if (season !== "All") {
-        return data.filter(r => r.Season === season);
-    }
-    return data;
-}
-
-// Sort data (optional)
-function sortData(data) {
-    return data;
-}
-
-// ⭐ SHOW DIVISION AT TOP
-function showDivision(data) {
-    const div = document.getElementById("divisionDisplay");
-    if (!div || data.length === 0) return;
-
-    const division = data[0].Division || "";
-    div.textContent = `Division: ${division}`;
-}
-
-// Render table
-function renderTable(data) {
-    const table = document.getElementById("contributionsTable");
-    table.innerHTML = "";
-
-    if (data.length === 0) {
-        table.innerHTML = "<tr><td>No data available</td></tr>";
-        return;
+    <script>
+    // Load a CSV file and return array of row objects
+    async function loadCSV(file) {
+        const response = await fetch(file);
+        const text = await response.text();
+        return parseCSV(text);
     }
 
-    // Build header
-    const headers = Object.keys(data[0]);
-    let headerRow = "<tr>";
-    headers.forEach(h => headerRow += `<th>${h}</th>`);
-    headerRow += "</tr>";
-    table.innerHTML += headerRow;
+    function parseCSV(text) {
+        const lines = text.trim().split("\n");
+        const headers = lines[0].split(",").map(h => h.trim());
 
-    // Build rows
-    data.forEach(row => {
-        let rowHTML = "<tr>";
-        headers.forEach(h => rowHTML += `<td>${row[h] || ""}</td>`);
-        rowHTML += "</tr>";
-        table.innerHTML += rowHTML;
-    });
-}
+        return lines.slice(1).map(line => {
+            const values = line.split(",");
+            const row = {};
+            headers.forEach((h, i) => row[h] = (values[i] || "").trim());
+            return row;
+        });
+    }
 
-// Initialise page
-async function init() {
-    let data = await loadCSV();
-    data = data.map(cleanRow);
-    data = applyFilters(data);
-    data = sortData(data);
+    // Merge main + extras by Player
+    function mergeData(main, extras) {
+        const map = new Map();
 
-    showDivision(data);   // ⭐ NEW LINE
-    renderTable(data);
-}
+        main.forEach(row => {
+            if (!row.Player) return;
+            map.set(row.Player, { ...row });
+        });
 
-// Season dropdown listener
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("seasonSelect").addEventListener("change", init);
-    init();
-});
-</script>
+        extras.forEach(row => {
+            if (!row.Player) return;
+            if (map.has(row.Player)) {
+                Object.assign(map.get(row.Player), row);
+            } else {
+                map.set(row.Player, { ...row });
+            }
+        });
+
+        return Array.from(map.values());
+    }
+
+    // Show Division at top
+    function showDivision(data) {
+        const div = document.getElementById("divisionDisplay");
+        if (!div || data.length === 0) return;
+
+        const division = data[0].Division || "";
+        div.textContent = `Division: ${division}`;
+    }
+
+    // Calculate row values based on Division
+    function calculateRow(row) {
+        const division = row.Division;
+
+        // Division-based values
+        const duckValue = division === "Premier" ? 0.5 : 2;
+        const underThreshold = division === "Premier" ? 5 : 6;
+
+        // Ducks
+        const ducks = Number(row.Ducks || 0);
+        const duckFine = ducks * duckValue;
+
+        // Under-5 or Under-6
+        const legs = [
+            Number(row.Leg1 || 0),
+            Number(row.Leg2 || 0),
+            Number(row.Leg3 || 0),
+            Number(row.Leg4 || 0),
+            Number(row.Leg5 || 0),
+            Number(row.Leg6 || 0)
+        ];
+
+        const lowScores = legs.filter(l => l < underThreshold).length;
+        const lowScoreFine = lowScores * duckValue;
+
+        // Wins
+        const legsWon = Number(row["Legs Won"] || 0) * 0.5;
+        const topScore = Number(row["Top Score"] || 0) * 0.5;
+        const spares = Number(row.Spares || 0) * 0.5;
+
+        // Fees (from extras CSV)
+        const leagueFees = Number(row["League Fees"] || 0);
+        const cupFees = Number(row["Cup Fees"] || 0);
+
+        // Totals
+        const totalWin = legsWon + topScore + spares;
+        const totalPaid = duckFine + lowScoreFine + leagueFees + cupFees;
+        const net = totalWin - totalPaid;
+
+        return {
+            Player: row.Player,
+            LegsWon: legsWon,
+            TopScore: topScore,
+            Spares: spares,
+            DucksPrem: division === "Premier" ? duckFine : 0,
+            DucksDiv1: division === "Div 1" ? duckFine : 0,
+            Under5Prem: division === "Premier" ? lowScoreFine : 0,
+            Under6Div1: division === "Div 1" ? lowScoreFine : 0,
+            LeagueFees: leagueFees,
+            CupFees: cupFees,
+            TotalWin: totalWin,
+            Net: net
+        };
+    }
+
+    // Build table
+    function renderTable(data) {
+        const table = document.getElementById("contributionsTable");
+        table.innerHTML = "";
+
+        if (!data || data.length === 0) {
+            table.innerHTML = "<tr><td>No data available</td></tr>";
+            return;
+        }
+
+        const headers = [
+            "Player",
+            "Legs Won (£)",
+            "Top Score (£)",
+            "Spares (£)",
+            "Ducks Prem (£)",
+            "Ducks Div1 (£)",
+            "Under-5 Prem (£)",
+            "Under-6 Div1 (£)",
+            "League Fees (£)",
+            "Cup Fees (£)",
+            "Total Win (£)",
+            "Total Net Paid (£)"
+        ];
+
+        let headerRow = "<tr>";
+        headers.forEach(h => headerRow += `<th>${h}</th>`);
+        headerRow += "</tr>";
+        table.innerHTML += headerRow;
+
+        data.forEach(rawRow => {
+            const row = calculateRow(rawRow);
+
+            let rowHTML = "<tr>";
+            rowHTML += `<td>${row.Player}</td>`;
+            rowHTML += `<td class="win">£${row.LegsWon.toFixed(2)}</td>`;
+            rowHTML += `<td class="win">£${row.TopScore.toFixed(2)}</td>`;
+            rowHTML += `<td class="win">£${row.Spares.toFixed(2)}</td>`;
+            rowHTML += `<td class="paid">£${row.DucksPrem.toFixed(2)}</td>`;
+            rowHTML += `<td class="paid">£${row.DucksDiv1.toFixed(2)}</td>`;
+            rowHTML += `<td class="paid">£${row.Under5Prem.toFixed(2)}</td>`;
+            rowHTML += `<td class="paid">£${row.Under6Div1.toFixed(2)}</td>`;
+            rowHTML += `<td class="paid">£${row.LeagueFees.toFixed(2)}</td>`;
+            rowHTML += `<td class="paid">£${row.CupFees.toFixed(2)}</td>`;
+            rowHTML += `<td class="total">£${row.TotalWin.toFixed(2)}</td>`;
+            rowHTML += `<td class="total">£${row.Net.toFixed(2)}</td>`;
+            rowHTML += "</tr>";
+
+            table.innerHTML += rowHTML;
+        });
+    }
+
+    // Init
+    async function init() {
+        // Adjust filenames if yours differ
+        const main = await loadCSV("main.csv");
+        const extras = await loadCSV("extras.csv");
+
+        const merged = mergeData(main, extras);
+        showDivision(merged);
+        renderTable(merged);
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+    </script>
+</body>
+</html>
 
 
-
-
- </body>
-        </html>
