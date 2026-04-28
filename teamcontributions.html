@@ -218,7 +218,6 @@ function parseCSV(text) {
         return row;
     });
 }
-
 // Build season dropdown
 function buildSeasonDropdown(rows) {
     const seasons = [...new Set(rows.map(r => r.Season))].filter(Boolean);
@@ -235,13 +234,13 @@ function buildSeasonDropdown(rows) {
     });
 
     document.getElementById("divisionDisplay").before(select);
-
     select.addEventListener("change", init);
 }
 
 // Group match rows by player
 function groupByPlayer(rows) {
     const players = {};
+    const matchesById = {};
 
     rows.forEach(r => {
         const name = r["Semington A Player Name"];
@@ -255,83 +254,148 @@ function groupByPlayer(rows) {
                 Division: r.Division.toLowerCase(),
                 Ducks: 0,
                 LegsWon: 0,
-                TopScore: 0,
                 Spares: 0,
-                UnderCount: 0
+                UnderCount: 0,
+                MatchCount: 0,
+                TopScoreWins: 0
             };
         }
 
+        players[name].MatchCount += 1;
+
         players[name].Ducks += toNum(r.Ducks);
         players[name].LegsWon += toNum(r["Legs Won "]);
-        players[name].TopScore += toNum(r["Top Score"]);
         players[name].Spares += toNum(r.Spares);
 
+        // Under 5/6 fines (Leg 1–5 only)
         const legs = [
             toNum(r["Leg 1:"]),
             toNum(r["Leg 2: "]),
             toNum(r["Leg 3: "]),
             toNum(r["Leg 4: "]),
-            toNum(r["Leg 5: "]),
-            toNum(r["Leg 6:"])
+            toNum(r["Leg 5: "])
         ];
 
         const threshold = r.Division.toLowerCase() === "premier" ? 5 : 6;
         players[name].UnderCount += legs.filter(l => l < threshold).length;
+
+        // Group by match for Top Score logic
+        const matchId = r["Match ID"];
+        if (!matchesById[matchId]) matchesById[matchId] = [];
+        matchesById[matchId].push({
+            name,
+            total: toNum(r["Total Score"]),
+            leg6: toNum(r["Leg 6:"]),
+            isCup: r["Match Details"].toLowerCase().includes("cup")
+        });
     });
 
-    return Object.values(players);
+    return { players, matchesById };
 }
 
+// Determine Top Score winners (League matches only)
+function applyTopScoreLogic(players, matchesById) {
+    Object.values(matchesById).forEach(match => {
+        if (match[0].isCup) return; // No Top Score in Cup matches
+
+        const highest = Math.max(...match.map(p => p.total));
+        const tied = match.filter(p => p.total === highest);
+
+        if (tied.length === 1) {
+            players[tied[0].name].TopScoreWins += 1;
+        } else {
+            // League tie → use Leg 6
+            const highestLeg6 = Math.max(...tied.map(p => p.leg6));
+            const leg6Winners = tied.filter(p => p.leg6 === highestLeg6);
+
+            if (leg6Winners.length === 1) {
+                players[leg6Winners[0].name].TopScoreWins += 1;
+            }
+            // If Leg 6 also tied → no Top Score awarded
+        }
+    });
+}
 // Extract fee rules for the season
 function getFeeRules(feesCSV, season) {
-    return feesCSV.find(r => r["Year Dates"] === season);
+    return feesCSV.filter(r => r["Year Dates"] === season);
+}
+
+// Determine Cup Fee for a match
+function getCupFee(feeRules, playerCount, homeAway) {
+    const id = `${playerCount} ${homeAway}`;
+    const rule = feeRules.find(r => r["Cup ID"] === id);
+    return rule ? toNum(rule["Cup Fees"]) : 0;
 }
 
 // Build final table rows
-function calculateRow(player, fees) {
-    const isPremier = player.Division === "premier";
+function calculateRows(players, matches, feeRules) {
+    const rows = [];
 
-    const duckValue = isPremier ? toNum(fees["Duck Value Premier"]) : toNum(fees["Duck Value Div 1"]);
-    const underValue = isPremier ? toNum(fees["Under 5 Premier"]) : toNum(fees["Under 6 Div 1"]);
+    Object.values(players).forEach(player => {
+        const isPremier = player.Division === "premier";
 
-    const legsWonValue = toNum(fees["Legs won Value"]);
-    const topScoreValue = toNum(fees["Top Score Value"]);
-    const spareValue = toNum(fees["Spare Value"]);
+        const duckValue = isPremier
+            ? toNum(feeRules[0]["Duck Value Premier"])
+            : toNum(feeRules[0]["Duck Value Div 1"]);
 
-    const leagueFees = toNum(fees["League Fees"]);
-    const cupFees = toNum(fees["Cup Fees"]);
+        const underValue = isPremier
+            ? toNum(feeRules[0]["Under 5 Premier"])
+            : toNum(feeRules[0]["Under 6 Div 1"]);
 
-    // Earnings
-    const legsWonMoney = player.LegsWon * legsWonValue;
-    const topScoreMoney = player.TopScore * topScoreValue;
-    const spareMoney = player.Spares * spareValue;
+        const legsWonValue = toNum(feeRules[0]["Legs won Value"]);
+        const topScoreValue = toNum(feeRules[0]["Top Score Value"]);
+        const spareValue = toNum(feeRules[0]["Spare Value"]);
+        const leagueFeeValue = toNum(feeRules[0]["League Fees"]);
 
-    const totalWin = legsWonMoney + topScoreMoney + spareMoney;
+        // Earnings
+        const legsWonMoney = player.LegsWon * legsWonValue;
+        const topScoreMoney = player.TopScoreWins * topScoreValue;
+        const spareMoney = player.Spares * spareValue;
 
-    // Payments
-    const duckFine = player.Ducks * duckValue;
-    const underFine = player.UnderCount * underValue;
+        const totalWin = legsWonMoney + topScoreMoney + spareMoney;
 
-    const totalPaid = duckFine + underFine + leagueFees + cupFees;
+        // Payments
+        const duckFine = player.Ducks * duckValue;
+        const underFine = player.UnderCount * underValue;
+        const leagueFees = player.MatchCount * leagueFeeValue;
 
-    return {
-        Player: player.Player,
-        LegsWon: legsWonMoney.toFixed(2),
-        TopScore: topScoreMoney.toFixed(2),
-        Spares: spareMoney.toFixed(2),
-        TotalWin: totalWin.toFixed(2),
-        Ducks: duckFine.toFixed(2),
-        Under: underFine.toFixed(2),
-        LeagueFees: leagueFees.toFixed(2),
-        CupFees: cupFees.toFixed(2),
-        TotalPaid: totalPaid.toFixed(2)
-    };
+        // Cup Fees
+        let cupFees = 0;
+        matches.forEach(m => {
+            if (!m["Match Details"].toLowerCase().includes("cup")) return;
+            if (m["Semington A Player Name"] !== player.Player) return;
+
+            const matchId = m["Match ID"];
+            const homeAway = m["Home or Away"];
+            const playerCount = matches.filter(x => x["Match ID"] === matchId).length;
+
+            cupFees += getCupFee(feeRules, playerCount, homeAway);
+        });
+
+        const totalPaid = duckFine + underFine + leagueFees + cupFees;
+
+        rows.push({
+            Player: player.Player,
+            LegsWon: legsWonMoney.toFixed(2),
+            TopScore: topScoreMoney.toFixed(2),
+            Spares: spareMoney.toFixed(2),
+            TotalWin: totalWin.toFixed(2),
+            Ducks: duckFine.toFixed(2),
+            Under: underFine.toFixed(2),
+            LeagueFees: leagueFees.toFixed(2),
+            CupFees: cupFees.toFixed(2),
+            TotalPaid: totalPaid.toFixed(2)
+        });
+    });
+
+    return rows;
 }
 
-// Render table
-function renderTable(rows) {
+function renderTable(rows, division) {
     const table = document.getElementById("contributionsTable");
     table.innerHTML = "";
+
+    const underHeader = division === "premier" ? "Under 5 (£)" : "Under 6 (£)";
 
     const headers = [
         "Player",
@@ -340,7 +404,7 @@ function renderTable(rows) {
         "Spares (£)",
         "Total Win (£)",
         "Ducks (£)",
-        "Under (£)",
+        underHeader,
         "League Fees (£)",
         "Cup Fees (£)",
         "Total Paid (£)"
@@ -369,12 +433,10 @@ function renderTable(rows) {
     });
 }
 
-// Init
 async function init() {
     const matches = await loadCSV("csv_export.csv");
     const feesCSV = await loadCSV("csv_team_fees.csv");
 
-    // Build dropdown once
     if (!document.getElementById("seasonSelect")) {
         buildSeasonDropdown(matches);
     }
@@ -383,19 +445,22 @@ async function init() {
     const feeRules = getFeeRules(feesCSV, season);
 
     const filtered = matches.filter(r => r.Season === season);
-    const players = groupByPlayer(filtered);
-    const finalRows = players.map(p => calculateRow(p, feeRules));
 
+    const { players, matchesById } = groupByPlayer(filtered);
+
+    applyTopScoreLogic(players, matchesById);
+
+    const finalRows = calculateRows(players, filtered, feeRules);
+
+    const division = Object.values(players)[0].Division;
     document.getElementById("divisionDisplay").textContent =
-        "Division: " + players[0].Division;
+        "Division: " + division;
 
-    renderTable(finalRows);
+    renderTable(finalRows, division);
 }
 
 document.addEventListener("DOMContentLoaded", init);
 </script>
-
-
 
 </body>
 </html>
