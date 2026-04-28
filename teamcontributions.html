@@ -383,7 +383,7 @@ function calculateRows(players, matches, feeRules) {
     const rows = [];
 
     Object.values(players).forEach(player => {
-        const isPremier = player.Division === "premier";
+        const isPremier = (player.Division || "").toLowerCase() === "premier";
 
         const duckValue = isPremier
             ? toNum(feeRules[0]["Duck Value Premier"])
@@ -399,21 +399,23 @@ function calculateRows(players, matches, feeRules) {
         const leagueFeeValue = toNum(feeRules[0]["League Fees"]);
 
         // Earnings
-        const legsWonMoney = player.LegsWon * legsWonValue;
-        const topScoreMoney = player.TopScoreWins * topScoreValue;
-        const spareMoney = player.Spares * spareValue;
-
+        const legsWonMoney = (player.LegsWon || 0) * legsWonValue;
+        const topScoreMoney = (player.TopScoreWins || 0) * topScoreValue;
+        const spareMoney = (player.Spares || 0) * spareValue;
         const totalWin = legsWonMoney + topScoreMoney + spareMoney;
 
         // Payments (counts -> amounts)
-        const ducksCount = player.Ducks;                      // number of ducks
-        const duckFine = ducksCount * duckValue;             // amount charged for ducks
-        const underFine = player.UnderCount * underValue;
-        const leagueFees = player.MatchCount * leagueFeeValue;
+        const ducksCount = Number(player.Ducks || 0);          // number of ducks
+        const duckFine = ducksCount * (Number(duckValue) || 0); // amount charged for ducks
+        const underCount = Number(player.UnderCount || 0);
+        const underFine = underCount * (Number(underValue) || 0);
+        const matchCount = Number(player.MatchCount || 0);
+        const leagueFees = matchCount * (Number(leagueFeeValue) || 0);
 
         // Cup Fees
         let cupFees = 0;
         matches.forEach(m => {
+            if (!m["Match Details"]) return;
             if (!m["Match Details"].toLowerCase().includes("cup")) return;
             if (m["Semington A Player Name"] !== player.Player) return;
 
@@ -428,19 +430,18 @@ function calculateRows(players, matches, feeRules) {
 
         rows.push({
             Player: player.Player,
-            LegsWon: legsWonMoney.toFixed(2),
-            TopScore: topScoreMoney.toFixed(2),
-            Spares: spareMoney.toFixed(2),
-            TotalWin: totalWin.toFixed(2),
+            LegsWon: legsWonMoney,        // numeric
+            TopScore: topScoreMoney,      // numeric
+            Spares: spareMoney,           // numeric
+            TotalWin: totalWin,           // numeric
 
-            // Provide both count and calculated amount
-            DucksCount: ducksCount,
-            Ducks: duckFine.toFixed(2),
+            DucksCount: ducksCount,       // numeric count
+            Ducks: duckFine,              // numeric amount
 
-            Under: underFine.toFixed(2),
-            LeagueFees: leagueFees.toFixed(2),
-            CupFees: cupFees.toFixed(2),
-            TotalPaid: totalPaid.toFixed(2)
+            Under: underFine,             // numeric
+            LeagueFees: leagueFees,       // numeric
+            CupFees: cupFees,             // numeric
+            TotalPaid: totalPaid          // numeric
         });
     });
 
@@ -488,7 +489,7 @@ function renderTable(rows, division) {
                     ${money(r.TotalWin)}
                 </td>
 
-                <td class="paid money-col">${r.DucksCount ? r.DucksCount + " (" + money(r.Ducks) + ")" : money(r.Ducks)}</td>
+                <td class="paid money-col"> ${r.DucksCount ? r.DucksCount + " (" + money(Number(r.Ducks)) + ")" : money(Number(r.Ducks))}</td>
                 <td class="paid money-col">${money(r.Under)}</td>
                 <td class="paid money-col">${money(r.LeagueFees)}</td>
                 <td class="paid money-col">${money(r.CupFees)}</td>
@@ -500,8 +501,6 @@ function renderTable(rows, division) {
         `;
     });
 }
-
-
 async function init() {
     const matches = await loadCSV("csv_export.csv");
     const feesCSV = await loadCSV("csv_team_fees.csv");
@@ -520,52 +519,33 @@ async function init() {
         season.replace(/\s+/g, " ").trim()
     );
 
-    // ⭐ IF NO MATCH DATA → SHOW BLANK TABLE + MESSAGE
-    if (filtered.length === 0) {
-        document.getElementById("divisionDisplay").textContent = "No data for this season";
-        document.getElementById("contributionsTable").innerHTML = "";
-        
-        // Update Last Updated text to blank
-        document.getElementById("lastUpdated").textContent = "Last updated: —";
-        return;
-    }
+    // ⭐ GROUP PLAYERS
+    const players = groupByPlayer(filtered);
 
-    // ⭐ UPDATE LAST UPDATED TEXT
-    const newest = filtered
-        .map(r => r.UpdatedAt)
-        .filter(Boolean)
-        .sort()
-        .pop();
+    // ⭐ APPLY TOP SCORE LOGIC
+    applyTopScoreLogic(players, filtered);
 
-    document.getElementById("lastUpdated").textContent =
-        newest ? `Last updated: ${newest}` : "Last updated: —";
+    // ⭐ CALCULATE FINAL ROWS
+    const finalRows = calculateRows(players, filtered, feeRules);
 
-    // ⭐ GROUP PLAYERS + MATCHES
-    const { players, matchesById } = groupByPlayer(filtered);
+    // ⭐ DEBUG LOGS (to verify Ducks, fees, etc.)
+    console.log("feeRules[0]:", feeRules[0]);
+    console.log("Sample player object:", Object.values(players)[0]);
+    console.log("Final rows (first 5):", finalRows.slice(0, 5));
 
-    // ⭐ IF NO PLAYERS → STOP HERE
+    // ⭐ SET DIVISION DISPLAY
     const playerList = Object.values(players);
-    if (playerList.length === 0) {
-        document.getElementById("divisionDisplay").textContent = "No data for this season";
-        document.getElementById("contributionsTable").innerHTML = "";
-        return;
-    }
-// ⭐ APPLY TOP SCORE LOGIC
-applyTopScoreLogic(players, matchesById);
+    const division = playerList.length > 0 ? playerList[0].Division : "";
+    document.getElementById("divisionDisplay").textContent =
+        "Division: " + division;
 
-// ⭐ CALCULATE FINAL ROWS
-const finalRows = calculateRows(players, filtered, feeRules);
-
-// ⭐ SET DIVISION DISPLAY
-const division = playerList[0].Division;
-document.getElementById("divisionDisplay").textContent =
-    "Division: " + division;
-
-// ⭐ RENDER TABLE
-renderTable(finalRows, division);
+    // ⭐ RENDER TABLE
+    renderTable(finalRows, division);
 }
 
-  document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", init);
+
+
 
 </script>
 
