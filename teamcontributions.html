@@ -194,6 +194,11 @@ function toNum(v) {
     return Number(String(v).replace(/[^0-9.-]/g, "")) || 0;
 }
 
+// Format money, blank if zero
+function money(v) {
+    return Number(v) === 0 ? "" : "£" + v;
+}
+
 // Load CSV file
 async function loadCSV(file) {
     const response = await fetch(file);
@@ -296,28 +301,30 @@ function calculateRow(player, fees) {
     const leagueFees = toNum(fees["League Fees"]);
     const cupFees = toNum(fees["Cup Fees"]);
 
+    // Earnings
+    const legsWonMoney = player.LegsWon * legsWonValue;
+    const topScoreMoney = player.TopScore * topScoreValue;
+    const spareMoney = player.Spares * spareValue;
+
+    const totalWin = legsWonMoney + topScoreMoney + spareMoney;
+
+    // Payments
     const duckFine = player.Ducks * duckValue;
     const underFine = player.UnderCount * underValue;
 
-    const winMoney =
-        (player.LegsWon * legsWonValue) +
-        (player.TopScore * topScoreValue) +
-        (player.Spares * spareValue);
-
     const totalPaid = duckFine + underFine + leagueFees + cupFees;
-    const net = winMoney - totalPaid;
 
     return {
         Player: player.Player,
-        LegsWon: (player.LegsWon * legsWonValue).toFixed(2),
-        TopScore: (player.TopScore * topScoreValue).toFixed(2),
-        Spares: (player.Spares * spareValue).toFixed(2),
+        LegsWon: legsWonMoney.toFixed(2),
+        TopScore: topScoreMoney.toFixed(2),
+        Spares: spareMoney.toFixed(2),
+        TotalWin: totalWin.toFixed(2),
         Ducks: duckFine.toFixed(2),
         Under: underFine.toFixed(2),
         LeagueFees: leagueFees.toFixed(2),
         CupFees: cupFees.toFixed(2),
-        TotalWin: winMoney.toFixed(2),
-        Net: net.toFixed(2)
+        TotalPaid: totalPaid.toFixed(2)
     };
 }
 
@@ -331,12 +338,12 @@ function renderTable(rows) {
         "Legs Won (£)",
         "Top Score (£)",
         "Spares (£)",
+        "Total Win (£)",
         "Ducks (£)",
         "Under (£)",
         "League Fees (£)",
         "Cup Fees (£)",
-        "Total Win (£)",
-        "Net (£)"
+        "Total Paid (£)"
     ];
 
     let headerRow = "<tr>";
@@ -348,15 +355,15 @@ function renderTable(rows) {
         table.innerHTML += `
             <tr>
                 <td>${r.Player}</td>
-                <td class="win">£${r.LegsWon}</td>
-                <td class="win">£${r.TopScore}</td>
-                <td class="win">£${r.Spares}</td>
-                <td class="paid">£${r.Ducks}</td>
-                <td class="paid">£${r.Under}</td>
-                <td class="paid">£${r.LeagueFees}</td>
-                <td class="paid">£${r.CupFees}</td>
-                <td class="total">£${r.TotalWin}</td>
-                <td class="total">£${r.Net}</td>
+                <td class="win">${money(r.LegsWon)}</td>
+                <td class="win">${money(r.TopScore)}</td>
+                <td class="win">${money(r.Spares)}</td>
+                <td class="win" style="background:#7CFF7C; color:#004400;">${money(r.TotalWin)}</td>
+                <td class="paid">${money(r.Ducks)}</td>
+                <td class="paid">${money(r.Under)}</td>
+                <td class="paid">${money(r.LeagueFees)}</td>
+                <td class="paid">${money(r.CupFees)}</td>
+                <td class="paid" style="background:#FF7C7C; color:#660000;">${money(r.TotalPaid)}</td>
             </tr>
         `;
     });
@@ -387,6 +394,7 @@ async function init() {
 
 document.addEventListener("DOMContentLoaded", init);
 </script>
+
 
 
 </body>
