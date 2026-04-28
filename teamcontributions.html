@@ -319,6 +319,8 @@ function groupByPlayer(rows) {
 
         players[name].MatchCount += 1;
 
+        const isCup = (r["Match Details"] || "").toLowerCase().includes("cup");
+        if (!isCup) {
         players[name].Ducks += toNum(r.Ducks);
         players[name].LegsWon += toNum(r["Legs Won"]);
         players[name].Spares += toNum(r.Spares);
