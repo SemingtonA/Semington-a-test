@@ -233,7 +233,22 @@ function buildSeasonDropdown(rows) {
         select.appendChild(opt);
     });
 
-    document.getElementById("divisionDisplay").before(select);
+   // Add label
+const label = document.createElement("div");
+label.textContent = "Season";
+label.style.fontWeight = "bold";
+label.style.marginBottom = "5px";
+
+const container = document.createElement("div");
+container.style.display = "flex";
+container.style.flexDirection = "column";
+container.style.marginBottom = "15px";
+
+container.appendChild(label);
+container.appendChild(select);
+
+document.getElementById("divisionDisplay").before(container);
+
     select.addEventListener("change", init);
 }
 
