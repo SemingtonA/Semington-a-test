@@ -449,10 +449,10 @@ function renderTable(rows, division) {
     ];
 
     let headerRow = "<tr>";
-    headers.forEach(h => headerRow += `<th>${h}</th>`);
+    
     headerRow += "</tr>";
     table.innerHTML += headerRow;
-
+    headers.forEach(h => headerRow += `<th>${h.replace(" ", "<br>")}<br>&nbsp;</th>`);
     rows.forEach(r => {
         table.innerHTML += `
             <tr>
