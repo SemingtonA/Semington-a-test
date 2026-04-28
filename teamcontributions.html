@@ -1,195 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Contributions - Semington A (Test)</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Team Contributions</title>
 
-    <!-- FAVICONS -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/Semington-a-test/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/Semington-a-test/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/Semington-a-test/favicon-16x16.png">
-    <link rel="manifest" href="/Semington-a-test/site.webmanifest">
-    <link rel="shortcut icon" href="/Semington-a-test/favicon.ico">
+  <style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    background-color: #f5f0e6;
+  }
 
-    <style>
-        body {
-            margin: 0;
-            background-color: #f5f0e6;
-            color: black;
-            font-family: Arial, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+  /* ===== HEADER ===== */
+  header {
+    padding: 20px;
+  }
 
-        .header {
-            padding: 20px 20px;
-            text-align: center;
-            font-size: 40px;
-            font-weight: bold;
-            color: black;
-            position: relative;
-        }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
-        .top-right-logo {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            height: 80px;
-        }
+  header h1 {
+    margin: 0;
+    font-size: 72px;
+    text-align: center;
+    flex: 1;
+  }
 
-        .navbar {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 12px 0;
-            background-color: #222;
-        }
+  .logo img {
+    width: 300px;
+    height: auto;
+  }
 
-        .navbar a {
-            color: white;
-            padding: 10px 16px;
-            text-decoration: none;
-            font-size: 18px;
-            background-color: #222;
-            border-radius: 4px;
-        }
+  .nav-buttons {
+    margin-top: 15px;
+    text-align: center;
+  }
 
-        .navbar a:hover {
-            background-color: #444;
-        }
+  .nav-buttons a {
+    display: inline-block;
+    margin: 6px;
+    padding: 10px 18px;
+    background: #000;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+  }
 
-        .navbar .active {
-            background-color: #008CBA;
-        }
+  .nav-buttons a:hover {
+    background: #163aa3;
+  }
 
-        .content {
-            padding: 20px;
-            max-width: 1100px;
-            margin: auto;
-            flex: 1;
-        }
+  /* Highlight active page */
+  .nav-buttons a.active {
+    background: #163aa3;
+  }
 
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+  /* ===== MAIN ===== */
+  main {
+    flex: 1;
+    padding: 20px;
+  }
 
-        #divisionDisplay {
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
+  #divisionDisplay {
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 15px;
+    text-align: center;
+  }
 
-        #contributionsTable {
-            margin-top: 25px;
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-        }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffffcc;
+    margin-top: 20px;
+  }
 
-        #contributionsTable th,
-        #contributionsTable td {
-            border: 1px solid #555;
-            padding: 10px;
-            text-align: center;
-        }
+  th, td {
+    border: 1px solid #555;
+    padding: 10px;
+    text-align: center;
+  }
 
-        #contributionsTable th {
-            background-color: #ddd;
-        }
+  th {
+    background: #ddd;
+  }
 
-        .win {
-            background-color: #b6f2ad;
-            color: #0a4d00;
-            font-weight: 600;
-            padding: 4px 6px;
-        }
+  .win {
+    background: #b6f2ad;
+    font-weight: bold;
+  }
 
-        .paid {
-            background-color: #f7c5c5;
-            color: #7a0000;
-            font-weight: 600;
-            padding: 4px 6px;
-        }
+  .paid {
+    background: #f7c5c5;
+    font-weight: bold;
+  }
 
-        .total {
-            background-color: #fff4b3;
-            font-weight: 700;
-            padding: 4px 6px;
-        }
+  .total {
+    background: #fff4b3;
+    font-weight: bold;
+  }
 
-        .footer {
-            text-align: center;
-            padding: 10px 0;
-            color: black;
-        }
+  /* ===== FOOTER ===== */
+  footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 16px 20px 22px;
+    font-size: 12px;
+    color: #555;
+  }
 
-        .footer-logo {
-            height: 40px;
-            margin-top: 10px;
-        }
+  .footer-logo img {
+    width: 60px;
+    opacity: 0.9;
+  }
 
-        @media (max-width: 768px) {
-            .header {
-                font-size: 28px;
-                padding: 15px 10px;
-            }
+  /* ===== MOBILE ===== */
+  @media (max-width: 900px) {
 
-            .top-right-logo {
-                height: 50px;
-                top: 8px;
-                right: 10px;
-            }
+    .header-top {
+      flex-direction: column;
+      text-align: center;
+    }
 
-            .navbar {
-                flex-wrap: wrap;
-                gap: 6px;
-                padding: 10px 5px;
-            }
+    header h1 {
+      font-size: 32px;
+      margin-top: 10px;
+    }
 
-            .navbar a {
-                font-size: 16px;
-                padding: 8px 12px;
-            }
+    .logo img {
+      width: 150px;
+      margin-bottom: 10px;
+    }
 
-            .content {
-                padding: 15px;
-            }
+    table {
+      font-size: 12px;
+    }
 
-            #contributionsTable {
-                overflow-x: auto;
-                min-width: 600px;
-            }
-        }
-    </style>
+    .footer-logo img {
+      width: 48px;
+    }
+  }
+  </style>
 </head>
 
 <body>
-    <header class="header">
-        Team Contributions
-        <img src="Semington A Logo 5.jpg" alt="Semington A Skittles Team Logo" class="top-right-logo">
-    </header>
 
-    <nav class="navbar">
-        <a href="#">Home</a>
-        <a href="#" class="active">Contributions</a>
-        <a href="#">Fixtures</a>
-    </nav>
+<header>
+  <div class="header-top">
+    <h1>Team Contributions</h1>
 
-    <div class="content">
-        <h2>Team Contributions</h2>
-
-        <div id="divisionDisplay"></div>
-
-        <table id="contributionsTable"></table>
+    <div class="logo">
+      <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
     </div>
+  </div>
 
-    <footer class="footer">
-        Semington A Skittles
-    </footer>
+  <div class="nav-buttons">
+    <a href="index.html">Home</a>
+    <a href="fixtures.html">Fixtures &amp; Results</a>
+    <a href="match-results-v2.html">Match Results</a>
+    <a href="tocatch.html">To Catch</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="rules.html">Rules</a>
+    <a href="teamcontributions.html" class="active">Team Contributions</a>
+  </div>
+</header>
 
- <script>
+<main>
+
+  <div id="divisionDisplay"></div>
+
+  <table id="contributionsTable"></table>
+
+</main>
+
+<footer>
+  © Semington A Skittles Team
+  <div class="footer-logo">
+    <img src="Semington A Logo 5.jpg" alt="Semington A Logo">
+  </div>
+</footer>
+
+<script>
 // Load CSV file
 async function loadCSV(file) {
     const response = await fetch(file);
@@ -226,25 +225,15 @@ function groupByPlayer(rows) {
                 LegsWon: 0,
                 TopScore: 0,
                 Spares: 0,
-                UnderCount: 0,
-                LeagueFees: 0,
-                CupFees: 0
+                UnderCount: 0
             };
         }
 
-        // Ducks
         players[name].Ducks += Number(r.Ducks || 0);
-
-        // Legs Won
         players[name].LegsWon += Number(r["Legs Won "] || 0);
-
-        // Top Score
         players[name].TopScore += Number(r["Top Score"] || 0);
-
-        // Spares
         players[name].Spares += Number(r.Spares || 0);
 
-        // Under-5 or Under-6
         const legs = [
             Number(r["Leg 1:"] || 0),
             Number(r["Leg 2: "] || 0),
@@ -275,6 +264,7 @@ function calculateRow(player, fees) {
 
     const legsWonValue = Number(fees["Legs won Value"]);
     const topScoreValue = Number(fees["Top Score Value"]);
+    const spareValue = Number(fees["Spare Value"] || 0);
 
     const leagueFees = Number(fees["League Fees"] || 0);
     const cupFees = Number(fees["Cup Fees"] || 0);
@@ -282,9 +272,10 @@ function calculateRow(player, fees) {
     const duckFine = player.Ducks * duckValue;
     const underFine = player.UnderCount * underValue;
 
-    const winMoney = (player.LegsWon * legsWonValue) +
-                     (player.TopScore * topScoreValue) +
-                     (player.Spares * Number(fees["Spare Value"] || 0));
+    const winMoney =
+        (player.LegsWon * legsWonValue) +
+        (player.TopScore * topScoreValue) +
+        (player.Spares * spareValue);
 
     const totalPaid = duckFine + underFine + leagueFees + cupFees;
     const net = winMoney - totalPaid;
