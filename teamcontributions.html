@@ -471,7 +471,10 @@ async function init() {
     const season = document.getElementById("seasonSelect").value;
     const feeRules = getFeeRules(feesCSV, season);
 
-    const filtered = matches.filter(r => r.Season === season);
+    const filtered = matches.filter(r =>
+    r.Season?.replace(/\s+/g, " ").trim() === season.replace(/\s+/g, " ").trim()
+);
+
 
     // ⭐ LAST UPDATED BLOCK
     const newest = filtered
