@@ -77,12 +77,15 @@
 
   /* ===== TABLE ===== */
 table {
-    width: auto;              /* ⭐ SHRINKS TO FIT CONTENT */
+    width: max-content;     /* ⭐ SHRINK TO FIT CONTENT */
+    table-layout: auto;     /* ⭐ LET COLUMNS SIZE THEMSELVES */
     border-collapse: collapse;
     background: #ffffffcc;
     margin-top: 20px;
-    table-layout: auto;       /* ⭐ LETS BROWSER SIZE COLUMNS BY CONTENT */
+    margin-left: auto;      /* ⭐ CENTER THE TABLE */
+    margin-right: auto;     /* ⭐ CENTER THE TABLE */
 }
+
 
 
   th, td {
