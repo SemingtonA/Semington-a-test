@@ -319,20 +319,27 @@ function groupByPlayer(rows) {
 
         players[name].MatchCount += 1;
 
-        const isCup = (r["Match Details"] || "").toLowerCase().includes("cup");
-        if (!isCup) {
-        players[name].Ducks += toNum(r.Ducks);
-        players[name].LegsWon += toNum(r["Legs Won"]);
-        players[name].Spares += toNum(r.Spares);
+// determine cup once
+const isCup = (r["Match Details"] || "").toLowerCase().includes("cup");
 
-        // Under 5/6 fines (Leg 1–5 only)
-        const legs = [
-            toNum(r["Leg 1:"]),
-            toNum(r["Leg 2: "]),
-            toNum(r["Leg 3: "]),
-            toNum(r["Leg 4: "]),
-            toNum(r["Leg 5: "])
-        ];
+// always count these
+players[name].LegsWon += toNum(r["Legs Won"]);
+players[name].Spares += toNum(r.Spares);
+
+// only exclude Ducks for cup matches
+if (!isCup) {
+  players[name].Ducks += toNum(r.Ducks);
+}
+
+// Under 5/6 fines (Leg 1–5 only)
+const legs = [
+  toNum(r["Leg 1:"]),
+  toNum(r["Leg 2: "]),
+  toNum(r["Leg 3: "]),
+  toNum(r["Leg 4: "]),
+  toNum(r["Leg 5: "])
+];
+
 
         const threshold = r.Division.toLowerCase() === "premier" ? 5 : 6;
         players[name].UnderCount += legs.filter(l => l < threshold).length;
