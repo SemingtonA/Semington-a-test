@@ -212,7 +212,10 @@
 
 
 <script>
-  console.log("SCRIPT STARTED");
+ console.log("SCRIPT STARTED");
+window.addEventListener("error", e => console.error("Global error:", e.message, e.filename + ":" + e.lineno));
+window.addEventListener("unhandledrejection", e => console.error("Unhandled rejection:", e.reason));
+
 
 // Convert CSV values to numbers safely
 function toNum(v) {
