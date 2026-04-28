@@ -519,14 +519,15 @@ async function init() {
         season.replace(/\s+/g, " ").trim()
     );
 
-    // ⭐ GROUP PLAYERS
-    const players = groupByPlayer(filtered);
+        // ⭐ GROUP PLAYERS
+       const { players, matchesById } = groupByPlayer(filtered);
 
-    // ⭐ APPLY TOP SCORE LOGIC
-    applyTopScoreLogic(players, filtered);
+       // ⭐ APPLY TOP SCORE LOGIC
+       applyTopScoreLogic(players, matchesById);
 
-    // ⭐ CALCULATE FINAL ROWS
-    const finalRows = calculateRows(players, filtered, feeRules);
+       // ⭐ CALCULATE FINAL ROWS
+      const finalRows = calculateRows(players, filtered, feeRules);
+
 
     // ⭐ DEBUG LOGS (to verify Ducks, fees, etc.)
     console.log("feeRules[0]:", feeRules[0]);
