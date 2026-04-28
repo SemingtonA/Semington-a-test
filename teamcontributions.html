@@ -460,10 +460,12 @@ function renderTable(rows, division) {
         `;
     });
 }
+
 async function init() {
     const matches = await loadCSV("csv_export.csv");
     const feesCSV = await loadCSV("csv_team_fees.csv");
 
+    // Build dropdown once
     if (!document.getElementById("seasonSelect")) {
         buildSeasonDropdown(matches);
     }
@@ -471,12 +473,23 @@ async function init() {
     const season = document.getElementById("seasonSelect").value;
     const feeRules = getFeeRules(feesCSV, season);
 
+    // ⭐ FILTER MATCHES FOR SELECTED SEASON (normalised)
     const filtered = matches.filter(r =>
-    r.Season?.replace(/\s+/g, " ").trim() === season.replace(/\s+/g, " ").trim()
-);
+        (r.Season || "").replace(/\s+/g, " ").trim() ===
+        season.replace(/\s+/g, " ").trim()
+    );
 
+    // ⭐ IF NO MATCH DATA → SHOW BLANK TABLE + MESSAGE
+    if (filtered.length === 0) {
+        document.getElementById("divisionDisplay").textContent = "No data for this season";
+        document.getElementById("contributionsTable").innerHTML = "";
+        
+        // Update Last Updated text to blank
+        document.getElementById("lastUpdated").textContent = "Last updated: —";
+        return;
+    }
 
-    // ⭐ LAST UPDATED BLOCK
+    // ⭐ UPDATE LAST UPDATED TEXT
     const newest = filtered
         .map(r => r.UpdatedAt)
         .filter(Boolean)
@@ -485,24 +498,35 @@ async function init() {
 
     document.getElementById("lastUpdated").textContent =
         newest ? `Last updated: ${newest}` : "Last updated: —";
-    // ⭐ END BLOCK
 
+    // ⭐ GROUP PLAYERS + MATCHES
     const { players, matchesById } = groupByPlayer(filtered);
 
+    // ⭐ IF NO PLAYERS → STOP HERE
+    const playerList = Object.values(players);
+    if (playerList.length === 0) {
+        document.getElementById("divisionDisplay").textContent = "No data for this season";
+        document.getElementById("contributionsTable").innerHTML = "";
+        return;
+    }
+
+    // ⭐ APPLY TOP SCORE LOGIC
     applyTopScoreLogic(players, matchesById);
 
+    // ⭐ CALCULATE FINAL ROWS
     const finalRows = calculateRows(players, filtered, feeRules);
 
-    const division = Object.values(players)[0].Division;
+    // ⭐ SET DIVISION DISPLAY
+    const division = playerList[0].Division;
     document.getElementById("divisionDisplay").textContent =
         "Division: " + division;
 
+    // ⭐ RENDER TABLE
     renderTable(finalRows, division);
 }
 
 document.addEventListener("DOMContentLoaded", init);
 </script>
-
 
 
 </body>
