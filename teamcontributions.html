@@ -690,6 +690,31 @@ async function init() {
     // ⭐ RENDER TABLE
     renderTable(finalRows, division);
 }
+(function(){
+  const timeEl = document.querySelector('.last-updated-time');
+  if (!timeEl) return;
+
+  const fmtOptions = {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: false
+  };
+
+  // If your server can set this before the script runs, it will be used
+  const serverIso = window.__LAST_UPDATED_ISO || null;
+
+  function setTimestamp(iso) {
+    const date = iso ? new Date(iso) : new Date();
+    timeEl.setAttribute('datetime', date.toISOString());
+    timeEl.textContent = new Intl.DateTimeFormat(undefined, fmtOptions).format(date);
+  }
+
+  setTimestamp(serverIso);
+
+  // Expose updater for AJAX or manual refresh
+  window.updateLastUpdated = function(isoString) {
+    setTimestamp(isoString || null);
+  };
+})();
 
 document.addEventListener("DOMContentLoaded", init);
 
