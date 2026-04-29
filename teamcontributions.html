@@ -151,7 +151,37 @@
     width: 60px;
     opacity: 0.9;
   }
+/* Last updated above table */
+.last-updated {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 13px;
+  color: #444;
+  margin: 0 0 0.5rem 0;
+}
 
+.last-updated-label {
+  font-weight: 600;
+  color: #666;
+}
+
+.last-updated-time {
+  font-weight: 700;
+  color: #222;
+}
+
+/* Mobile adjustments */
+@media (max-width:900px) {
+  .last-updated { font-size: 12px; gap: 0.4rem; margin-bottom: 0.4rem; }
+  .last-updated-time { font-weight: 700; }
+}
+
+@media (max-width:480px) {
+  .last-updated { font-size: 11px; gap: 0.3rem; }
+}
+
+    
   /* ===== MOBILE ===== */
 @media (max-width: 900px) {
 
@@ -159,7 +189,12 @@
     overflow-x: hidden;
     overscroll-behavior-x: none;
   }
-
+<!-- Insert this directly above the table wrapper or table -->
+<div class="last-updated" aria-label="Last updated">
+  <span class="last-updated-label">Last updated</span>
+  <time class="last-updated-time" datetime="">—</time>
+</div>
+  
   .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -263,7 +298,8 @@
   #contributionsTable td { font-size: 11px !important; }
 }
 
-    
+
+
   </style>
 </head>
 
