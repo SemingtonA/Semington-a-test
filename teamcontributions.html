@@ -145,30 +145,42 @@
   }
 
   /* ===== MOBILE ===== */
-  @media (max-width: 900px) {
-    .header-top {
-      flex-direction: column;
-      text-align: center;
-    }
+@media (max-width: 900px) {
 
-    header h1 {
-      font-size: 32px;
-      margin-top: 10px;
-    }
-
-    .logo img {
-      width: 150px;
-      margin-bottom: 10px;
-    }
-
-    table {
-      font-size: 12px;
-    }
-
-    .footer-logo img {
-      width: 48px;
-    }
+  html, body {
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
   }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-x;
+    width: 100%;
+    position: relative;
+  }
+
+  #contributionsTable {
+    min-width: 900px;
+    table-layout: fixed;
+  }
+
+  #contributionsTable th,
+  #contributionsTable td {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  #contributionsTable {
+    min-width: 560px;
+  }
+}
+
   </style>
 </head>
 
@@ -199,7 +211,10 @@
   <div id="divisionDisplay"></div>
 
   <!-- CLEAN TABLE — NO TBODY -->
-  <table id="contributionsTable"></table>
+<div class="table-wrapper">
+    <table id="contributionsTable" class="contrib-table"></table>
+</div>
+
 
 </main>
 
